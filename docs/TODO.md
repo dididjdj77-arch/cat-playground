@@ -33,3 +33,4 @@ D 냥스타그램(발행/취소/피드/댓글/좋아요)
 E 채널(토픽/피드3종/스레드/답글/좋아요/검색/팔로우)
 F 운영도구(신고/자동숨김/차단 + 카탈로그 승인큐)
 G 웹 SEO(SSR/ISR, 토픽/상세, sitemap, noindex 검색)
+\n<!-- SSOT-CHANGE: CHG-SSOT-MARKERS-TODO-INIT -->\n<!-- SSOT:TODO:BEGIN -->\n<!-- SSOT:TODO:END -->\n
