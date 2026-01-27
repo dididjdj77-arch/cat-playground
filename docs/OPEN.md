@@ -53,3 +53,4 @@
 - 결정에 필요한 질문:
   - 웹 Next.js 확정?
   - 배포(Vercel/EAS/Supabase) 확정?
+\n<!-- SSOT-CHANGE: CHG-SSOT-MARKERS-OPEN-INIT -->\n<!-- SSOT:OPEN:BEGIN -->\n<!-- SSOT:OPEN:END -->\n
