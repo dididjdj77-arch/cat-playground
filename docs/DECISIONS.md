@@ -192,4 +192,8 @@
 - 닉네임 이동 UX: “바로 페이지 이동 아님, 메뉴로” 사용자 확정 발언으로 D-017 고정.
 
 
-\n<!-- SSOT-CHANGE: CHG-SSOT-MARKERS-DECISIONS-INIT -->\n<!-- SSOT:DECISIONS:BEGIN -->\n<!-- SSOT:DECISIONS:END -->\n
+
+<!-- SSOT-CHANGE: CHG-SSOT-MARKERS-DECISIONS-INIT -->
+<!-- SSOT:DECISIONS:BEGIN -->
+<!-- SSOT:DECISIONS:END -->
+
