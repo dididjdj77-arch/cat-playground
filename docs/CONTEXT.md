@@ -1,8 +1,18 @@
 # CONTEXT — 고양이놀이터(가제) (SSOT 진입점)
 
+## Agent Operating Rules (for any chat/agent)
+
+- Start packet: 항상 docs/INDEX.md + docs/CONTEXT.md 를 함께 제공한다.
+- SSOT: docs/DECISIONS.md 는 append-only 원장이다. 기존 D-###는 수정/삭제하지 않고, 변경은 항상 “맨 끝에 새 D-### 추가(supersede)”로만 한다.
+- D-번호는 문서의 마지막 D-번호 + 1로 계산한다(문서 텍스트에 적힌 특정 번호 예시는 무시).
+- docs/OPEN.md / docs/TODO.md 는 작업 문서이며 O-### / T-### 식별자를 유지한다.
+- docs 문서는 전체 덮어쓰기 금지(부분 교체/추가만).
+- 임시 스냅샷 파일(DECISIONS_BRANCH.md, DECISIONS_MAIN.md)은 repo에 포함하지 않는다(.gitignore로 차단).
+
 이 문서는 새 채팅에서 컨텍스트 복구용 1장이다.
 기본 진입점은 docs/INDEX.md 이다.
 확정(LOCK)은 docs/DECISIONS.md가 최종이다.
+
 
 목적: 대화/세션이 여러 개로 나뉘어도 “현재 상태”를 즉시 복구하기 위한 컨텍스트 패킷.
 
