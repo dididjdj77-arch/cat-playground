@@ -197,3 +197,12 @@
 <!-- SSOT:DECISIONS:BEGIN -->
 <!-- SSOT:DECISIONS:END -->
 
+## D-028. 문서 운영 규칙 v1 (INDEX/SSOT)
+- docs/INDEX.md는 문서 네비게이션/업로드용 단일 진입점으로 유지한다.
+- docs/DECISIONS.md는 “원장(LOCK)”이며 기존 항목은 삭제/변경하지 않는다. 변경은 항상 ‘새 D-028 추가’로 supersede 한다.
+- docs/OPEN.md는 미결정 목록이며 O-### 식별자를 유지한다(내용은 변해도 됨).
+- docs/TODO.md는 작업 목록이며 T-### 식별자를 유지한다(내용은 변해도 됨).
+- 자동 PR/에이전트 작업은 docs 파일을 통째로 덮어쓰지 않는다(부분 교체/추가만).
+- 임시 비교 스냅샷 파일(DECISIONS_BRANCH.md, DECISIONS_MAIN.md)은 repo에 포함하지 않는다(.gitignore로 차단).
+
+
