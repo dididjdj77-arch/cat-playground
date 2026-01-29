@@ -39,13 +39,13 @@
 - docs/QA-SCENARIOS.md
 
 ## 5) ADR(결정 근거)
-- docs/ADR-000-template.md
-- docs/ADR-001-channel-v1.md
-- docs/ADR-002-observation-storage.md
-- docs/ADR-003-web-seo-v1.md
-- docs/ADR-004 jsonb-meta-promotion (Accepted)
-- docs/ADR-005 guard-filters-performance (Accepted)
-- docs/ADR-006 payload-version-kpi (Accepted)
+- docs/ADR/ADR-000-template.md
+- docs/ADR/ADR-001-channel-v1.md
+- docs/ADR/ADR-002-observation-storage.md
+- docs/ADR/ADR-003-web-seo-v1.md
+- docs/ADR/ADR-004-jsonb-meta-promotion.md
+- docs/ADR/ADR-005-guard-filters-performance.md
+- docs/ADR/ADR-006-payload-version-kpi.md
 
 
 ## 6) 로컬 실행
