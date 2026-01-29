@@ -1,0 +1,21 @@
+name: Lint DECISIONS
+
+on:
+  pull_request:
+    paths:
+      - "docs/DECISIONS.md"
+      - "scripts/lint-decisions.mjs"
+      - ".github/workflows/lint-decisions.yml"
+
+jobs:
+  lint-decisions:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+
+      - name: Run DECISIONS linter
+        run: node scripts/lint-decisions.mjs
