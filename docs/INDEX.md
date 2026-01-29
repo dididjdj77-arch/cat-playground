@@ -34,7 +34,7 @@
 - docs/ADR-003-web-seo-v1.md
 
 ## 6) 로컬 실행
-- docs/local-setup.md
+- docs/HOWTO/local-setup.md
 
 ## 7) 운영 규칙(간단)
 - 최신 LOCK만 진실: 확정은 DECISIONS 기준
