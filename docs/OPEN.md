@@ -55,6 +55,4 @@
   - 배포(Vercel/EAS/Supabase) 확정?
 
 <!-- SSOT-CHANGE: CHG-SSOT-MARKERS-OPEN-INIT -->
-<!-- SSOT:OPEN:BEGIN -->
-<!-- SSOT:OPEN:END -->
 

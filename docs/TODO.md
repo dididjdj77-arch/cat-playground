@@ -35,6 +35,4 @@ F 운영도구(신고/자동숨김/차단 + 카탈로그 승인큐)
 G 웹 SEO(SSR/ISR, 토픽/상세, sitemap, noindex 검색)
 
 <!-- SSOT-CHANGE: CHG-SSOT-MARKERS-TODO-INIT -->
-<!-- SSOT:TODO:BEGIN -->
-<!-- SSOT:TODO:END -->
 
