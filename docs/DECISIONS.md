@@ -187,6 +187,47 @@
 - GitHub Contents API는 대상 브랜치의 최신 sha 기준으로 처리한다.
 - sha mismatch(409) 발생 시 최신 sha 재조회 후 1회 재시도한다.
 
+## D-028. Payload Version State Machine + KPI
+- 무엇:
+  - Observation payload는 payload_version을 가진다(Contract 식별자).
+  - payload_version 상태 머신을 둔다: ACTIVE / DEPRECATED / REJECT.
+  - 저장 허용 범위:
+    - ACTIVE: 저장 허용.
+    - DEPRECATED: 저장 허용(단, 집계/상품 API는 정규화 단계 통과 후만 반영).
+    - REJECT: 저장 거부(400).
+  - 집계 로직:
+    - 모든 입력(version)은 집계 전에 normalize_to_active(version)로 ACTIVE 스키마로 정규화 후 집계한다.
+    - 정규화 불능 시: 해당 입력은 집계에서 제외하고 normalize_fail_count를 증가시킨다.
+  - KPI(운영 지표):
+    - last_seen_at, reject_count, normalize_fail_count를 수집한다.
+    - 고QPS에서 단일 row 카운터 UPDATE로 인한 경합이 생기지 않도록, KPI는 “이벤트 로그 → 롤업” 방식 구현을 허용한다(세부는 ADR로 정의).
+- 의미: Contract/검증 레이어를 “문서”가 아니라 운영 가능한 시스템으로 만든다(구버전 앱 생존 대응).
+- 영향: payload_versions 메타 및 normalize 파이프라인(ETL/함수) 정의가 필요.
+- 변경: ADR 필요.
+
+## D-029. Common Filter Guard
+- 무엇:
+  - 외부·공개·상품성 데이터 제공은 “집계 RPC 단일 경로”만 허용한다(원본 테이블 직접 노출 금지).
+  - 모든 집계/공개 RPC 내부에서 공통 필터를 강제한다:
+    - guard_soft_state(): deleted/hidden 등 soft-state 필터
+    - guard_block(): block 관계(상호 비노출) 필터
+  - 필터 누락을 방지하기 위해, CI에 “차단 관계 스냅샷 테스트(0 rows)”를 포함한다.
+- 의미: 경로 추가/확장 시에도 개인정보/노출 사고를 구조적으로 방지한다.
+- 영향: guard 함수(또는 동등 로직)의 재사용 구조 + 테스트가 필요.
+- 변경: ADR 권장.
+
+## D-030. JSONB Meta Promotion Rule
+- 무엇:
+  - JSONB meta 포켓은 임시 확장 슬롯이며, 최종 안식처가 아니다.
+  - meta → 컬럼 승격(Promotion) 시 규칙:
+    1) 1회성 백필(back-fill) 스크립트를 실행해 기존 row의 meta 값을 컬럼으로 채운다.
+    2) 승격된 meta 키는 “읽기-전용(readonly)”으로 전환한다(쓰기 금지).
+       - 구버전 클라이언트 호환이 필요하면, 제한된 기간 동안 서버가 해당 키 입력을 수용하되 컬럼으로 canonicalize하고 meta에서 제거한다.
+    3) 승격 이후 SSOT는 컬럼이며, dual-write(컬럼+meta 동시 유지)를 금지한다.
+- 의미: 초기 유연성은 유지하되, 시간이 지날수록 쿼리/인덱스/집계 비용이 폭발하는 것을 막는다.
+- 영향: 승격 템플릿(migrate_meta_key)과 운영 절차(백필/동결/검증)가 필요.
+- 변경: ADR 필요.
+
 ## 해소된 충돌(근거)
 - 채널 v1 범위: “답글/좋아요/검색까지 포함” 사용자 확정 발언으로 D-013 고정.
 - 닉네임 이동 UX: “바로 페이지 이동 아님, 메뉴로” 사용자 확정 발언으로 D-017 고정.
