@@ -1,17 +1,18 @@
-# CONTEXT — 고양이놀이터(가제) (SSOT 진입점)
+# CONTEXT — 고양이놀이터(가제) (세션 복구용 1장)
 
 ## Agent Operating Rules (for any chat/agent)
 
 - Start packet: 항상 docs/INDEX.md + docs/CONTEXT.md 를 함께 제공한다.
+- INDEX: docs/INDEX.md는 “문서 경로 목록”만 유지한다(규칙/설명/항목 내용은 CONTEXT/각 문서에만 둔다).
 - SSOT: docs/DECISIONS.md 는 append-only 원장이다. 기존 D-###는 수정/삭제하지 않고, 변경은 항상 “맨 끝에 새 D-### 추가(supersede)”로만 한다.
 - D-번호는 문서의 마지막 D-번호 + 1로 계산한다(문서 텍스트에 적힌 특정 번호 예시는 무시).
 - docs/OPEN.md / docs/TODO.md 는 작업 문서이며 O-### / T-### 식별자를 유지한다.
 - docs 문서는 전체 덮어쓰기 금지(부분 교체/추가만).
 - 임시 스냅샷 파일(DECISIONS_BRANCH.md, DECISIONS_MAIN.md)은 repo에 포함하지 않는다(.gitignore로 차단).
 
-이 문서는 새 채팅에서 컨텍스트 복구용 1장이다.
-기본 진입점은 docs/INDEX.md 이다.
-확정(LOCK)은 docs/DECISIONS.md가 최종이다.
+이 문서는 새 채팅에서 컨텍스트 복구용 1장(Start packet)이다.
+문서 목록(경로) 진입점: docs/INDEX.md
+SSOT(확정 LOCK): docs/DECISIONS.md
 
 
 목적: 대화/세션이 여러 개로 나뉘어도 “현재 상태”를 즉시 복구하기 위한 컨텍스트 패킷.
@@ -53,7 +54,7 @@
 - 토픽 전부 공개(SEO 대상)
 - 운영 최소장치 v1: 액션별 레이트리밋 + 신고 + 차단(상호 비노출) + 조건부 자동숨김 + 감사로그
 - 닉네임 탭 UX: 즉시 이동이 아니라 액션 메뉴(텍스트 버튼)로 “고양이정보/하우스보기/냥스타그램” 이동
-- 인벤토리 공개/비공개: 사용자 설정(기본값 비공개 권장)
+- 인벤토리 원장: 항상 owner-only. 공개는 house 슬롯에 장착된 아이템 “요약”만 허용(인벤토리 전체 공개는 v1 범위 밖/OPEN).
 - AC-3 정규화: 자동완성 + 자유입력 + 제안 큐(pending) + 관리자 승인/별칭/병합 UI
 
 ## 4) 기술 스택(가정, 변경 가능)
