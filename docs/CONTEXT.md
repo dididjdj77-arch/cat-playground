@@ -1,4 +1,4 @@
-# CONTEXT — 고양이놀이터(가제) (SSOT 진입점)
+# CONTEXT — 고양이놀이터(가제) (세션 복구용 1장)
 
 ## Agent Operating Rules (for any chat/agent)
 
@@ -10,9 +10,9 @@
 - docs 문서는 전체 덮어쓰기 금지(부분 교체/추가만).
 - 임시 스냅샷 파일(DECISIONS_BRANCH.md, DECISIONS_MAIN.md)은 repo에 포함하지 않는다(.gitignore로 차단).
 
-이 문서는 새 채팅에서 컨텍스트 복구용 1장이다.
-기본 진입점은 docs/INDEX.md 이다.
-확정(LOCK)은 docs/DECISIONS.md가 최종이다.
+이 문서는 새 채팅에서 컨텍스트 복구용 1장(Start packet)이다.
+문서 목록(경로) 진입점: docs/INDEX.md
+SSOT(확정 LOCK): docs/DECISIONS.md
 
 
 목적: 대화/세션이 여러 개로 나뉘어도 “현재 상태”를 즉시 복구하기 위한 컨텍스트 패킷.
