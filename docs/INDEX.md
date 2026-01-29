@@ -1,5 +1,9 @@
 # INDEX — SSOT 문서 네비게이션(업로드용)
 
+> Start packet: 새 채팅에서는 docs/INDEX.md + docs/CONTEXT.md 를 함께 제공한다.
+
+> SSOT: 확정(LOCK)은 docs/DECISIONS.md 기준이며, 변경은 PR로만 반영한다.
+
 이 파일은 “ChatGPT에 1개만 업로드해도 문서 구조를 복구”하기 위한 인덱스다.
 원문 SSOT는 각 문서에 있으며, 상세는 링크된 파일을 참조한다.
 
