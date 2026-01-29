@@ -1,22 +1,8 @@
 # INDEX — SSOT 문서 네비게이션(업로드용)
 
-> Start packet: 새 채팅에서는 docs/INDEX.md + docs/CONTEXT.md 를 함께 제공한다.
-
-> SSOT: 확정(LOCK)은 docs/DECISIONS.md 기준이며, 변경은 PR로만 반영한다.
-
-> INDEX 원칙: docs/INDEX.md는 “문서 파일(경로/이름) 목록”만 관리한다.
-
-> - docs/DECISIONS.md / docs/OPEN.md / docs/TODO.md의 항목(D-###/O-###/T-###) 내용은 각 파일에서만 관리한다(※ INDEX에 항목을 복제하지 않는다).
-
-> - ADR은 파일 단위 문서이므로, 새 ADR 파일을 추가/삭제할 때만 INDEX의 docs/ADR 파일 목록을 갱신한다.
-
-
-이 파일은 “ChatGPT에 1개만 업로드해도 문서 구조를 복구”하기 위한 인덱스다.
-원문 SSOT는 각 문서에 있으며, 상세는 링크된 파일을 참조한다.
-
 ## 0) 최소 업로드 세트(추천)
-- docs/INDEX.md (이 파일)
-- docs/CONTEXT.md (세션 복구용 1장)
+- docs/INDEX.md
+- docs/CONTEXT.md
 
 ## 1) 핵심 진입점(우선순위)
 - docs/CONTEXT.md
