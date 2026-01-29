@@ -68,3 +68,20 @@
 - 확정(LOCK): docs/DECISIONS.md
 - 미결정(OPEN): docs/OPEN.md
 - 다음 2~3단계: docs/TODO.md
+
+## 2026-01-30 — v1.1 확장 원칙(운영 안정성 레이어) 반영 요지
+
+이번 반영의 목표: v1.1은 “관찰 최소 구조화 + 유연 스키마(B)”를 유지하되, 데이터 상품/API 관점에서 운영 안정성(정합성·노출 방지·확장 통제)을 선제 강화한다.
+
+- LOCK(DECISIONS)
+  - D-028: payload_version 상태 머신(ACTIVE/DEPRECATED/REJECT) + 저장/집계 분리(집계는 normalize→ACTIVE) + KPI(저경합 수집 허용)
+  - D-029: 외부·공개·상품 API는 집계 RPC 단일 경로 + 공통 필터(soft-state + block) 강제 + 차단 스냅샷 테스트 요구
+  - D-030: JSONB meta는 임시 확장 포켓이며, 승격 시 백필 → meta readonly(또는 호환기간 canonicalize) → SSOT를 컬럼으로 전환(dual-write 금지)
+
+- ADR(새 파일)
+  - ADR-004: jsonb meta promotion(승격 트리거/백필/SSOT 전환 + 준정규 lookup 단계 허용)
+  - ADR-005: guard filter 성능 전략(뷰 중첩 vs SECURITY DEFINER RPC 비교, v1.1은 RPC 중심)
+  - ADR-006: payload version KPI/캐시/포맷 검증(인프로세스 TTL 캐시 우선, KPI는 이벤트/롤업 방식 허용, PK id 포맷 변경은 v1.1 범위 제외)
+
+- OPEN / TODO
+  - OPEN과 TODO는 번호 체계(기존 슬롯)에 맞춰 반영되었으며, 통계 고도화/노이즈/캐시(MV/Redis) 같은 과투자 위험 영역은 계측 후 결정한다.
