@@ -4,11 +4,13 @@
 
 ## T-01 문서 SSOT 고정(이번 패키지 기반)
 - Done when:
-  - DECISIONS가 D-001~D-034을 완전히 반영
+  - DECISIONS가 D-001~D-039을 완전히 반영
   - ARCHITECTURE/DATA/AUTHZ/ROUTES가 서로 모순 없음
 - How to verify:
   - 공개 노출 조건(visibility/published/hidden/blocked)이 모든 문서에서 동일
   - 관찰 Upsert/Patch(멱등성/버전충돌)가 스키마/API/QA에 일관
+  - 하우스 공개 조건(visibility/published/hidden/deleted/blocked)이 ARCHITECTURE/AUTHZ/RLS/RPC/QA에서 동일
+  - 공개 하우스 응답에 cats.avatar_url 및 인벤 원장 id/자유입력 필드가 포함되지 않음(화이트리스트 준수)
 
 ## T-02 Supabase 스키마를 마이그레이션으로 코드화
 - Done when:
@@ -28,7 +30,7 @@
 ## T-04 payload_versions 메타 + 버전 상태 캐시 + KPI 수집(저경합)
 - Done when:
   - payload_versions(버전, 상태, 메타)를 기준으로 ACTIVE/DEPRECATED/REJECT 판정이 서버에서 일관되게 동작
-  - 캐시(TTL <= 5m)가 적용되어 “버전 조회”가 hot-path 병목이 아님(인프로세스 TTL 캐시로 시작, 필요 시 Redis는 옵션)
+  - 캐시(TTL <= 5m)가 적용되어 "버전 조회"가 hot-path 병목이 아님(인프로세스 TTL 캐시로 시작, 필요 시 Redis는 옵션)
   - KPI 수집이 단일 row 카운터 경합을 유발하지 않음(이벤트 로그 → 롤업 또는 동등한 저경합 방식)
   - 샘플 페이로드 → RPC → normalize 결과 스냅샷 테스트가 CI에 포함
 - How to verify:
@@ -51,7 +53,7 @@
 ## T-06 guard_soft_state / guard_block + 차단 스냅샷 CI
 - Done when:
   - 외부·공개·상품성 RPC 경로에서 공통 필터 로직이 반드시 적용됨
-  - CI에 “차단 관계 스냅샷 테스트(0 rows)”가 포함됨
+  - CI에 "차단 관계 스냅샷 테스트(0 rows)"가 포함됨
 - How to verify:
   - A가 B 차단 시: A가 B의 공개/집계 결과를 조회하면 0 rows
   - B가 A 차단 시: B가 A의 공개/집계 결과를 조회하면 0 rows
@@ -74,6 +76,7 @@ D 냥스타그램(발행/취소/피드/댓글/좋아요)
 E 채널(토픽/피드3종/스레드/답글/좋아요/검색/팔로우)
 F 운영도구(신고/자동숨김/차단 + 카탈로그 승인큐)
 G 웹 SEO(SSR/ISR, 토픽/상세, sitemap, noindex 검색)
+H 하우스(2D 씬/슬롯/공개: visibility+published + 공개 DTO 화이트리스트)
 
 
 참조 문서:

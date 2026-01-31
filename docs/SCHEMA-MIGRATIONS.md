@@ -15,16 +15,20 @@
   - visibility (private|public)
   - published_at (nullable)
   - hidden_at (nullable)
+  - deleted_at (nullable)
   - created_at, updated_at
 - [ ] house_slots 테이블 생성
   - id (pk, uuid)
   - owner_id
-  - room_key (text)
+  - room_key (text, default 'living_room')
   - slot_key (text)
   - inventory_item_id (nullable)
   - equipped_at (nullable)
   - created_at, updated_at, deleted_at
   - unique(owner_id, room_key, slot_key)
+
+- [ ] inventory_items current 무결성 인덱스 추가(부분 유니크)
+  - UNIQUE(owner_id, type) WHERE is_current=true AND deleted_at IS NULL
 
 #### 2. observation_groups 확장
 - [ ] payload_version 컬럼 추가 (text, not null)

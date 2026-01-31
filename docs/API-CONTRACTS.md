@@ -64,3 +64,33 @@ GET /admin/reports
 POST /admin/hide / POST /admin/unhide
 GET /admin/catalog_suggestions
 POST /admin/catalog/approve / reject / alias / merge
+
+## 하우스
+
+GET /house/me
+- 목적: 내 하우스(거실 씬 + 슬롯/바인딩 데이터) 조회
+- res: { room_key, slots[{slot_key, inventory_item_id, equipped_at, ...}], cats[...] }
+
+PUT /house/slots/{slotId}
+- 목적: 슬롯 바인딩 저장(배치)
+- req: { inventory_item_id: uuid }  // v1: 저장 시점에 is_current=true 검증
+- res: { slot }
+
+DELETE /house/slots/{slotId}
+- 목적: 슬롯 비우기
+- res: { ok: true }
+
+POST /house/publish
+- 목적: 하우스 발행(노출 허용)
+- 효과: house_profiles.visibility='public', house_profiles.published_at=now()
+- res: { visibility, published_at }
+
+POST /house/unpublish
+- 목적: 하우스 발행 취소(노출 금지)
+- 효과: house_profiles.published_at=null (visibility 유지 여부는 정책으로 명시)
+- res: { visibility, published_at }
+
+GET /profiles/{nickname}/house
+- 목적: 공개 하우스 조회(화이트리스트 DTO)
+- 내부: rpc_get_public_house_slots_summary_by_nickname(또는 동등 RPC) 호출
+- res: 공개 DTO(화이트리스트). cats.avatar_url / inventory ids / raw_text / note / meta 금지

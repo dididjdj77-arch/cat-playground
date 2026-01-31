@@ -22,10 +22,19 @@ v1.1에서는 "공개/외부/상품성 읽기 경로는 SECURITY DEFINER RPC onl
   - visibility/published_at 조건 강제
 
 ### 하우스 (house_profiles, house_slots)
-- 직접 SELECT 제한
-- 공개 조회는 RPC로 제공, 반환 컬럼 화이트리스트:
-  - 슬롯 요약: type, 표준명/별칭, 장착 시점
-  - 자유입력(note/raw_text) 기본 비노출
+- 직접 SELECT 제한(권장: REVOKE + RLS). 공개/타인 조회는 RPC만 허용.
+- 공개 하우스 RPC 내부에서 반드시 강제:
+  - guard_soft_state(): house_profiles.deleted_at/hidden_at + house_slots.deleted_at 필터
+  - guard_visibility_published(): visibility='public' AND published_at IS NOT NULL
+  - guard_block(): 로그인 viewer(auth.uid()) 기준 block 필터
+- 반환 컬럼 화이트리스트(요약 DTO)만:
+  - 슬롯 요약: slot_key, equipped_at, type, (옵션) catalog 표준명/브랜드 등
+  - cats.avatar_url 포함 금지(D-037)
+  - inventory_item_id / inventory_items.id / raw_text / note / meta 등 금지(O-014)
+
+보안 하드닝(SECURITY DEFINER):
+- search_path 고정(예: public)
+- viewer_id는 auth.uid()로 도출(권장). 만약 입력으로 받는다면 p_viewer_id=auth.uid()를 assert.
 
 ## Moderation (blocks, reports)
 - 직접 SELECT 제한

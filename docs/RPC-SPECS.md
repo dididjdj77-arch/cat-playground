@@ -18,6 +18,12 @@ v1.1 기준 최소 RPC 목록과 공통 guard 패턴
 - visibility = 'public'
 - published_at IS NOT NULL
 
+추가 규칙(SECURITY DEFINER 공개 RPC):
+- viewer_id는 기본적으로 auth.uid()에서 도출한다(권장).
+- viewer_id를 파라미터로 받는 경우, 함수 시작에서 반드시 assert:
+  - (auth.uid() is null AND p_viewer_id is null) OR (p_viewer_id = auth.uid())
+  - 불일치 시 error(입력 스푸핑 방지).
+
 ## 관찰 RPC (고위험)
 
 ### rpc_upsert_observation_group_with_items
@@ -89,15 +95,35 @@ FUNCTION rpc_get_public_threads_feed(
 ### rpc_get_public_house_slots_summary
 ```sql
 FUNCTION rpc_get_public_house_slots_summary(
-  p_viewer_id uuid,
   p_target_user_id uuid
 ) RETURNS jsonb
 ```
-- house_profiles.visibility = 'public' 확인
-- guard_block() 적용
-- 반환 컬럼 화이트리스트:
-  - type, 표준명/별칭, 장착 시점
-  - note/raw_text 제외
+내부에서 viewer_id는 auth.uid()로 도출(입력으로 받지 않음).
+
+guard_soft_state() 적용:
+- house_profiles.deleted_at/hidden_at is null
+- house_slots.deleted_at is null
+- inventory_items.deleted_at is null
+
+guard_visibility_published() 적용:
+- house_profiles.visibility='public' AND house_profiles.published_at IS NOT NULL
+
+guard_block(auth.uid(), p_target_user_id) 적용(로그인 viewer만 의미 있음)
+
+반환 컬럼 화이트리스트(요약 DTO)만:
+- slot_key, equipped_at, type, (옵션) catalog 표준명/브랜드 등
+- cats.avatar_url 금지
+- inventory_item_id / inventory_items.id / raw_text / note / meta 금지
+
+### rpc_get_public_house_slots_summary_by_nickname (선택)
+```sql
+FUNCTION rpc_get_public_house_slots_summary_by_nickname(
+  p_target_nickname text
+) RETURNS jsonb
+```
+내부에서 nickname → user_id resolve 후 rpc_get_public_house_slots_summary로 위임
+
+동일 guard/화이트리스트 적용
 
 ## 구현 결정 (TODO)
 - guard 함수를 SQL 함수로 구현할지, RPC 내부 로직으로 구현할지는 구현 단계에서 결정

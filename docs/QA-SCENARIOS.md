@@ -15,7 +15,7 @@
 - public+미발행 → 피드/웹 노출 X
 - 발행 → 노출 O
 - 발행취소 → 노출 X
-- 댓글 수정 → “수정됨” 표시 + 내부 감사로그 1개
+- 댓글 수정 → "수정됨" 표시 + 내부 감사로그 1개
 - hide_from_profile → 프로필 목록 제외(링크/피드 공개 유지)
 
 ## 채널
@@ -25,6 +25,18 @@
 - 검색 FTS + noindex
 - 닉네임 액션 메뉴 동작
 - 차단 후 상호 비노출(피드/검색/프로필/상세)
+
+## 하우스
+- 슬롯 바인딩은 inventory_items 히스토리를 변경하지 않는다(배치만 변경).
+- 슬롯 선택 리스트는 is_current=true만 노출된다.
+- current 0개면 "먼저 냥벤토리에서 등록/현재 설정" 안내가 동작한다.
+- public + 미발행(published_at null) → 타인 접근 불가.
+- public + 발행(published_at not null) → 타인 접근 가능(guard 통과 시).
+- block 관계(로그인 viewer 기준)에서 공개 house 링크 접근 시 404/비노출.
+- 공개 응답 누출 방지:
+  - cats.avatar_url 포함 안 됨(D-037)
+  - inventory_item_id / inventory_items.id 포함 안 됨
+  - raw_text, note, meta 포함 안 됨
 
 ## 운영
 - 신고 누적 → 조건부 hidden_at 설정(삭제 X)
