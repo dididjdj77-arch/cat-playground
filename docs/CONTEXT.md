@@ -4,7 +4,11 @@
 
 - Start packet: 항상 docs/INDEX.md + docs/CONTEXT.md 를 함께 제공한다.
 - INDEX: docs/INDEX.md는 “문서 경로 목록”만 유지한다(규칙/설명/항목 내용은 CONTEXT/각 문서에만 둔다).
-- SSOT: docs/DECISIONS.md 는 append-only 원장이다. 기존 D-###는 수정/삭제하지 않고, 변경은 항상 “맨 끝에 새 D-### 추가(supersede)”로만 한다.
+- SSOT: docs/DECISIONS.md는 확정(LOCK) 원장이다.
+  - D-### 번호는 영구 할당(재사용 금지).
+  - DECISIONS 내용 수정 허용(오타/명확화/정정/정보 업데이트).
+  - 삭제 금지(참조 안정성). superseded는 Status/링크로 표시.
+  - 근본적 방향 전환은 ADR로 근거 기록.
 - D-번호는 문서의 마지막 D-번호 + 1로 계산한다(문서 텍스트에 적힌 특정 번호 예시는 무시).
 - docs/OPEN.md / docs/TODO.md 는 작업 문서이며 O-### / T-### 식별자를 유지한다.
 - docs 문서는 전체 덮어쓰기 금지(부분 교체/추가만).

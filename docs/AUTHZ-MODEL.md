@@ -27,6 +27,6 @@
 - 검색: anon 포함 가능(SEO는 noindex)
 
 ## 하우스/인벤토리
-- inventory_visibility=private: 본인만
-- public: 타인도 조회 가능(요약 우선)
+- inventory_items(인벤토리 원장): 항상 본인만
+- 하우스 공개 노출: (하우스 공개 정책을 만족하는 경우에 한해) 타인은 "슬롯 장착 요약"만 조회 가능
 - block 관계면 비노출

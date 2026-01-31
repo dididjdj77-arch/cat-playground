@@ -1,9 +1,37 @@
-# RLS-POLICY — Supabase RLS 초안(선택)
+# RLS-POLICY — Supabase RLS 정책(v1.1 RPC 중심)
 
-주의: RLS는 잘못 설계하면 개발이 매우 느려질 수 있음.
-v1에서는 공개 읽기를 “뷰/함수”로 제공하고, 쓰기는 Edge Function/RPC로 중앙화하는 방식도 권장.
+## 원칙
+v1.1에서는 "공개/외부/상품성 읽기 경로는 SECURITY DEFINER RPC only"를 기본으로 한다.
+- 원본 테이블 direct select 금지(특히 anon)
+- owner 전용 읽기/쓰기만 RLS로 허용 가능(개발 편의)
+- SECURITY DEFINER 함수는 RLS를 우회할 수 있으므로, 함수 내부에서 soft-state + block + visibility/published를 강제해야 함
+- 함수는 반환 컬럼을 화이트리스트로 제한(특히 하우스 슬롯 요약)
 
-초안:
-- posts: 본인=author_id=auth.uid() / 타인=public+published+not hidden+not deleted (block은 함수/뷰에서)
-- threads/replies: is_public + not hidden + not deleted (block은 함수/뷰)
-- inventory_items: 본인만 기본. public 공개는 요약 뷰로만 제공 권장.
+## Owner 테이블 (기본 RLS 허용)
+### cats, inventory_items, observation_groups, observations
+- SELECT: owner_id = auth.uid()
+- INSERT/UPDATE/DELETE: owner_id = auth.uid()
+
+## 공개 컨텐츠 (RPC 경유 필수)
+### posts, threads, replies, topics
+- 직접 SELECT 원칙적으로 금지
+- 공개 피드/검색/상세는 RPC로 제공
+- RPC 내부에서:
+  - guard_soft_state(): deleted_at/hidden_at 필터
+  - guard_block(): block 관계 필터
+  - visibility/published_at 조건 강제
+
+### 하우스 (house_profiles, house_slots)
+- 직접 SELECT 제한
+- 공개 조회는 RPC로 제공, 반환 컬럼 화이트리스트:
+  - 슬롯 요약: type, 표준명/별칭, 장착 시점
+  - 자유입력(note/raw_text) 기본 비노출
+
+## Moderation (blocks, reports)
+- 직접 SELECT 제한
+- RPC 경유 또는 owner 필터만
+
+## 보안 하드닝 (SECURITY DEFINER 함수)
+- search_path를 고정(예: public)
+- 입력 viewer_id를 첫 단계에서 검증(assert)
+- 외부 공개 RPC는 원본 테이블 직접 노출 금지

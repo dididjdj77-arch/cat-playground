@@ -23,6 +23,9 @@
 - docs/API-CONTRACTS.md
 - docs/ROUTES-AND-IA.md
 - docs/QA-SCENARIOS.md
+- docs/SCHEMA-MIGRATIONS.md
+- docs/RPC-SPECS.md
+- docs/TESTING-STRATEGY.md
 
 ## 5) ADR(결정 근거)
 - docs/ADR/ADR-000-template.md

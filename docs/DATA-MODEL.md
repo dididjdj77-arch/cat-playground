@@ -9,11 +9,16 @@
 
 ## 1) profiles
 - profiles(id pk, nickname unique, avatar_url, bio, created_at, updated_at)
-- profile_settings(user_id pk, inventory_visibility=private|public, default_post_visibility?, created_at, updated_at)
+- profile_settings(user_id pk, default_post_visibility?, created_at, updated_at)
 
 ## 2) cats
 - cats(id pk, owner_id, name, birth_date, sex, breed, avatar_url, created_at, updated_at, deleted_at)
 - index: (owner_id, deleted_at), (owner_id, name)
+
+## 2a) house
+- house_profiles(user_id pk, visibility(private|public), published_at?, hidden_at?, created_at, updated_at)
+- house_slots(id pk, owner_id, room_key, slot_key, inventory_item_id?, equipped_at?, created_at, updated_at, deleted_at)
+  - unique(owner_id, room_key, slot_key)
 
 ## 3) catalog (AC-3)
 - catalog_items(id, type, standard_name, brand, metadata, created_at, updated_at)
@@ -23,12 +28,14 @@
   resolved_catalog_item_id?, reviewed_by?, review_note?, created_at, updated_at)
 
 ## 4) inventory_items
-- inventory_items(id, owner_id, type, catalog_item_id?, raw_text, is_current, changed_at, note?, created_at, updated_at, deleted_at)
+- inventory_items(id, owner_id, type, catalog_item_id?, raw_text, is_current, changed_at, note?, meta jsonb, created_at, updated_at, deleted_at)
 - index: (owner_id, type, is_current), (owner_id, deleted_at)
 
 ## 5) observation (다묘)
-- observation_groups(id, owner_id, log_date, common_payload jsonb, version int, idempotency_key?, created_at, updated_at, deleted_at)
+- observation_groups(id, owner_id, log_date, payload_version text, common_payload jsonb, version int, idempotency_key uuid, created_at, updated_at, deleted_at)
+  - unique(owner_id, idempotency_key)
   - (선택) unique(owner_id, log_date) — 날짜당 1묶음으로 고정할 때
+  - index: (owner_id, log_date), (owner_id, payload_version), (owner_id, idempotency_key)
 - observations(id, group_id, owner_id, cat_id, status(active|excluded), override_payload jsonb?, created_at, updated_at, deleted_at)
   - unique(group_id, cat_id)
 - 필수: 트랜잭션 + idempotency + expected_version 기반 충돌 처리
@@ -59,3 +66,12 @@
 
 ## 10) 집계/보정(권장)
 - like_count/reply_count/comment_count는 트리거 또는 배치로 보정 가능(OPEN: 주기/방식)
+
+## 11) payload_versions / KPI
+- payload_versions(version text pk, state(ACTIVE|DEPRECATED|REJECT), meta jsonb?, created_at, updated_at)
+- payload_version_events(id, ts, version, event_type(seen|reject|normalize_fail), request_id?, reason?, created_at)
+- payload_version_rollups(version, bucket_ts, seen_count, reject_count, normalize_fail_count, last_seen_at)
+
+## 12) ops_metrics
+- ops_metrics(id, ts, metric_key, metric_value_num?, metric_value_text?, meta jsonb?, created_at)
+  - index: (metric_key, ts desc)
