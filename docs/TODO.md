@@ -4,7 +4,7 @@
 
 ## T-01 문서 SSOT 고정(이번 패키지 기반)
 - Done when:
-  - DECISIONS가 D-001~D-026을 완전히 반영
+  - DECISIONS가 D-001~D-034을 완전히 반영
   - ARCHITECTURE/DATA/AUTHZ/ROUTES가 서로 모순 없음
 - How to verify:
   - 공개 노출 조건(visibility/published/hidden/blocked)이 모든 문서에서 동일
@@ -15,7 +15,7 @@
   - DATA-MODEL의 테이블/인덱스/제약이 실제 migrations에 반영
   - 최소 RLS(또는 서버 함수 기반 정책)가 동작
 - How to verify:
-  - anon으로 공개 토픽/스레드/공개 글 읽기 가능
+  - RPC로 공개 토픽/스레드/공개 글 읽기 가능(anon 포함)
   - private/hidden/blocked는 읽기 불가
   - likes unique, 관찰 (group,cat) unique가 깨지지 않음
 
@@ -76,3 +76,7 @@ F 운영도구(신고/자동숨김/차단 + 카탈로그 승인큐)
 G 웹 SEO(SSR/ISR, 토픽/상세, sitemap, noindex 검색)
 
 
+참조 문서:
+- docs/SCHEMA-MIGRATIONS.md: 스키마 마이그레이션 체크리스트
+- docs/RPC-SPECS.md: RPC 시그니처 및 guard 패턴
+- docs/TESTING-STRATEGY.md: CI 필수 테스트 전략
