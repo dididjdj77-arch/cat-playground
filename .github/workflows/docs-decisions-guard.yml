@@ -1,4 +1,4 @@
-name: docs-append-only
+name: docs-decisions-guard
 
 on:
   pull_request:
@@ -6,7 +6,7 @@ on:
       - "docs/DECISIONS.md"
       - "docs/OPEN.md"
       - "docs/TODO.md"
-      - "scripts/check-append-only.ps1"
+      - "scripts/check-decisions-guard.ps1"
 
 jobs:
   check:
@@ -19,7 +19,7 @@ jobs:
       - name: Fetch base branch ref
         run: git fetch origin "${{ github.base_ref }}:refs/remotes/origin/${{ github.base_ref }}"
 
-      - name: Run append-only guard
+      - name: Run DECISIONS guard
         shell: pwsh
         run: |
-          pwsh -File scripts/check-append-only.ps1
+          pwsh -File scripts/check-decisions-guard.ps1

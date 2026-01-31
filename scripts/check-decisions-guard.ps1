@@ -1,4 +1,4 @@
-# scripts/check-append-only.ps1
+# scripts/check-decisions-guard.ps1
 $ErrorActionPreference = "Stop"
 
 # base branch name in GitHub Actions PR context
