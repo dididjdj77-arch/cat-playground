@@ -13,12 +13,18 @@
 
 ## 2) cats
 - cats(id pk, owner_id, name, birth_date, sex, breed, avatar_url, created_at, updated_at, deleted_at)
+- avatar_url: 개인/비공개 자산. 공개 하우스 응답/뷰/DTO에는 포함 금지(D-037).
 - index: (owner_id, deleted_at), (owner_id, name)
 
 ## 2a) house
-- house_profiles(user_id pk, visibility(private|public), published_at?, hidden_at?, created_at, updated_at)
+- house_profiles(user_id pk, visibility(private|public), published_at?, hidden_at?, deleted_at?, created_at, updated_at)
 - house_slots(id pk, owner_id, room_key, slot_key, inventory_item_id?, equipped_at?, created_at, updated_at, deleted_at)
   - unique(owner_id, room_key, slot_key)
+
+비고:
+- v1 room_key는 'living_room' 1개만 사용(방 다중화는 v1.1+).
+- 공개 노출 조건은 visibility='public' AND published_at is not null AND not hidden/deleted AND not blocked(D-035).
+- 공개 하우스에서 노출되는 인벤 정보는 "슬롯 장착 요약(화이트리스트)"만(D-036).
 
 ## 3) catalog (AC-3)
 - catalog_items(id, type, standard_name, brand, metadata, created_at, updated_at)
@@ -30,6 +36,8 @@
 ## 4) inventory_items
 - inventory_items(id, owner_id, type, catalog_item_id?, raw_text, is_current, changed_at, note?, meta jsonb, created_at, updated_at, deleted_at)
 - index: (owner_id, type, is_current), (owner_id, deleted_at)
+- constraint/index (권장): UNIQUE(owner_id, type) WHERE is_current=true AND deleted_at IS NULL
+  - 의미: 한 타입당 current는 최대 1개(0..1)
 
 ## 5) observation (다묘)
 - observation_groups(id, owner_id, log_date, payload_version text, common_payload jsonb, version int, idempotency_key uuid, created_at, updated_at, deleted_at)

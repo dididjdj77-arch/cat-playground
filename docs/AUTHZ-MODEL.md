@@ -27,6 +27,12 @@
 - 검색: anon 포함 가능(SEO는 noindex)
 
 ## 하우스/인벤토리
-- inventory_items(인벤토리 원장): 항상 본인만
-- 하우스 공개 노출: (하우스 공개 정책을 만족하는 경우에 한해) 타인은 "슬롯 장착 요약"만 조회 가능
-- block 관계면 비노출
+- inventory_items(인벤토리 원장): 항상 본인만(owner-only, D-018).
+- 하우스(본인): visibility/private 및 미발행 포함 항상 조회 가능.
+- 하우스(타인): 아래 조건을 **모두** 만족 시에만 조회 가능(D-035):
+  - house_profiles.visibility = 'public'
+  - house_profiles.published_at IS NOT NULL
+  - deleted_at IS NULL AND hidden_at IS NULL
+  - (로그인 viewer 기준) block 관계 아님
+- 타인에게 공개 가능한 인벤토리 정보: "하우스 슬롯 장착 요약(화이트리스트)"만(D-036).
+- 공개 하우스 응답에는 cats.avatar_url 포함 금지(D-037).
