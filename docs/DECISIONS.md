@@ -40,6 +40,7 @@
   - 제외는 삭제가 아니라 excluded 상태(숨김 + 복구)
 - 의미: 다묘 UX/정합성의 핵심.
 - 영향: 원자적 저장/재시도/동시성 제어 필수.
+- 근거(축약, from ADR-002): 그룹/아이템 분리 + Upsert(전체)/Patch(부분) 분리 + 트랜잭션 + idempotency key + version 기반 409 충돌 처리.
 - 변경: ADR 필요.
 
 ## D-006 하우스(집) 탭 방향
@@ -109,6 +110,7 @@
 - 무엇: 글/답글(1-depth)/좋아요/검색 + 인기/최신/팔로잉 + 토픽 팔로우.
 - 의미: 커뮤니티 축적/탐색 엔진을 v1부터 확보.
 - 영향: 검색/집계/운영 장치 필수.
+- 근거(축약, from ADR-001): 검색은 DB FTS로 시작, 검색결과는 noindex. 성능/정합성 위해 cursor pagination, 집계 보정 잡을 둔다.
 - 변경: ADR 필요.
 
 ## D-014 운영 최소장치 v1
@@ -125,6 +127,7 @@
   - noindex: 내부 검색 결과
 - 의미: 유입 엔진을 기술/정책으로 고정.
 - 영향: 품질 게이트/캐시 재검증 필요.
+- 근거(축약, from ADR-003): hidden/deleted 처리(404/410)는 OPEN에서 확정. SSR/ISR + 품질 게이트.
 - 변경: ADR 필요.
 
 ## D-016 토픽 전부 공개(SEO 대상)
@@ -172,6 +175,7 @@
 - 무엇: Upsert(전체)/Patch(부분) 분리 + 트랜잭션 + idempotency + version 충돌(409).
 - 의미: 재시도/동시편집/부분편집에서 데이터 찢김 방지.
 - 영향: group.version / expected_version 필요.
+- 근거(축약, from ADR-002): 그룹/아이템 분리 구조에서 멱등성과 version 기반 충돌 처리로 데이터 정합성 보장.
 - 변경: ADR 필요.
 
 ## D-023 채널 기술 가드레일(심화)
@@ -419,8 +423,8 @@
 ## D-047 Execution/Result Packet 운영 표준
 - 무엇:
   - 모든 구현 작업은 `docs/TODO.md`의 티켓(T-XXX) 단위로 진행한다.
-  - 각 티켓은 Execution Packet(EP)으로 지시하며, EP는 `docs/packets/EXECUTION-PACKET-TEMPLATE.md` 형식을 따른다.
-  - 결과 제출은 PR 1개로 하며, PR 본문은 Result Packet 형식(`docs/packets/RESULT-PACKET-TEMPLATE.md`의 섹션 유지)을 채운다.
+  - 각 티켓은 Execution Packet(EP)으로 지시하며, EP는 `docs/PACKET-TEMPLATES.md` 형식을 따른다.
+  - 결과 제출은 PR 1개로 하며, PR 본문은 Result Packet 형식(`docs/PACKET-TEMPLATES.md`의 섹션 유지)을 채운다.
   - PR 생성 시 기본 본문은 `.github/pull_request_template.md`를 따른다.
   - EP에는 최소한 Allowed changes / Validation / DoD / Evidence required 를 포함한다.
   - Result Packet에 Evidence(실행한 명령/SQL + 출력)가 없으면 “미검증”으로 간주하고 리뷰를 중단한다(불합격).

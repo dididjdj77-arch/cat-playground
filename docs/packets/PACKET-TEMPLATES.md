@@ -1,9 +1,19 @@
-# OMOC Execution Packet — EP-XX: <short title>
+# PACKET-TEMPLATES — Execution/Result Packet 템플릿
+
+> 작업 지시(Execution)와 결과 보고(Result)를 위한 표준 양식.
+> See: D-047 (Execution/Result Packet 운영 표준), D-048 (T-XXX 식별자)
+
+---
+
+## Execution Packet Template
+
+```markdown
+# Execution Packet — EP-T-XXX: <short title>
 
 ## SSOT read first
 - docs/<...>.md
 - docs/DECISIONS.md (D-###, D-###)
-- docs/ADR/ADR-###-....md (if any)
+- docs/ADR-###-....md (if any)
 
 ## Goal
 - What to implement:
@@ -19,7 +29,7 @@
 - Allowed changes:
   - <paths>
 - Forbidden changes:
-  - <paths / “everything else”>
+  - <paths / "everything else">
 
 ## Contract
 - Entry point(s): <RPC / route / job>
@@ -66,3 +76,49 @@
 - Evidence required in PR:
   - paste output for smoke + negative tests
   - list changed files
+```
+
+---
+
+## Result Packet Template (PR Description)
+
+```markdown
+# Result Packet — T-XXX: <short title>
+
+## What changed
+- Files changed:
+  - ...
+- Summary:
+  - ...
+
+## Scope compliance
+- Allowed changes only: ✅ / ❌
+- Forbidden paths touched: ✅ none / ❌ yes (explain)
+
+## How to verify
+- Environment:
+  - <local / CI> + <versions if relevant>
+- Commands executed:
+  - <cmd1>
+  - <cmd2>
+
+## Evidence (copy/paste outputs)
+### Smoke
+- <command/sql>
+- Output:
+  - ...
+
+### Negative tests
+- <command/sql>
+- Output:
+  - ...
+
+## Risk notes
+- Rollback plan:
+  - <how to revert safely>
+- Edge cases:
+  - ...
+
+## OPEN questions (if any)
+- ...
+```

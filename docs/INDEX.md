@@ -29,9 +29,6 @@
 
 ## 5) ADR
 - docs/ADR-000-template.md
-- docs/ADR-001-channel-v1.md
-- docs/ADR-002-observation-storage.md
-- docs/ADR-003-web-seo-v1.md
 - docs/ADR-004-jsonb-meta-promotion.md
 - docs/ADR-005-guard-filters-performance.md
 - docs/ADR-006-payload-version-kpi.md
@@ -40,5 +37,4 @@
 ## 6) 기타
 - docs/HOWTO/local-setup.md
 - docs/engineering-philosophy-v1.md
-- docs/EXECUTION-PACKET-TEMPLATE.md
-- docs/RESULT-PACKET-TEMPLATE.md
+- docs/PACKET-TEMPLATES.md
