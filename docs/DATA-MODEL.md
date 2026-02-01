@@ -18,8 +18,12 @@
 
 ## 2a) house
 - house_profiles(user_id pk, visibility(private|public), published_at?, hidden_at?, deleted_at?, created_at, updated_at)
+  - constraint(권장): CHECK (NOT (visibility='private' AND published_at IS NOT NULL))
+  - 전이 규칙: visibility를 private로 변경하면 published_at=NULL 강제(서버/RPC) + DB CHECK로 방어
 - house_slots(id pk, owner_id, room_key, slot_key, inventory_item_id?, equipped_at?, created_at, updated_at, deleted_at)
   - unique(owner_id, room_key, slot_key)
+  - v1(living_room) slot_key SSOT: slot_01..slot_08
+  - slot_key는 opaque id이며 의미/좌표/레이어는 클라이언트 씬 config가 소유한다.
 
 비고:
 - v1 room_key는 'living_room' 1개만 사용(방 다중화는 v1.1+).
@@ -38,6 +42,10 @@
 - index: (owner_id, type, is_current), (owner_id, deleted_at)
 - constraint/index (권장): UNIQUE(owner_id, type) WHERE is_current=true AND deleted_at IS NULL
   - 의미: 한 타입당 current는 최대 1개(0..1)
+- v1 type SSOT: food | litter | toy | medicine | furniture
+  - 의미 통합: food는 간식 포함, medicine은 영양제 포함, furniture는 캣타워/침대/스크래처 포함
+- constraint(권장): CHECK (type IN ('food','litter','toy','medicine','furniture'))
+- deleted_at: 사용자 기능 미사용(v1에서 항상 NULL). 운영/데이터 수리 목적의 예약 필드.
 
 ## 5) observation (다묘)
 - observation_groups(id, owner_id, log_date, payload_version text, common_payload jsonb, version int, idempotency_key uuid, created_at, updated_at, deleted_at)
@@ -51,6 +59,8 @@
 ## 6) nyanstagram
 - posts(id, author_id, body, log_date, visibility(private|public), published_at?, hide_from_profile bool,
   like_count int, comment_count int, hidden_at?, created_at, updated_at, deleted_at)
+  - constraint(권장): CHECK (NOT (visibility='private' AND published_at IS NOT NULL))
+  - 전이 규칙: visibility를 private로 변경하면 published_at=NULL 강제(서버/RPC) + DB CHECK로 방어
   - index: (author_id, log_date desc), (visibility,published_at desc where public+published), (published_at desc)
 - comments(id, post_id, author_id, body, edited_at?, like_count, hidden_at?, created_at, updated_at, deleted_at)
 - comment_revisions(id, comment_id, previous_body, created_at) — 이전 본문 1개만 유지(내부 감사)
@@ -70,6 +80,8 @@
 ## 9) moderation
 - blocks(blocker_id, blocked_id, created_at) pk(blocker_id, blocked_id)
 - reports(id, reporter_id, target_type, target_id, reason_code, note?, created_at)
+  - constraint(권장): UNIQUE(reporter_id, target_type, target_id) WHERE deleted_at IS NULL
+  - 의미: 동일 사용자의 동일 대상 중복 신고 방지
 - moderation_actions(id, actor_id, action, target_type, target_id, meta jsonb?, created_at)
 
 ## 10) 집계/보정(권장)
