@@ -49,6 +49,9 @@
   - 인벤토리 원장 변경/히스토리 관리는 하우스와 분리된 '냥벤토리 관리' 플로우에서만 수행한다.
   - 슬롯은 **배치(연결)**이며, 인벤토리 히스토리 이벤트가 아니다(원장 상태/히스토리 변경 없음).
   - 슬롯에서 선택 가능한 인벤토리는 **is_current=true만**(현재 사용중만).
+  - v1 living_room의 slot_key는 opaque id를 사용: slot_01..slot_08 (v1 기본 8개)
+  - 근거: v1 UI 디자인(앵커/거점 8개)을 기준으로 한다.
+  - 확장 정책: 슬롯 수/배치는 "서버 허용 리스트 + 클라이언트 씬 config"를 동시 업데이트하여 조정한다(임의 변경 금지).
 - 의미: 하우스(상태/전시) vs 다이어리(빈번 입력) vs 인벤 원장(관리) 분리.
 - 영향:
   - 공개 정책은 D-018을 따른다(공개는 슬롯 장착 요약만; 인벤 원장 owner-only 유지).
@@ -62,6 +65,8 @@
   - published_at(null/ts)
   - 노출: public AND published_at not null AND not hidden
   - 발행/발행취소: published_at set/unset
+  - 불변식: visibility='private' 인 경우 published_at은 항상 NULL이어야 한다(금지 조합: private + published_at NOT NULL)
+  - 전이 규칙: visibility를 private로 변경하는 시점에 published_at=NULL을 강제한다(서버/RPC에서 정리 + DB CHECK로 방어)
 - 의미: 공개 의도와 발행 의도를 분리해 안전한 공개 UX.
 - 영향: 인덱스/쿼리 기준이 2축(log_date/published_at).
 - 변경: ADR 필요.
@@ -170,7 +175,13 @@
 - 변경: ADR 필요.
 
 ## D-023 채널 기술 가드레일(심화)
-- 무엇: 피드 3종 쿼리/캐시 분리, cursor pagination, FTS 인덱스, likes unique + 카운트 보정 잡.
+- 무엇: 
+  - 피드 3종 쿼리/캐시 분리, cursor pagination, FTS 인덱스, likes unique + 카운트 보정 잡.
+  - 검색(v1): Postgres FTS(tsvector(title+body) + GIN)로 시작한다.
+  - 한국어 대응(v1): 공백 기준 토큰화 + pg_trgm 보조 인덱스로 부분일치(부분검색/오타 내성)를 보완한다.
+  - Known limitation(v1): 형태소 분석 없이 "사료" 검색이 "고양이사료"에 미매칭될 수 있다(품질 한계 인정).
+  - 확장 경로: pgroonga 또는 외부 검색(MeiliSearch/Typesense) 도입은 ADR로만 수행한다(백엔드 교체 가능).
+  - 계약 고정: 검색 RPC 시그니처/응답 DTO는 백엔드 교체와 무관하게 유지한다.
 - 의미: v1에서 성능/정합성/운영 리스크 최소화.
 - 영향: 집계/보정 작업 설계 필요.
 - 변경: ADR 권장.
@@ -295,6 +306,9 @@
     - house_profiles.published_at IS NOT NULL
     - house_profiles.deleted_at IS NULL AND house_profiles.hidden_at IS NULL
     - viewer/target 간 block 관계 아님(로그인 viewer 기준)
+  - 접근 정책(LOCK): 공개 하우스 조회는 auth-only(로그인 사용자만)이다.
+  - 보안 UX(LOCK): 미인증/비공개/숨김/삭제/차단/미발행은 모두 404로 통일한다(존재 은닉).
+  - 비고: 로그인 필요 메시지는 UI 레이어에서 처리한다.
 - 의미: "공개 설정"과 "발행(노출 허용)"을 분리해 노출 사고를 줄인다.
 - 영향: AUTHZ/RLS/RPC/QA에서 위 조건을 동일한 불리언 식으로 강제해야 한다.
 - 변경: ADR 필요.
@@ -319,7 +333,14 @@
 ## D-038. 인벤토리 타입 v1 고정(정식 코드)
 - 무엇:
   - inventory_items.type은 v1에서 고정된 정식 코드 목록을 사용한다.
-  - 정식 코드는 DATA-MODEL에 SSOT로 문서화하고, 앱/서버는 이를 enum처럼 사용한다.
+  - v1 정식 코드 목록(SSOT):
+    - food (간식 포함)
+    - litter
+    - toy
+    - medicine (영양제 포함)
+    - furniture (캣타워/침대/스크래처 포함)
+  - v1 제외(v1.1 후보): grooming, carrier, accessory
+  - 확장 규칙: 타입 추가는 DECISIONS/ADR + DB 제약 + 앱/서버 enum 동시 반영(부분 반영 금지).
 - 의미: 타입 변경은 UX/통계/검색/카탈로그에 파급이 크므로 v1에서 변동을 제한한다.
 - 영향: DATA-MODEL 문서에 타입 목록 명시 필요.
 - 변경: ADR 필요.
@@ -330,5 +351,68 @@
   - publish는 "노출 허용 상태 전환"이며 데이터는 실시간(현재) 기준이다.
 - 의미: 스냅샷/MV로 인한 동기화/백필/정합성 비용을 v1에서 피한다.
 - 영향: 성능 이슈는 OPEN으로 관리하고 v1.1+에서 MV/캐시를 선택한다.
+- 변경: ADR 필요.
+
+## D-040. 인벤토리 수정 정책(삭제 없음)
+- 무엇: 사용자는 inventory_items를 논리적으로도 삭제하지 않는다(사용자 기능으로 deleted_at 미사용; v1에서는 항상 NULL).
+- 정정 방법(LOCK): 잘못된 항목은 is_current=false로 전환하고, 새 항목을 추가한다(append-only).
+- UX: 사용자는 "수정"을 수행할 수 있으나, 내부적으로는 새 row 생성으로 처리한다(원장/이력 보존).
+- deleted_at 용도: 운영자/데이터 수리 목적의 예약 필드(사용자 노출/로직 미구현).
+- 슬롯 영향: inventory_item이 non-current가 되면 D-043 규칙을 적용한다.
+- 의미: 이력 보존 + 원장 무결성 유지.
+- 영향: UX에서 "수정" 동작은 내부적으로 새 row 추가로 구현해야 한다.
+- 변경: ADR 필요.
+
+## D-041. observation idempotency TTL 정책
+- 무엇: observation_groups.idempotency_key 중복 검사 유효 기간은 7일로 한다.
+- cleanup 동작(LOCK): 7일 경과 observation_groups의 idempotency_key를 NULL로 설정한다.
+  - observation 데이터는 유지된다.
+  - 동일 key 재요청 시 새 그룹으로 생성된다(멱등 창 종료).
+- 구현: 일 1회 cleanup job으로 수행한다(now() 의존 partial unique index로 TTL을 구현하지 않는다).
+- 대안(선택): idempotency_history 테이블 분리 시 TTL 후 history row 삭제(ADR로만).
+- 의미: 멱등성 보장 기간과 저장 공간 균형.
+- 영향: cleanup job 구현 필요.
+- 변경: ADR 필요.
+
+## D-042. observation payload 최소 형태 검증(400)
+- 무엇: observation upsert/patch RPC 입구에서 payload의 최소 골격(필수 키/타입)을 검증하고 실패 시 400을 반환한다.
+- 의미: 잘못된 JSON 저장으로 normalize/롤업 파손을 방지한다.
+- 영향: RPC에 입력 검증 로직 추가 필요.
+- 변경: ADR 필요.
+
+## D-043. current 변경 후 슬롯 노출 규칙
+- 무엇: 슬롯 저장 시점에는 is_current=true만 장착 가능하다.
+- 이후 non-current가 되면:
+  - 본인 화면: "현재 아이템 아님" 경고 + 교체 유도
+  - 공개 DTO: 해당 슬롯은 빈 슬롯으로 취급(요약에서 제외 또는 empty 표시)
+- 구현 상세(LOCK):
+  - 공개 RPC: house_slots JOIN inventory_items 시 공개 허용 조건을 만족하는 row만 결합한다(최소: inventory_items.is_current=true).
+    - 조건 불만족이면 JOIN 실패 → 슬롯은 공개 결과에서 제외/empty 처리.
+  - DB 저장: house_slots.inventory_item_id는 유지한다(참조 보존).
+  - 본인 RPC: is_current와 무관하게 슬롯을 반환하고 non_current 플래그를 포함한다.
+- 의미: 슬롯 일관성과 공개 품질 유지.
+- 영향: 공개/본인 RPC 로직 분리 필요.
+- 변경: ADR 필요.
+
+## D-044. House 보안 UX(존재 은닉)
+- 무엇: House 공개 조회 경로의 상태코드는 D-035의 보안 UX 규칙을 따른다.
+- 규칙: 미인증/비공개/숨김/삭제/차단/미발행은 모두 404로 통일한다.
+- See: D-035
+- 의미: 존재 은닉을 통한 프라이버시 보호.
+- 영향: 공개 하우스 RPC/API에서 상태코드 통일 필요.
+- 변경: ADR 필요.
+
+## D-045. payload_version_events retention
+- 무엇: payload_version_events는 90일 보관 후 삭제한다. payload_version_rollups는 영구 보관한다.
+- 의미: 이벤트 로그 디스크 폭발 방지 + KPI는 롤업으로 장기 보존.
+- 영향: cleanup job 또는 파티션 정책 구현 필요.
+- 변경: ADR 필요.
+
+## D-046. like_count 동시성 처리 원칙
+- 무엇: like_count 증감은 read-modify-write를 금지하고, 원자 UPDATE로 수행한다.
+  - 예: SET like_count = like_count + 1 / SET like_count = like_count - 1
+- 의미: 동시 요청에서 lost update를 방지한다.
+- 비고: 필요 시(고부하/불일치) 배치 보정 또는 이벤트 기반 롤업으로 확장 가능(ADR로만).
+- 영향: 좋아요 토글 로직에서 원자 UPDATE 사용 필요.
 - 변경: ADR 필요.
 
