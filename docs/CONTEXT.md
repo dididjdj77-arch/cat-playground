@@ -1,30 +1,51 @@
 # CONTEXT — 고양이놀이터(가제) (세션 복구용 1장)
 
-## Agent Operating Rules (for any chat/agent)
+## Agent Operating Rules
+
+### 읽기 순서
+1. CONTEXT.md (이 파일)
+2. INDEX.md (경로 목록)
+3. DECISIONS.md (확정 원장)
+4. 필요한 문서 (AUTHZ, DATA-MODEL 등)
+
+### 문서 역할 (SSOT)
+
+| 문서 | 책임 | 금지 |
+|------|------|------|
+| CONTEXT | 운영규칙/세션복구/읽기순서 | 도메인 정책식 복붙 |
+| INDEX | 경로 목록만 | 규칙/설명 문장 |
+| DECISIONS | 확정(D-###) 원장 | 삭제/번호 재사용 |
+| OPEN | 미정의(O-###) | 확정 결론 |
+| TODO | Active 작업 최대 3개(T-###) | 백로그/아카이브 |
+| AUTHZ-MODEL | 정책식 원문(§0) | — |
+| ADR/* | 방향 전환 근거 (최대 5개) | 템플릿 미준수 ADR |
+
+### 변경 규칙
 
 - Start packet: 항상 docs/INDEX.md + docs/CONTEXT.md 를 함께 제공한다.
-- INDEX: docs/INDEX.md는 “문서 경로 목록”만 유지한다(규칙/설명/항목 내용은 CONTEXT/각 문서에만 둔다).
-- SSOT: docs/DECISIONS.md는 확정(LOCK) 원장이다.
-  - D-### 번호는 영구 할당(재사용 금지).
-  - DECISIONS 내용 수정 허용(오타/명확화/정정/정보 업데이트).
-  - 삭제 금지(참조 안정성). superseded는 Status/링크로 표시.
+- INDEX: "문서 경로 목록"만 유지 (규칙/설명은 CONTEXT/각 문서에만).
+- DECISIONS:
+  - D-### 번호는 영구 할당 (재사용 금지).
+  - 내용 수정 허용 (오타/명확화/정정).
+  - 삭제 금지 (참조 안정성). superseded는 Status/링크로 표시.
   - 근본적 방향 전환은 ADR로 근거 기록.
-- D-번호는 문서의 마지막 D-번호 + 1로 계산한다(문서 텍스트에 적힌 특정 번호 예시는 무시).
-- docs/OPEN.md / docs/TODO.md 는 작업 문서이며 O-### / T-### 식별자를 유지한다.
-- docs 문서는 전체 덮어쓰기 금지(부분 교체/추가만).
-- 임시 스냅샷 파일(DECISIONS_BRANCH.md, DECISIONS_MAIN.md)은 repo에 포함하지 않는다(.gitignore로 차단).
+- D-번호는 문서의 마지막 D-번호 + 1로 계산.
+- OPEN: 해소되면 `Status: Resolved → D-###` 표시.
+- TODO: Active 최대 3개. 완료시 삭제. 백로그는 별도 관리.
+- ADR: 실제 ADR 최대 5개 (Template 제외). 초과시 DECISIONS에 흡수 후 삭제.
+- docs 문서는 전체 덮어쓰기 금지 (부분 교체/추가만).
 
-이 문서는 새 채팅에서 컨텍스트 복구용 1장(Start packet)이다.
-문서 목록(경로) 진입점: docs/INDEX.md
-SSOT(확정 LOCK): docs/DECISIONS.md
+### 정책식 원문 위치
+- 공개 노출 조건, 차단 정책, 불변식은 **AUTHZ-MODEL.md §0**에 정의.
+- 다른 문서는 `See AUTHZ-MODEL §0` 링크만 사용.
 
-
-목적: 대화/세션이 여러 개로 나뉘어도 “현재 상태”를 즉시 복구하기 위한 컨텍스트 패킷.
+---
 
 ## 1) 한 줄 정의
 집사들이 다묘 관찰(다이어리)과 커뮤니티(채널 + 냥스타그램)를 통해 정보를 축적/탐색하는 서비스.
 
 ## 2) 목표 / 비목표
+
 ### 목표
 - 기록(관찰/다이어리) UX는 라이트하게, 데이터는 정합하게(다묘)
 - 공개/비공개 혼란을 구조적으로 제거(표면 분리 + 발행 개념)
@@ -37,71 +58,36 @@ SSOT(확정 LOCK): docs/DECISIONS.md
 - 대규모 개인화 추천/알림: v1.1~v2
 
 ## 3) 확정(LOCK) 핵심 요약
+> 상세는 DECISIONS.md 참조
+
 - 앱 IA: 하단 탭 4개(하우스/다이어리/소셜/설정)
 - 소셜 세그먼트: 냥스타그램, 채널 (+추후 알림/내 활동)
-- 표면 분리:
-  - 다이어리 = “내 것”(관찰 + 내 냥스타그램), log_date 기준 누적
-  - 소셜/웹 = “공개 + 발행된 것만” 탐색/상호작용
-- 다이어리 UX:
-  - 상단 인라인 작성 패널 2개(관찰/내 냥스타) 기본 접힘, 저장 시 자동 접힘
-  - 하단 날짜 그룹 리스트(B1), log_date 기준
-  - 달력은 다이어리 탭 안에서만(한 페이지), 점프용
-- log_date 정책: 오늘 이하만 허용(미래 금지)
-- 드래프트: 로컬-only, 서버 반영은 저장 버튼 시점
-- 관찰(다묘): UI 1카드처럼, 저장은 고양이별 N 레코드 + override + excluded(삭제 아님)
-- 냥스타그램: visibility(private/public) + published_at(null/ts) + log_date
-  - 공개 노출: public AND published_at not null AND not hidden
-  - 발행/발행취소: published_at set/unset
-  - 상호작용: 좋아요 + 댓글 CRUD(수정 포함)
-  - 댓글 수정 정책: 시간 제한 없음 + “수정됨” 표시 + 내부 감사로그(이전 본문 1개 보관)
-- 채널 v1(Blind 벤치마킹, 익명성 제외): 글/답글(1-depth)/좋아요/검색 + 인기/최신/팔로잉 + 토픽 팔로우
-- 토픽 전부 공개(SEO 대상)
-- 운영 최소장치 v1: 액션별 레이트리밋 + 신고 + 차단(상호 비노출) + 조건부 자동숨김 + 감사로그
-- 닉네임 탭 UX: 즉시 이동이 아니라 액션 메뉴(텍스트 버튼)로 “고양이정보/하우스보기/냥스타그램” 이동
-- 인벤토리 원장: 항상 owner-only. 공개는 house 슬롯에 장착된 아이템 “요약”만 허용(인벤토리 전체 공개는 v1 범위 밖/OPEN).
-- AC-3 정규화: 자동완성 + 자유입력 + 제안 큐(pending) + 관리자 승인/별칭/병합 UI
+- 표면 분리: 다이어리="내 것", 소셜/웹="공개+발행된 것만"
+- 공개 노출 조건: See AUTHZ-MODEL §0
+- 채널 v1: 글/답글(1-depth)/좋아요/검색 + 피드3종 + 토픽 팔로우
+- 운영 최소장치 v1: 레이트리밋 + 신고 + 차단(상호 비노출) + 자동숨김 + 감사로그
 
-## 4) 기술 스택(가정, 변경 가능)
+## 4) 기술 스택
 - 앱: Expo(React Native)
 - 웹(SEO): Next.js(SSR/ISR)
 - 백엔드: Supabase(Postgres/Auth/Storage/Edge Functions)
 - 검색: DB FTS(tsvector)로 시작
 
-스택 변경은 가능하되, 정책/도메인/데이터 모델을 깨는 변경이면 ADR로 기록.
+스택 변경 시 정책/도메인/데이터 모델을 깨면 ADR로 기록.
 
-## 5) 협업 분업 원칙 (컨트롤 플레인 / 데이터 플레인)
+## 5) 협업 분업 원칙
 
-컨트롤 플레인 (사용자 + 어시스턴트):
-- 설계·검증·판단: SSOT/LOCK/OPEN/ADR 기준으로 요구사항 구조화, 위험도 판단, 성공조건(DoD)·검증·롤백 전략 정의
-- 최종 리뷰·승인: PR diff/테스트/마이그레이션 결과 검토 → 승인/수정지시/재작업 결정
-- 충돌 처리: 문서 vs 구현/PR 충돌 시 자동 결론 금지, 차이/영향 정리 → 질문 또는 ADR/OPEN
+**컨트롤 플레인** (사용자 + 어시스턴트):
+- 설계·검증·판단: SSOT/LOCK/OPEN/ADR 기준
+- 최종 리뷰·승인: PR diff/테스트 검토 → 승인/수정지시
+- 충돌 처리: 자동 결론 금지, 차이/영향 정리 → 질문
 
-데이터 플레인 (omoc/Claude Code 등 실행자):
-- 구현 실행: 컨트롤 플레인이 정한 스코프/금지/DoD 범위 내에서만 구현
-- 산출: PR + (가능하면) CI/테스트/린트/타입체크/마이그레이션 결과
-- 질문 규칙: 불확실/SSOT 충돌 가능성 → 임의 결론 대신 질문(OPEN 후보) 남기고 멈춤
-
-(상세 워크플로우 문서는 현재 보류. 필요 시 OPEN/TODO로 트래킹 후 문서화.)
+**데이터 플레인** (omoc/Claude Code 등):
+- 구현 실행: 컨트롤 플레인이 정한 스코프/DoD 범위 내에서만
+- 산출: PR + CI/테스트 결과
+- 불확실시: 임의 결론 대신 질문으로 멈춤
 
 ## 6) 현재 문서 위치
 - 확정(LOCK): docs/DECISIONS.md
 - 미결정(OPEN): docs/OPEN.md
-- 다음 2~3단계: docs/TODO.md
-
-
-## 2026-01-30 — v1.1 확장 원칙(운영 안정성 레이어) 반영 요지
-
-이번 반영의 목표: v1.1은 “관찰 최소 구조화 + 유연 스키마(B)”를 유지하되, 데이터 상품/API 관점에서 운영 안정성(정합성·노출 방지·확장 통제)을 선제 강화한다.
-
-- LOCK(DECISIONS)
-  - D-028: payload_version 상태 머신(ACTIVE/DEPRECATED/REJECT) + 저장/집계 분리(집계는 normalize→ACTIVE) + KPI(저경합 수집 허용)
-  - D-029: 외부·공개·상품 API는 집계 RPC 단일 경로 + 공통 필터(soft-state + block) 강제 + 차단 스냅샷 테스트 요구
-  - D-030: JSONB meta는 임시 확장 포켓이며, 승격 시 백필 → meta readonly(또는 호환기간 canonicalize) → SSOT를 컬럼으로 전환(dual-write 금지)
-
-- ADR(새 파일)
-  - ADR-004: jsonb meta promotion(승격 트리거/백필/SSOT 전환 + 준정규 lookup 단계 허용)
-  - ADR-005: guard filter 성능 전략(뷰 중첩 vs SECURITY DEFINER RPC 비교, v1.1은 RPC 중심)
-  - ADR-006: payload version KPI/캐시/포맷 검증(인프로세스 TTL 캐시 우선, KPI는 이벤트/롤업 방식 허용, PK id 포맷 변경은 v1.1 범위 제외)
-
-- OPEN / TODO
-  - OPEN과 TODO는 번호 체계(기존 슬롯)에 맞춰 반영되었으며, 통계 고도화/노이즈/캐시(MV/Redis) 같은 과투자 위험 영역은 계측 후 결정한다.
+- 다음 단계: docs/TODO.md

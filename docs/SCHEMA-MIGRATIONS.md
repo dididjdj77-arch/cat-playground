@@ -1,7 +1,5 @@
 # SCHEMA-MIGRATIONS — 스키마 마이그레이션 체크리스트
 
-현재 스키마 기준(문서상)과 해야 할 migration 목록
-
 ## 필수 마이그레이션 (v1.1 기준)
 
 ### ✅ 완료된 마이그레이션
@@ -17,6 +15,7 @@
   - hidden_at (nullable)
   - deleted_at (nullable)
   - created_at, updated_at
+  - **CHECK**: NOT (visibility = 'private' AND published_at IS NOT NULL)
 - [ ] house_slots 테이블 생성
   - id (pk, uuid)
   - owner_id
@@ -26,17 +25,16 @@
   - equipped_at (nullable)
   - created_at, updated_at, deleted_at
   - unique(owner_id, room_key, slot_key)
-
 - [ ] inventory_items current 무결성 인덱스 추가(부분 유니크)
   - UNIQUE(owner_id, type) WHERE is_current=true AND deleted_at IS NULL
 
 #### 2. observation_groups 확장
 - [ ] payload_version 컬럼 추가 (text, not null)
-- [ ] idempotency_key를 nullable에서 not null로 변경, 타입 uuid로 명시
+- [ ] idempotency_key 타입 uuid 명시 (nullable 유지 — D-041 TTL cleanup용)
 - [ ] 인덱스 추가:
   - (owner_id, log_date)
   - (owner_id, payload_version)
-  - (owner_id, idempotency_key)
+  - (owner_id, idempotency_key) WHERE idempotency_key IS NOT NULL
 
 #### 3. inventory_items 확장
 - [ ] meta 컬럼 추가 (jsonb, default '{}')
@@ -74,6 +72,18 @@
   - meta (jsonb, nullable)
   - created_at
   - index: (metric_key, ts desc)
+
+#### 7. posts CHECK 제약 추가
+- [ ] posts 테이블에 CHECK 추가
+  - CHECK: NOT (visibility = 'private' AND published_at IS NOT NULL)
+
+#### 8. comment_revisions 테이블 생성 (D-009)
+- [ ] comment_revisions 테이블 생성
+  - id (pk, uuid)
+  - comment_id (fk → comments.id)
+  - previous_body (text, not null)
+  - created_at
+  - index: (comment_id)
 
 ## 마이그레이션 실행 원칙
 1. 백업 먼저
