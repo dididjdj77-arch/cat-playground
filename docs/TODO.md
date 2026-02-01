@@ -68,6 +68,11 @@
   - 운영 이벤트(카탈로그 제안/승인/병합 등) 발생 시 ops_metrics가 누적됨
   - 최소 1주치 데이터로 backlog/처리시간 추이가 확인됨
 
+## T-08 EP-T-08: rpc_upsert_observation_group_with_items (idempotency + tx)
+- Done when: rpc_upsert_observation_group_with_items 구현 + 동일 idempotency_key 재호출 시 동일 결과 반환(트랜잭션)
+- How to verify: supabase db reset 후 동일 idempotency_key 2회 호출 → 동일 group_id/version, payload 검증 실패는 400
+
+(선택) 우선순위/범위 1~2줄
 권장 티켓:
 A 앱 뼈대(탭/세그먼트)
 B 다이어리(인라인2패널/드래프트/log_date그룹/점프캘린더)
