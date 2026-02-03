@@ -4,7 +4,8 @@
 
 > 이 섹션은 정책식의 **단일 원문**입니다. 다른 문서는 복붙 금지, 링크만 사용.
 
-### 0-1. 공개 노출 필터 (posts/threads/house 공통)
+### 0-1. 공개 노출 필터
+**posts, house_profiles**
 ```sql
 WHERE deleted_at IS NULL
   AND hidden_at IS NULL
@@ -12,6 +13,13 @@ WHERE deleted_at IS NULL
   AND visibility = 'public'
   AND published_at IS NOT NULL
 ```
+**threads, replies (및 descendants)**
+```sql
+WHERE deleted_at IS NULL
+  AND hidden_at IS NULL
+  AND NOT is_blocked(viewer_id, author_id)
+```
+- threads/replies는 visibility/published 모델이 없으므로 해당 필터를 적용하지 않는다.
 - See: D-029 (guard), D-007 (발행 모델), D-035 (하우스)
 
 ### 0-2. 차단 정책
