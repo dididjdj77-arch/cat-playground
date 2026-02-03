@@ -45,6 +45,7 @@
   - 관리자 권한 모델(단일 운영자 vs 역할 분리)?
 
 ## O-010 기술 스택/배포 확정
+**Status: Resolved → D-049**
 - 결정에 필요한 질문:
   - 웹 Next.js 확정?
   - 배포(Vercel/EAS/Supabase) 확정?

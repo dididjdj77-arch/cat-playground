@@ -445,3 +445,14 @@
 - 영향: 새 작업은 먼저 TODO에서 `T-XXX`를 발급한 뒤 EP/PR을 생성한다.
 - 변경: ADR 불필요(프로세스). 단, 규칙 변경은 새 D-###로 남긴다.
 
+- D-049: 기술 스택/배포 확정 (O-010 해소)
+  - 무엇: 제품 런타임 스택 + 배포 기준선을 확정
+  - 결정:
+    - App: Expo (React Native)
+    - Web(SEO): Next.js (SSR/ISR)
+    - Backend: Supabase (Postgres/Auth/Storage/Edge Functions)
+    - Search v1: Postgres FTS (tsvector)
+    - Deploy: Web=Vercel, App=EAS, Backend=Supabase
+    - Dev Executor(옵션): Google Antigravity 사용 가능(필수 아님). Codex/Claude Code 등 실행자는 교체 가능.
+  - 의미: 런타임/배포 파이프라인 기준선을 고정하되, 실행자(IDE/에이전트)는 교체 가능하게 유지.
+  - 근거: docs/CONTEXT.md에 기재된 스택 가정을 “확정”으로 승격하고, 배포를 명시해 구현/운영 편차를 줄인다.
