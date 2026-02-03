@@ -85,6 +85,13 @@
   - created_at
   - index: (comment_id)
 
+#### 9. reports snapshot 추가 (D-052)
+- [ ] reports.snapshot (jsonb, nullable) 컬럼 추가
+
+#### 10. 닉네임 변경 지원 (D-051)
+- [ ] profiles.nickname_changed_at (timestamptz, nullable) 컬럼 추가
+- [ ] nickname_history 테이블 (선택, v1은 불필요)
+
 ## 마이그레이션 실행 원칙
 1. 백업 먼저
 2. 테스트 환경에서 선행 검증
