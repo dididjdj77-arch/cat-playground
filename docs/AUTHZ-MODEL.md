@@ -9,7 +9,7 @@
 ```sql
 WHERE deleted_at IS NULL
   AND hidden_at IS NULL
-  AND NOT is_blocked(viewer_id, author_id)
+  AND NOT is_blocked(viewer_id, target_user_id)
   AND visibility = 'public'
   AND published_at IS NOT NULL
 ```
@@ -17,10 +17,10 @@ WHERE deleted_at IS NULL
 ```sql
 WHERE deleted_at IS NULL
   AND hidden_at IS NULL
-  AND NOT is_blocked(viewer_id, author_id)
+  AND NOT is_blocked(viewer_id, target_user_id)
 ```
 - threads/replies는 visibility/published 모델이 없으므로 해당 필터를 적용하지 않는다.
-- See: D-029 (guard), D-007 (발행 모델), D-035 (하우스)
+- See: D-029 (guard), D-007 (발행 모델), D-016 (토픽 전부 공개), D-035 (하우스)
 
 ### 0-2. 차단 정책
 - **상호 비노출**: A→B 또는 B→A 차단 시 양방향 비노출 + 상호작용 불가
