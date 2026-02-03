@@ -73,6 +73,8 @@
 - 백엔드: Supabase(Postgres/Auth/Storage/Edge Functions)
 - 검색: DB FTS(tsvector)로 시작
 
+본 기술 스택 및 배포 기준선은 DECISIONS D-049로 확정(LOCK)됨. 변경 시에는 새로운 ADR/Decision이 필요함.
+
 스택 변경 시 정책/도메인/데이터 모델을 깨면 ADR로 기록.
 
 ## 5) 협업 분업 원칙
