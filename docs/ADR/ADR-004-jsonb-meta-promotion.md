@@ -38,4 +38,4 @@
 - 리스크: 구버전 클라이언트가 meta로 계속 보내는 경우 → “호환 기간 canonicalize”로 완충
 
 후속 작업:
-- migrate_meta_key(key, column) 템플릿(TODO)과 첫 실험키로 승격 리허설을 수행한다.
+- migrate_meta_key(key, column) 템플릿(초안 필요)과 첫 실험키로 승격 리허설을 수행한다.

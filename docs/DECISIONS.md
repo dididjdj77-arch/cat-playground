@@ -91,10 +91,10 @@
 - 변경: ADR 필요.
 
 ## D-011 SSOT 운영 방식
-- Status: Updated 2026-02-04 (remove TODO SSOT, switch to EP-ID + PR)
+- Status: Updated 2026-02-04 (remove task-list SSOT, switch to EP-ID + PR)
 - 무엇:
   - SSOT: CONTEXT / INDEX / DECISIONS / OPEN (+ ADR/* 필요 시)
-  - Work unit: EP-ID + PR (Execution Packet 기반). TODO 문서는 사용하지 않는다.
+  - Work unit: EP-ID + PR (Execution Packet 기반). 작업 목록 문서는 사용하지 않는다.
   - 회차 종료 체크(3줄):
     1) DECISIONS: 신규 D-### 추가/정정 반영 여부
     2) OPEN: 상태 갱신(Resolved → D-### 링크) 반영 여부
@@ -566,4 +566,3 @@
 - 의미: “수치 변경 = 코드 배포”를 피하고, 공개/비공개 경계를 단일 지점에서 통제한다.
 - 영향: 014_app_config.sql 마이그레이션(테이블+RPC+seed)이 필요.
 - 변경: ADR 불필요(운영 파라미터). 단 공개 범위 확대(anon 노출 등)는 ADR 필요.
-

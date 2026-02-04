@@ -47,7 +47,7 @@
 ## Current Status (Session Restore)
 - Phase: Implementation (docs/process refactor)
 - Last merged PR: unknown
-- Work starts: User-provided Execution Packet only (no TODO doc)
+- Work starts: User-provided Execution Packet only (no task list doc)
 - Tracking key: EP-ID + PR (no T-XXX)
 
 ---
