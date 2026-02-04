@@ -27,10 +27,10 @@ v1.1 기준 최소 RPC 목록과 공통 guard 패턴
 ## 관찰 RPC (고위험)
 
 ### rpc_upsert_observation_group_with_items
+- 접근: auth-only (auth.uid() required). owner_id는 auth.uid()로 고정(파라미터로 받지 않음).
 ```sql
 -- 시그니처 (의사 코드)
 FUNCTION rpc_upsert_observation_group_with_items(
-  p_owner_id uuid,
   p_payload_version text,
   p_log_date date,
   p_idempotency_key uuid,
@@ -46,6 +46,7 @@ FUNCTION rpc_upsert_observation_group_with_items(
 - 반환: {group_id, version, items[]}
 
 ### rpc_patch_observation_items
+- 접근: auth-only (auth.uid() required)
 ```sql
 FUNCTION rpc_patch_observation_items(
   p_group_id uuid,
@@ -75,6 +76,7 @@ FUNCTION rpc_get_public_posts_feed(
   p_limit int
 ) RETURNS jsonb
 ```
+- 접근: anon 가능. p_viewer_id는 auth.uid()와 동일하거나 null이어야 한다.
 - 내부에서 guard_soft_state() 적용
 - guard_block(p_viewer_id, post.author_id) 적용
 - guard_visibility_published() 적용
@@ -90,6 +92,7 @@ FUNCTION rpc_get_public_threads_feed(
   p_limit int
 ) RETURNS jsonb
 ```
+- 접근: anon 가능. p_viewer_id는 auth.uid()와 동일하거나 null이어야 한다.
 - 동일한 guard 패턴 적용
 
 ### rpc_get_public_house_slots_summary
@@ -98,6 +101,7 @@ FUNCTION rpc_get_public_house_slots_summary(
   p_target_user_id uuid
 ) RETURNS jsonb
 ```
+- 접근: auth-only (auth.uid() required, anon 404)
 내부에서 viewer_id는 auth.uid()로 도출(입력으로 받지 않음).
 
 guard_soft_state() 적용:
@@ -121,6 +125,7 @@ FUNCTION rpc_get_public_house_slots_summary_by_nickname(
   p_target_nickname text
 ) RETURNS jsonb
 ```
+- 접근: auth-only (auth.uid() required, anon 404)
 내부에서 nickname → user_id resolve 후 rpc_get_public_house_slots_summary로 위임
 
 동일 guard/화이트리스트 적용
@@ -141,7 +146,8 @@ FUNCTION rpc_get_public_house_slots_summary_by_nickname(
 FUNCTION rpc_get_app_config(
   p_keys text[] -- 요청 key 목록
 ) RETURNS jsonb -- { "rate_limits": {...}, ... }
-auth-only: auth.uid() IS NOT NULL
+```
+- 접근: auth-only (auth.uid() IS NOT NULL)
 
 반환 key whitelist(v1):
 
