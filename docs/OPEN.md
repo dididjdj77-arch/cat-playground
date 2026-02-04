@@ -3,15 +3,10 @@
 규칙: 확정 금지. 결정되면 해당 항목은 `Status: Resolved → D-###`만 남기고(제목 유지), 본문(질문/설명)은 삭제한다.
 
 ## O-001 레이트리밋 "수치"
-- 왜 미결정: 트래픽/사용 패턴을 모르는 상태에서 수치 확정은 UX/성장 저해 가능.
-- 결정에 필요한 질문:
-  - 글/답글/댓글/좋아요/신고의 1분·10분·1일 한도는?
-  - 계정 신뢰도(가입 후 기간/활동) 가중치 적용 여부?
+- **Status: Resolved → D-053**
 
 ## O-002 자동숨김 임계치 및 신뢰 조건
-- 결정에 필요한 질문:
-  - 임계치 N(서로 다른 신고자)은 3/5/10 중 무엇?
-  - 신고자 신뢰 조건(계정 연령/활동)이 필요?
+- **Status: Resolved → D-054**
 
 ## O-003 hidden/deleted 콘텐츠 SEO 처리(404 vs 410 vs noindex)
 - **Status: Resolved → D-050**
@@ -67,15 +62,7 @@
   - 도입 시점(예: 유료 고객 N곳, 데이터량 M 이상, 규제/계약 요구 발생 시)은?
 
 ## O-014 공개 하우스 "슬롯 요약 DTO" 허용 필드 세트
-- 왜 미결정: 공개 범위는 프라이버시 경계이자 UX 품질을 결정.
-- 기본 원칙(LOCK):
-  - 화이트리스트만 노출
-  - inventory ids / raw_text / note / meta / cats.avatar_url 금지
-- 결정에 필요한 질문:
-  - 허용 후보: slot_key, equipped_at, type, catalog(standard_name, brand), 표기용 display_name(별칭) 등
-  - brand를 기본 노출할지?
-  - catalog_item_id 같은 내부 참조 id는 공개 응답에서 제외할지(권장: 제외)
-  - 장착 기간(days_since_equipped) 같은 파생 필드를 서버가 계산해 줄지?
+- **Status: Resolved → D-055**
 
 ## O-015 슬롯 하드캡/유료 정책
 - 결정에 필요한 질문:
