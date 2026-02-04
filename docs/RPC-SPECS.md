@@ -13,16 +13,16 @@ v1.1 기준 최소 RPC 목록과 공통 guard 패턴
 ### guard_block(viewer_id, target_user_id)
 - viewer_id와 target_user_id 간 block 관계 확인
 - 상호 차단 시 비노출 처리
+- viewer_id가 null(anon)인 경우 guard_block은 no-op (차단 필터 미적용)
 
 ### guard_visibility_published()
 - visibility = 'public'
 - published_at IS NOT NULL
 
 추가 규칙(SECURITY DEFINER 공개 RPC):
-- viewer_id는 기본적으로 auth.uid()에서 도출한다(권장).
-- viewer_id를 파라미터로 받는 경우, 함수 시작에서 반드시 assert:
-  - (auth.uid() is null AND p_viewer_id is null) OR (p_viewer_id = auth.uid())
-  - 불일치 시 error(입력 스푸핑 방지).
+- viewer_id는 서버에서 auth.uid()로 도출한다(anon이면 null).
+- viewer_id를 파라미터로 받지 않는 것을 원칙으로 한다.
+- 부득이하게 p_viewer_id를 받는 경우, 입력을 무시하고 내부에서 viewer_id := auth.uid()로 덮어쓴다.
 
 ## 관찰 RPC (고위험)
 
@@ -71,29 +71,30 @@ FUNCTION rpc_patch_observation_items(
 ### rpc_get_public_posts_feed
 ```sql
 FUNCTION rpc_get_public_posts_feed(
-  p_viewer_id uuid,
   p_cursor text,
   p_limit int
 ) RETURNS jsonb
 ```
-- 접근: anon 가능. p_viewer_id는 auth.uid()와 동일하거나 null이어야 한다.
+- 접근: anon 가능. viewer_id는 내부에서 auth.uid()로 도출(anon이면 null).
 - 내부에서 guard_soft_state() 적용
-- guard_block(p_viewer_id, post.author_id) 적용
+- guard_block(viewer_id, post.author_id) 적용
 - guard_visibility_published() 적용
 - 반환 컬럼 화이트리스트
 
 ### rpc_get_public_threads_feed
 ```sql
 FUNCTION rpc_get_public_threads_feed(
-  p_viewer_id uuid,
   p_topic_id uuid,
   p_sort text, -- 'new'|'popular'|'following'
   p_cursor text,
   p_limit int
 ) RETURNS jsonb
 ```
-- 접근: anon 가능. p_viewer_id는 auth.uid()와 동일하거나 null이어야 한다.
-- 동일한 guard 패턴 적용
+- 접근: anon 가능. viewer_id는 내부에서 auth.uid()로 도출(anon이면 null).
+- guard_soft_state() 적용
+- guard_block(viewer_id, thread.author_id) 적용
+- threads/replies에는 visibility/published 가드 적용하지 않는다.
+- 반환 컬럼 화이트리스트
 
 ### rpc_get_public_house_slots_summary
 ```sql
@@ -102,20 +103,11 @@ FUNCTION rpc_get_public_house_slots_summary(
 ) RETURNS jsonb
 ```
 - 접근: auth-only (auth.uid() required, anon 404)
-내부에서 viewer_id는 auth.uid()로 도출(입력으로 받지 않음).
-
-guard_soft_state() 적용:
-- house_profiles.deleted_at/hidden_at is null
-- house_slots.deleted_at is null
-- inventory_items.deleted_at is null
-
-guard_visibility_published() 적용:
-- house_profiles.visibility='public' AND house_profiles.published_at IS NOT NULL
-
-guard_block(auth.uid(), p_target_user_id) 적용(로그인 viewer만 의미 있음)
-
-반환 컬럼 화이트리스트(요약 DTO)만:
-- slot_key, equipped_at, type, (옵션) catalog 표준명/브랜드 등
+- viewer_id는 내부에서 auth.uid()로 도출(입력으로 받지 않음)
+- guard_soft_state() 적용: house_profiles.deleted_at/hidden_at is null, house_slots.deleted_at is null, inventory_items.deleted_at is null
+- guard_visibility_published() 적용: house_profiles.visibility='public' AND house_profiles.published_at IS NOT NULL
+- guard_block(viewer_id, p_target_user_id) 적용
+- 반환 컬럼 화이트리스트(D-055)만: slot_key, equipped_at, type, (옵션) catalog 표준명/브랜드 등
 - cats.avatar_url 금지
 - inventory_item_id / inventory_items.id / raw_text / note / meta 금지
 
