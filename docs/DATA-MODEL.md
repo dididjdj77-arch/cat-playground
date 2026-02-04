@@ -8,7 +8,7 @@
 - log_date는 오늘 이하만
 
 ## 1) profiles
-- profiles(id pk, nickname unique, avatar_url, bio, created_at, updated_at)
+- profiles(id pk, nickname unique, avatar_url, bio, nickname_changed_at?, created_at, updated_at)
 - profile_settings(user_id pk, default_post_visibility?, created_at, updated_at)
 
 ## 2) cats
@@ -79,7 +79,7 @@
 
 ## 9) moderation
 - blocks(blocker_id, blocked_id, created_at) pk(blocker_id, blocked_id)
-- reports(id, reporter_id, target_type, target_id, reason_code, note?, created_at)
+- reports(id, reporter_id, target_type, target_id, reason_code, note?, snapshot jsonb, created_at, deleted_at)
   - constraint(권장): UNIQUE(reporter_id, target_type, target_id) WHERE deleted_at IS NULL
   - 의미: 동일 사용자의 동일 대상 중복 신고 방지
 - moderation_actions(id, actor_id, action, target_type, target_id, meta jsonb?, created_at)
