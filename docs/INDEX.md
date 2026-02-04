@@ -11,7 +11,6 @@
 
 ## 2) 진행 상태
 - docs/OPEN.md
-- docs/TODO.md
 
 ## 3) 도메인/데이터/권한
 - docs/DOMAIN-MAP.md

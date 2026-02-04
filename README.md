@@ -12,7 +12,6 @@
 - docs/CONTEXT.md
 - docs/DECISIONS.md
 - docs/OPEN.md
-- docs/TODO.md
 - docs/ARCHITECTURE-OVERVIEW.md
 - docs/ROUTES-AND-IA.md
 - docs/DOMAIN-MAP.md

@@ -1,14 +1,14 @@
 # PACKET-TEMPLATES — Execution/Result Packet 템플릿
 
 > 작업 지시(Execution)와 결과 보고(Result)를 위한 표준 양식.
-> See: D-047 (Execution/Result Packet 운영 표준), D-048 (T-XXX 식별자)
+> See: D-047 (Execution/Result Packet 운영 표준), D-048 (EP-ID 식별자)
 
 ---
 
 ## Execution Packet Template
 
 ```markdown
-# Execution Packet — EP-T-XXX: <short title>
+# Execution Packet — EP-<EP-ID>: <short title>
 
 ## SSOT read first
 - docs/<...>.md
@@ -83,7 +83,7 @@
 ## Result Packet Template (PR Description)
 
 ```markdown
-# Result Packet — T-XXX: <short title>
+# Result Packet — EP-ID: <short title>
 
 ## What changed
 - Files changed:

@@ -16,7 +16,6 @@
 | INDEX | 경로 목록만 | 규칙/설명 문장 |
 | DECISIONS | 확정(D-###) 원장 | 삭제/번호 재사용 |
 | OPEN | 미정의(O-###) | 확정 결론 |
-| TODO | Active 작업 최대 3개(T-###) | 백로그/아카이브 |
 | AUTHZ-MODEL | 정책식 원문(§0) | — |
 | ADR/* | 방향 전환 근거 (최대 5개) | 템플릿 미준수 ADR |
 
@@ -31,7 +30,6 @@
   - 근본적 방향 전환은 ADR로 근거 기록.
 - D-번호는 문서의 마지막 D-번호 + 1로 계산.
 - OPEN: 해소되면 `Status: Resolved → D-###` 표시.
-- TODO: Active 최대 3개. 완료시 삭제. 백로그는 별도 관리.
 - ADR: 실제 ADR 최대 5개 (Template 제외). 초과시 DECISIONS에 흡수 후 삭제.
 - docs 문서는 전체 덮어쓰기 금지 (부분 교체/추가만).
 
@@ -43,6 +41,16 @@
 
 ## 1) 한 줄 정의
 집사들이 다묘 관찰(다이어리)과 커뮤니티(채널 + 냥스타그램)를 통해 정보를 축적/탐색하는 서비스.
+
+---
+
+## Current Status (Session Restore)
+- Phase: Implementation (docs/process refactor)
+- Last merged PR: unknown
+- Work starts: User-provided Execution Packet only (no TODO doc)
+- Tracking key: EP-ID + PR (no T-XXX)
+
+---
 
 ## 2) 목표 / 비목표
 
@@ -92,4 +100,3 @@
 ## 6) 현재 문서 위치
 - 확정(LOCK): docs/DECISIONS.md
 - 미결정(OPEN): docs/OPEN.md
-- 다음 단계: docs/TODO.md

@@ -422,7 +422,7 @@
 
 ## D-047 Execution/Result Packet 운영 표준
 - 무엇:
-  - 모든 구현 작업은 `docs/TODO.md`의 티켓(T-XXX) 단위로 진행한다.
+  - 모든 구현 작업은 Execution Packet(EP) 단위로 진행한다.
   - 각 티켓은 Execution Packet(EP)으로 지시하며, EP는 `docs/PACKET-TEMPLATES.md` 형식을 따른다.
   - 결과 제출은 PR 1개로 하며, PR 본문은 Result Packet 형식(`docs/PACKET-TEMPLATES.md`의 섹션 유지)을 채운다.
   - PR 생성 시 기본 본문은 `.github/pull_request_template.md`를 따른다.
@@ -431,18 +431,18 @@
 - 의미: 스코프 누수와 검증 누락을 구조적으로 방지하고, “지시 ↔ 결과 ↔ 증빙”을 PR diff로 검증 가능하게 만든다.
 - 영향:
   - 실행자(omoc 포함)는 EP만 보고 수행 가능해야 하며, PR에는 증빙이 남아야 한다.
-  - 작업 분해/우선순위는 TODO(T-XXX)와 EP에 의해 결정된다.
+  - 작업 분해/우선순위는 EP-ID와 EP에 의해 결정된다.
 - 변경: ADR 불필요(프로세스). 단, 규칙 변경은 새 D-###로 남긴다.
 
-## D-048 EP 식별자(T-XXX) 관리
+## D-048 EP 식별자(EP-ID) 관리
 - 무엇:
-  - EP 식별자는 `docs/TODO.md`의 `T-XXX`를 SSOT로 사용한다.
-  - Execution Packet ID는 `EP-T-XXX`로 표기한다(예: EP-T-012).
-  - PR 제목과 본문(Result Packet)에는 `T-XXX`를 반드시 포함한다.
-  - Result Packet은 `T-XXX`로 추적하며, 별도 “Result 번호”는 두지 않는다.
-  - (선택) GitHub Issue를 쓰는 경우, Issue 번호는 참고 링크로만 둔다(SSOT는 T-XXX 유지).
+  - EP 식별자는 EP-ID를 SSOT로 사용한다(예: EP-YYYYMMDD-<slug>).
+  - Execution Packet ID는 `EP-<EP-ID>`로 표기한다.
+  - PR 제목과 본문(Result Packet)에는 EP-ID를 반드시 포함한다.
+  - Result Packet은 `EP-ID`로 추적하며, 별도 “Result 번호”는 두지 않는다.
+  - (선택) GitHub Issue를 쓰는 경우, Issue 번호는 참고 링크로만 둔다(SSOT는 EP-ID 유지).
 - 의미: 번호 충돌을 방지하고, “지시(EP) ↔ 결과(PR/증빙)”를 1:1로 추적 가능하게 만든다.
-- 영향: 새 작업은 먼저 TODO에서 `T-XXX`를 발급한 뒤 EP/PR을 생성한다.
+- 영향: 새 작업은 EP-ID를 발급한 뒤 EP/PR을 생성한다.
 - 변경: ADR 불필요(프로세스). 단, 규칙 변경은 새 D-###로 남긴다.
 
 ## D-049: 기술 스택/배포 확정 (O-010 해소)
@@ -557,4 +557,3 @@
 - 의미: “수치 변경 = 코드 배포”를 피하고, 공개/비공개 경계를 단일 지점에서 통제한다.
 - 영향: 014_app_config.sql 마이그레이션(테이블+RPC+seed)이 필요.
 - 변경: ADR 불필요(운영 파라미터). 단 공개 범위 확대(anon 노출 등)는 ADR 필요.
-
