@@ -30,8 +30,9 @@
 - 슬롯 바인딩은 inventory_items 히스토리를 변경하지 않는다(배치만 변경).
 - 슬롯 선택 리스트는 is_current=true만 노출된다.
 - current 0개면 "먼저 냥벤토리에서 등록/현재 설정" 안내가 동작한다.
-- public + 미발행(published_at null) → 타인 접근 불가.
+- public + 미발행(published_at null) → 타인 접근 404.
 - public + 발행(published_at not null) → 타인 접근 가능(guard 통과 시).
+- 미인증(anon) 공개 house 접근 → 404.
 - block 관계(로그인 viewer 기준)에서 공개 house 링크 접근 시 404/비노출.
 - 공개 응답 누출 방지:
   - cats.avatar_url 포함 안 됨(D-037)
@@ -39,6 +40,6 @@
   - raw_text, note, meta 포함 안 됨
 
 ## 운영
-- 신고 누적 → 조건부 hidden_at 설정(삭제 X)
-- 신고 악용 방지(중복/신뢰조건)
-- hidden/deleted SEO 제외(전략은 OPEN에 맞춰)
+- 신고 누적 → D-054 기준으로 hidden_at 설정(삭제 X)
+- 신고 악용 방지(중복/신뢰조건, D-054)
+- 공개 표면의 조회 불가 상태는 404로 통일(D-050)

@@ -40,7 +40,7 @@
 - [ ] meta 컬럼 추가 (jsonb, default '{}')
 
 #### 4. profile_settings 정리
-- [ ] inventory_visibility 컬럼 제거 (또는 deprecated 마킹)
+- [ ] inventory_visibility 컬럼 정리 (레거시일 수 있음; 존재 시 제거/비활성)
 
 #### 5. payload_versions + KPI 시스템
 - [ ] payload_versions 테이블 생성
@@ -87,6 +87,7 @@
 
 #### 9. reports snapshot 추가 (D-052)
 - [ ] reports.snapshot (jsonb, nullable) 컬럼 추가
+- [ ] reports.deleted_at (timestamptz, nullable) 컬럼 확인/없으면 추가
 
 #### 10. 닉네임 변경 지원 (D-051)
 - [ ] profiles.nickname_changed_at (timestamptz, nullable) 컬럼 추가

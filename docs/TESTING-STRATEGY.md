@@ -2,7 +2,7 @@
 
 v1.1 기준 CI에 반드시 포함되어야 할 테스트
 
-## CI 필수 테스트 3종
+## CI 필수 테스트 4종
 
 ### 1. 차단 스냅샷 테스트 (0 rows)
 
@@ -116,6 +116,19 @@ Then:
 - 409 응답 구조가 명세와 일치
 - 데이터 찢김 없음 (트랜잭션 보장)
 - 재시도 시 idempotency_key 기반 중복 방지
+
+### 4. 공개 하우스 슬롯 DTO 누출 방지
+
+**목적**: 공개 하우스 응답에 금지 필드가 포함되지 않음을 검증
+
+**대상 RPC**:
+- rpc_get_public_house_slots_summary
+- rpc_get_public_house_slots_summary_by_nickname (있는 경우)
+
+**검증 항목**:
+- 허용 필드(D-055)만 존재
+- cats.avatar_url 미포함(D-037)
+- inventory_item_id / inventory_items.id / raw_text / note / meta 미포함
 
 ## CI 실행 원칙
 1. 테스트는 격리된 환경(테스트 DB)에서 실행

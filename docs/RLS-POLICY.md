@@ -4,7 +4,7 @@
 v1.1에서는 "공개/외부/상품성 읽기 경로는 SECURITY DEFINER RPC only"를 기본으로 한다.
 - 원본 테이블 direct select 금지(특히 anon)
 - owner 전용 읽기/쓰기만 RLS로 허용 가능(개발 편의)
-- SECURITY DEFINER 함수는 RLS를 우회할 수 있으므로, 함수 내부에서 soft-state + block + visibility/published를 강제해야 함
+- SECURITY DEFINER 함수는 RLS를 우회할 수 있으므로, posts/house는 soft-state + block + visibility/published를, threads/replies는 soft-state + block만 강제해야 함
 - 함수는 반환 컬럼을 화이트리스트로 제한(특히 하우스 슬롯 요약)
 
 ## Owner 테이블 (기본 RLS 허용)
@@ -18,8 +18,9 @@ v1.1에서는 "공개/외부/상품성 읽기 경로는 SECURITY DEFINER RPC onl
 - 공개 피드/검색/상세는 RPC로 제공
 - RPC 내부에서:
   - guard_soft_state(): deleted_at/hidden_at 필터
-  - guard_block(): block 관계 필터
-  - visibility/published_at 조건 강제
+  - guard_block(): block 관계 필터 (viewer_id가 null인 경우 no-op)
+  - posts는 visibility/published_at 조건 강제
+  - threads/replies는 visibility/published_at 가드 적용하지 않음
 
 ### 하우스 (house_profiles, house_slots)
 - 직접 SELECT 제한(권장: REVOKE + RLS). 공개/타인 조회는 RPC만 허용.
@@ -30,11 +31,12 @@ v1.1에서는 "공개/외부/상품성 읽기 경로는 SECURITY DEFINER RPC onl
 - 반환 컬럼 화이트리스트(요약 DTO)만:
   - 슬롯 요약: slot_key, equipped_at, type, (옵션) catalog 표준명/브랜드 등
   - cats.avatar_url 포함 금지(D-037)
-  - inventory_item_id / inventory_items.id / raw_text / note / meta 등 금지(O-014)
+  - inventory_item_id / inventory_items.id / raw_text / note / meta 등 금지(D-055)
 
 보안 하드닝(SECURITY DEFINER):
 - search_path 고정(예: public)
-- viewer_id는 auth.uid()로 도출(권장). 만약 입력으로 받는다면 p_viewer_id=auth.uid()를 assert.
+- viewer_id는 auth.uid()로 도출(anon이면 null)
+- p_viewer_id를 받는 경우, 입력을 무시하고 내부에서 viewer_id := auth.uid()로 덮어쓴다
 
 ## Moderation (blocks, reports)
 - 직접 SELECT 제한
@@ -42,7 +44,8 @@ v1.1에서는 "공개/외부/상품성 읽기 경로는 SECURITY DEFINER RPC onl
 
 ## 보안 하드닝 (SECURITY DEFINER 함수)
 - search_path를 고정(예: public)
-- 입력 viewer_id를 첫 단계에서 검증(assert)
+- viewer_id는 auth.uid()로 도출(anon이면 null)
+- p_viewer_id를 받는 경우, 입력을 무시하고 내부에서 viewer_id := auth.uid()로 덮어쓴다
 - 외부 공개 RPC는 원본 테이블 직접 노출 금지
 
 ## 13) app_config (운영 파라미터 SSOT)

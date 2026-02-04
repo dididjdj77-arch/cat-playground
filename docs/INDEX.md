@@ -36,4 +36,4 @@
 ## 6) 기타
 - docs/HOWTO/local-setup.md
 - docs/engineering-philosophy-v1.md
-- docs/PACKET-TEMPLATES.md
+- docs/packets/PACKET-TEMPLATES.md
