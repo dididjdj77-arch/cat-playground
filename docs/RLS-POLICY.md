@@ -44,3 +44,13 @@ v1.1에서는 "공개/외부/상품성 읽기 경로는 SECURITY DEFINER RPC onl
 - search_path를 고정(예: public)
 - 입력 viewer_id를 첫 단계에서 검증(assert)
 - 외부 공개 RPC는 원본 테이블 직접 노출 금지
+
+## 13) app_config (운영 파라미터 SSOT)
+- app_config(key text pk, value jsonb not null, updated_at timestamptz, updated_by uuid? fk profiles.id)
+- key(v1):
+  - rate_limits
+  - rate_limits_new_account
+  - auto_hide
+- 주의:
+  - 비밀값(토큰/키/내부 전용 플래그)은 절대 저장 금지.
+  - 새로운 key 추가 시: D-056 + RPC whitelist 업데이트가 선행.
