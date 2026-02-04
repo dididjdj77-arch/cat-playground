@@ -37,3 +37,6 @@
 - docs/HOWTO/local-setup.md
 - docs/engineering-philosophy-v1.md
 - docs/PACKET-TEMPLATES.md
+
+## 7) 실행 계획 (Execution Packets)
+- docs/EP-HOUSE-IMPL.md

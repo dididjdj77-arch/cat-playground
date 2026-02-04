@@ -45,10 +45,14 @@
 ---
 
 ## Current Status (Session Restore)
-- Phase: Implementation (docs/process refactor)
-- Last merged PR: unknown
-- Work starts: User-provided Execution Packet only (no task list doc)
+- Phase: Implementation — House 도메인 구현 준비 완료
+- Last merged PR: (문서 정비 PR 머지 후 업데이트)
+- Next work: EP-HOUSE-IMPL.md 기반 3단계 구현
+  - EP-1: Foundation (스키마 + Guard + 본인 RPC)
+  - EP-2: Public Access (공개 조회 RPC)
+  - EP-3: Integration (CI + QA)
 - Tracking key: EP-ID + PR (no T-XXX)
+- Key decisions added: D-057 ~ D-061 (Guard 시그니처, 404 반환, slot_key 검증, 자동 생성, 실행 계획)
 
 ---
 
@@ -74,6 +78,7 @@
 - 공개 노출 조건: See AUTHZ-MODEL §0
 - 채널 v1: 글/답글(1-depth)/좋아요/검색 + 피드3종 + 토픽 팔로우
 - 운영 최소장치 v1: 레이트리밋 + 신고 + 차단(상호 비노출) + 자동숨김 + 감사로그
+- **House 구현**: EP-HOUSE-IMPL.md 기반 3단계 (D-057~D-061)
 
 ## 4) 기술 스택
 - 앱: Expo(React Native)
@@ -100,3 +105,4 @@
 ## 6) 현재 문서 위치
 - 확정(LOCK): docs/DECISIONS.md
 - 미결정(OPEN): docs/OPEN.md
+- **실행 계획**: docs/EP-HOUSE-IMPL.md
