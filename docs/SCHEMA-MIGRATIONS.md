@@ -92,9 +92,29 @@
 - [ ] profiles.nickname_changed_at (timestamptz, nullable) 컬럼 추가
 - [ ] nickname_history 테이블 (선택, v1은 불필요)
 
+#### 11. app_config (D-056)
+- [ ] app_config 테이블 생성
+  - key (text, pk)
+  - value (jsonb, not null)
+  - updated_at, updated_by
+- [ ] RLS + RPC(read):
+  - 원본 테이블 direct select 금지(권장)
+  - rpc_get_app_config(keys[])로만 읽기 + key whitelist
+- [ ] seed 초기 데이터:
+  - rate_limits (D-053)
+  - rate_limits_new_account (D-053)
+  - auto_hide (D-054)
+
 ## 마이그레이션 실행 원칙
 1. 백업 먼저
 2. 테스트 환경에서 선행 검증
 3. 롤백 스크립트 준비
 4. 마이그레이션 로그 기록
 5. 완료 후 체크리스트 업데이트
+
+## 마일스톤 (1) migration file order (요약)
+- 001_extensions.sql
+- 002_profiles.sql
+- …
+- 013_seed.sql
+- 014_app_config.sql

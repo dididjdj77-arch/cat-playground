@@ -133,3 +133,32 @@ FUNCTION rpc_get_public_house_slots_summary_by_nickname(
 - guard 함수를 SQL 함수로 구현할지, RPC 내부 로직으로 구현할지는 구현 단계에서 결정
 - 플래너 최적화를 위해 SQL 함수로 단순화 권장
 - SECURITY DEFINER 함수는 search_path 고정 + 입력 검증 필수
+
+## 운영 파라미터 RPC
+
+### rpc_get_app_config
+```sql
+FUNCTION rpc_get_app_config(
+  p_keys text[] -- 요청 key 목록
+) RETURNS jsonb -- { "rate_limits": {...}, ... }
+auth-only: auth.uid() IS NOT NULL
+
+반환 key whitelist(v1):
+
+rate_limits
+
+rate_limits_new_account
+
+auto_hide
+
+동작:
+
+p_keys 중 whitelist에 포함된 것만 반환한다.
+
+unknown key는 무시한다(호환성 목적).
+
+구현 권장:
+
+SECURITY DEFINER
+
+search_path 고정
