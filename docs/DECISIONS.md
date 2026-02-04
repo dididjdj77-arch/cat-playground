@@ -432,8 +432,8 @@
 ## D-047 Execution/Result Packet 운영 표준
 - 무엇:
   - 모든 구현 작업은 Execution Packet(EP) 단위로 진행한다.
-  - 각 티켓은 Execution Packet(EP)으로 지시하며, EP는 `docs/packets/PACKET-TEMPLATES.md` 형식을 따른다.
-  - 결과 제출은 PR 1개로 하며, PR 본문은 Result Packet 형식(`docs/packets/PACKET-TEMPLATES.md`의 섹션 유지)을 채운다.
+  - 각 티켓은 Execution Packet(EP)으로 지시하며, EP는 `docs/PACKET-TEMPLATES.md` 형식을 따른다.
+  - 결과 제출은 PR 1개로 하며, PR 본문은 Result Packet 형식(`docs/PACKET-TEMPLATES.md`의 섹션 유지)을 채운다.
   - PR 생성 시 기본 본문은 `.github/pull_request_template.md`를 따른다.
   - EP에는 최소한 Allowed changes / Validation / DoD / Evidence required 를 포함한다.
   - Result Packet에 Evidence(실행한 명령/SQL + 출력)가 없으면 “미검증”으로 간주하고 리뷰를 중단한다(불합격).
