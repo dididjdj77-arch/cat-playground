@@ -91,10 +91,19 @@
 - 변경: ADR 필요.
 
 ## D-011 SSOT 운영 방식
-- 무엇: DECISIONS/OPEN/TODO/ADR를 SSOT로 운영. 매 회차 종료 시 LOCK/OPEN/TODO 변경을 3줄로 확인.
-- 의미: 누락을 구조적으로 방지.
-- 영향: 구현은 TODO 티켓 단위로만 진행.
-- 변경: ADR 불필요(프로세스).
+- Status: Updated 2026-02-04 (remove TODO SSOT, switch to EP-ID + PR)
+- 무엇:
+  - SSOT: CONTEXT / INDEX / DECISIONS / OPEN (+ ADR/* 필요 시)
+  - Work unit: EP-ID + PR (Execution Packet 기반). TODO 문서는 사용하지 않는다.
+  - 회차 종료 체크(3줄):
+    1) DECISIONS: 신규 D-### 추가/정정 반영 여부
+    2) OPEN: 상태 갱신(Resolved → D-### 링크) 반영 여부
+    3) PR: EP-ID ↔ PR 링크(또는 PR 본문 Result Packet) 기록 여부
+- 의미: “결정(DECISIONS) / 미정(OPEN) / 근거(ADR) / 실행(EP/PR)”를 분리해 누락과 재논의를 줄인다.
+- 영향:
+  - 구현/문서 변경은 EP 단위로만 진행한다(EP 없이 임의 변경 금지).
+  - 근본적 방향 전환은 ADR로 근거를 남긴다(Template 준수).
+
 
 ## D-012 AC-3 정규화(자동완성/추천/제안큐/승인 UI)
 - 무엇:
@@ -276,7 +285,7 @@
 ## D-033. 컨트롤/데이터 플레인 분업
 - 무엇: 컨트롤(사용자+어시스턴트)은 설계/검증/승인, 데이터(omoc/Claude Code 등 실행자)는 컨트롤이 정한 스코프/금지/DoD 범위 내 구현 + PR 산출을 담당한다. SSOT 충돌/불확실 시 임의 결론 대신 질문으로 멈춘다.
 - 의미: 판단(설계)과 실행(구현)을 분리해 안정성과 속도를 동시에 확보한다.
-- 영향: Execution Packet(작업 지시서) 템플릿/PR 루프는 당장은 OPEN/TODO로 관리하고, 필요 시 문서화한다.
+- 영향: Execution Packet(작업 지시서) 템플릿/PR 루프는 OPEN(미결정)과 DECISIONS(확정)로 관리하고, 필요 시 ADR로 근거를 남긴다.
 - 변경: ADR 필요.
 
 ## 해소된 충돌(근거)
