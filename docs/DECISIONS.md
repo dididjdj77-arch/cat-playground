@@ -491,3 +491,52 @@
 - 의미: 신고 후 수정/삭제로 인한 증거 인멸 방지
 - 영향: 신고 INSERT 시 1회 추가 조회
 - 변경: ADR 불필요 (운영 정책)
+
+## D-053. 레이트리밋 v1 기본값
+- 무엇(원칙):
+  - 읽기(조회/스크롤)는 제한하지 않는다.
+  - 쓰기/신고 등 “행동”만 레이트리밋한다.
+  - 분당 + 일간 이중 제한을 사용한다.
+  - 신규 계정(가입 24h 이내)은 더 보수적 제한을 적용한다.
+- 수치(v1 기본값, 조정 가능 파라미터):
+  - posts: 2/min, 20/day
+  - comments/replies: 10/min, 200/day
+  - likes: 60/min, 1500/day
+  - reports: 3/min, 30/day
+  - 신규 계정(<=24h):
+    - posts: 1/min, 5/day
+    - comments/replies: 5/min, 50/day
+    - likes: 30/min, 500/day
+    - reports: 2/min, 10/day
+- 의미: 스팸/도배/신고 악용을 최소 비용으로 억제하면서 정상 UX를 보존.
+- 영향: 운영 중 수치 조정은 “코드 상수”가 아니라 config/환경변수 등으로 바꾸는 것이 권장(단, 이 PR에서는 문서만 다룸).
+- 변경: ADR 불필요(운영 파라미터). 단 “행동만 제한/읽기 제외” 원칙 변경은 ADR 권장.
+
+## D-054. 조건부 자동숨김(신고 기반) v1 임계치/신뢰 조건
+- 무엇:
+  - 자동숨김 트리거: 서로 다른 신고자 N명 충족 시
+  - N = 5
+  - 카운트에 포함되는 신고자 신뢰 조건: 계정 생성 7일 이상 (created_at <= now()-7d)
+  - 시간창(window): 24시간 내 신고만 카운트(rolling)
+  - 트리거 충족 시: 대상에 hidden_at=now() 처리(삭제 아님)
+- 의미: 집단 공격/어뷰즈를 어렵게 하면서, 운영자介入 전 1차 방어선 제공.
+- 영향: “신고 INSERT 시 카운트/판정”이 필요(정확 구현은 별도 티켓).
+- 변경: ADR 권장(운영 정책/공개 경계 영향).
+
+## D-055. PublicHouseSlotSummaryDTO v1 허용 필드(whitelist)
+- 무엇(허용 필드):
+  - slot_key
+  - equipped_at (nullable)
+  - type (inventory_items.type)
+  - catalog (nullable object):
+    - standard_name
+    - brand (nullable)  // 포함
+  - days_since_equipped (nullable, 서버 파생필드; equipped_at 있을 때만)
+- 금지(명시):
+  - inventory_item_id / inventory_items.id 등 내부 id
+  - raw_text / note / meta
+  - cats.avatar_url 포함 어떤 이미지 URL도
+  - catalog_item_id 등 내부 참조 id
+- 의미: 공개 하우스는 존재 은닉/프라이버시 경계를 지키면서도 표현에 필요한 최소 정보만 제공.
+- 영향: public RPC는 whitelist 고정(서버에서 필드 누수 방지).
+- 변경: ADR 불필요(기존 ADR-007 원칙의 구체화). 단 공개 범위 확대는 ADR 필요.
