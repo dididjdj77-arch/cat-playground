@@ -54,6 +54,7 @@
 - 무엇:
   - 하우스 탭 = 2D 거실(방 1개, room_key='living_room') 씬 + 슬롯 기반 배치 UI.
   - 슬롯은 배치(히스토리 아님)이며 current-only 선택, slot_key는 허용 목록으로 고정한다.
+  - v1 living_room slot_key: slot_01..slot_08 (8개 고정)
 - 의미: 하우스(상태/전시) vs 다이어리(빈번 입력) vs 인벤 원장(관리) 분리.
 - 변경: ADR 권장.
 
@@ -61,7 +62,7 @@
 - Class: POLICY
 - 무엇:
   - 상태축: log_date, visibility(private/public), published_at(null/ts)
-  - 노출 조건: visibility='public' AND published_at IS NOT NULL AND not hidden
+  - 노출 조건: visibility='public' AND published_at IS NOT NULL AND hidden_at IS NULL AND deleted_at IS NULL
   - 금지/전이: private + published_at 금지, visibility를 private로 바꾸면 published_at=NULL 강제
 - 의미: 공개 의도와 발행 의도를 분리해 안전한 공개 UX.
 - 변경: ADR 필요.
