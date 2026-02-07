@@ -26,6 +26,6 @@
 되돌릴 수 없거나 사용자 신뢰에 영향을 주는 변경은,
 명확한 근거와 이해 가능한 상태 없이 수행하지 않는다.
 
-## 적용 규칙
-- 모든 설계·구현 결정은 위 EP 중 하나 이상으로 정당화될 수 있어야 한다.
-- 예외는 ADR로 기록한다.
+## EP-6. Maximize upside, minimize downside
+Explore broadly. Fail safely.
+
