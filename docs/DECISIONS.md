@@ -54,15 +54,16 @@
 - Class: POLICY
 - 무엇:
   - 하우스 탭 = 2D 거실(방 1개, room_key='living_room') 씬 + 슬롯 기반 배치 UI.
-  - 하우스는 "등록된 고양이 현황 + 슬롯 기반 장착(배치) 현황"을 보여준다.
+  - 슬롯은 배치(히스토리 아님)이며 current-only 선택, slot_key는 허용 목록으로 고정한다.
 - 의미: 하우스(상태/전시) vs 다이어리(빈번 입력) vs 인벤 원장(관리) 분리.
 - 변경: ADR 권장.
 
 ## D-007 내 냥스타그램 상태 모델(V2 + N1)
 - Class: POLICY
 - 무엇:
-  - log_date 선택(기본 오늘)
-  - visibility(private/public)
+  - 상태축: log_date, visibility(private/public), published_at(null/ts)
+  - 노출 조건: visibility='public' AND published_at IS NOT NULL AND not hidden
+  - 금지/전이: private + published_at 금지, visibility를 private로 바꾸면 published_at=NULL 강제
 - 의미: 공개 의도와 발행 의도를 분리해 안전한 공개 UX.
 - 변경: ADR 필요.
 
@@ -134,6 +135,7 @@
 - Class: POLICY
 - 무엇:
   - 인벤토리 원장(inventory_items)은 항상 owner-only로 유지한다.
+  - 타인 공개는 슬롯 장착 요약만 허용하며 DTO는 whitelist, raw_text/note/meta는 비노출이다.
 - 의미: 프라이버시 경계를 단순화하고 노출 사고 표면을 최소화한다.
 - 변경: ADR 필요.
 
@@ -245,8 +247,10 @@
 ## D-035. 하우스 공개 상태 모델(visibility + published_at)
 - Class: POLICY
 - 무엇:
-  - 하우스 공개 모델은 visibility + published_at 패턴을 사용한다:
-  - house_profiles.visibility: private | public
+  - 상태축: house_profiles.visibility(private|public) + published_at(null|ts)
+  - 타인 노출 조건(AND): visibility='public' AND published_at IS NOT NULL AND deleted_at/hidden_at IS NULL AND not blocked
+  - 비허용 상태(비공개/숨김/삭제/차단/미발행/미인증)는 404로 통일한다.
+  - 공개 하우스 조회는 auth-only(로그인 사용자)로 제한한다(LOCK).
 - 의미: "공개 설정"과 "발행(노출 허용)"을 분리해 노출 사고를 줄인다.
 - See: AUTHZ-MODEL §0-1
 - 변경: ADR 필요.
@@ -261,7 +265,7 @@
 ## D-037. 공개 하우스 응답에서 고양이 사진(avatar_url) 금지
 - Class: POLICY
 - 무엇:
-  - 공개 하우스 응답/뷰/DTO에는 cats.avatar_url을 **절대 포함하지 않는다**.
+  - 공개 하우스 응답/뷰/DTO에는 cats.avatar_url을 **절대 포함하지 않는다**(렌더는 기본/대체 아바타 사용).
 - 의미: join/컬럼 확장 실수로 발생하는 치명적 누출을 구조적으로 차단한다.
 - 변경: ADR 필요.
 
@@ -269,7 +273,7 @@
 - Class: GUARD
 - 무엇:
   - inventory_items.type은 v1에서 고정된 정식 코드 목록을 사용한다.
-- 의미: 타입 변경은 UX/통계/검색/카탈로그에 파급이 크므로 v1에서 변동을 제한한다.
+- 의미: 타입 변경은 UX/통계/검색/카탈로그에 파급이 크므로 v1에서 변동을 제한한다(목록은 See DATA-MODEL).
 - 변경: ADR 필요.
 
 ## D-039. 공개 하우스는 스냅샷 미채택(현재 상태 기반)
@@ -343,15 +347,16 @@
 
 ## D-050. 공개 표면 "조회 불가" 상태코드: 404로 통일(존재 은닉)
 - Class: POLICY
-- 무엇: 웹/앱의 공개 표면에서 “조회 불가” 상태는 모두 404로 통일한다.
+- 무엇: 공개 라우트/공개 RPC에서 guard 불만족(비공개/숨김/삭제/차단/미인증/미발행) 상태를 모두 404로 매핑한다.
 - 의미: 존재 여부 누출을 방지하고, 분기 누락으로 인한 노출 사고를 줄인다.
+- 영향: 라우트와 공개 RPC 매핑 테이블/QA 시나리오에서 404 통일을 공통 검증한다.
 - See: D-044 (House 보안 UX), O-003
 - 변경: ADR 필요.
 
 ## D-051. 닉네임 변경 정책
 - Class: GUARD
 - 무엇:
-  - 닉네임 변경: 허용
+  - 닉네임 변경은 허용하되 이전 닉네임은 1시간 재할당 금지, /u/{nickname}은 리다이렉트 없이 404 유지.
 - 의미: 닉네임 변경 허용하되 단기간 혼란 방지
 - 변경: ADR 권장
 
@@ -389,7 +394,7 @@
 - 무엇:
   - 운영 중 조정 가능한 파라미터는 DB app_config에 저장한다.
   - key(v1): rate_limits, rate_limits_new_account, auto_hide
-- 원칙/경계: 비밀값(토큰/키) 저장 금지, 새 key 추가 시 D-056 + RPC whitelist 선행.
+- 원칙/경계: direct SELECT 금지(권장), 읽기는 RPC whitelist, 쓰기는 서버/운영 도구만, 비밀값 저장 금지, 새 key는 D-056+whitelist 선행.
 - 의미: 수치 변경을 코드 배포와 분리하고 공개/비공개 경계를 단일 지점에서 통제한다.
 - See: docs/playbooks/ops-app-config.md
 - See: docs/CONFIG-BASELINES.md#3-app_config-key-매핑-d-056
