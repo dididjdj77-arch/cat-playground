@@ -7,54 +7,24 @@
 
 ### 🔲 진행 예정 마이그레이션
 
-#### 1. house 도메인 추가 (EP-HOUSE-IMPL 참조)
-
-##### EP-1: Foundation
+#### 1. house 도메인 추가
 - [ ] house_profiles 테이블 생성
-  - user_id (pk, uuid, fk → profiles.id)
-  - visibility (text, not null, default 'private', CHECK IN ('private','public'))
-  - published_at (timestamptz, nullable)
-  - hidden_at (timestamptz, nullable)
-  - deleted_at (timestamptz, nullable)
-  - created_at (timestamptz, not null, default now())
-  - updated_at (timestamptz, not null, default now())
+  - user_id (pk)
+  - visibility (private|public)
+  - published_at (nullable)
+  - hidden_at (nullable)
+  - deleted_at (nullable)
+  - created_at, updated_at
   - **CHECK**: NOT (visibility = 'private' AND published_at IS NOT NULL)
 - [ ] house_slots 테이블 생성
-  - id (pk, uuid, default gen_random_uuid())
-  - owner_id (uuid, not null, fk → profiles.id)
-  - room_key (text, not null, default 'living_room')
-  - slot_key (text, not null, CHECK IN ('slot_01','slot_02','slot_03','slot_04','slot_05','slot_06','slot_07','slot_08'))
-  - inventory_item_id (uuid, nullable, fk → inventory_items.id)
-  - equipped_at (timestamptz, nullable)
-  - created_at (timestamptz, not null, default now())
-  - updated_at (timestamptz, not null, default now())
-  - deleted_at (timestamptz, nullable)
-  - **UNIQUE**(owner_id, room_key, slot_key) WHERE deleted_at IS NULL
-- [ ] Guard 함수 3개 생성 (D-057)
-  - guard_soft_state(timestamptz, timestamptz) returns boolean (IMMUTABLE)
-  - guard_block(uuid, uuid) returns boolean (STABLE)
-  - guard_visibility_published(text, timestamptz) returns boolean (IMMUTABLE)
-- [ ] 본인용 RPC 3개 생성
-  - rpc_get_my_house() returns jsonb (SECURITY DEFINER)
-  - rpc_save_house_slot(text, uuid) returns jsonb (SECURITY DEFINER)
-  - rpc_delete_house_slot(text) returns jsonb (SECURITY DEFINER)
-- [ ] RLS 정책 (EP-1)
-  - house_profiles: owner SELECT/UPDATE only
-  - house_slots: owner SELECT/INSERT/UPDATE only
-
-##### EP-2: Public Access
-- [ ] 공개 조회 RPC 2개 생성
-  - rpc_get_public_house_slots_summary(uuid) returns jsonb (SECURITY DEFINER)
-  - rpc_get_public_house_slots_summary_by_nickname(text) returns jsonb (SECURITY DEFINER)
-- [ ] RLS 정책 (EP-2)
-  - 공개 접근은 RPC only (직접 SELECT 금지 유지)
-
-##### 선행 조건 (EP-1 시작 전 확인)
-- [ ] profiles 테이블 존재
-- [ ] inventory_items 테이블 존재 (is_current 컬럼 포함)
-- [ ] catalog_items 테이블 존재
-- [ ] blocks 테이블 존재
-
+  - id (pk, uuid)
+  - owner_id
+  - room_key (text, default 'living_room')
+  - slot_key (text)
+  - inventory_item_id (nullable)
+  - equipped_at (nullable)
+  - created_at, updated_at, deleted_at
+  - unique(owner_id, room_key, slot_key)
 - [ ] inventory_items current 무결성 인덱스 추가(부분 유니크)
   - UNIQUE(owner_id, type) WHERE is_current=true AND deleted_at IS NULL
 
@@ -149,25 +119,3 @@
 - …
 - 013_seed.sql
 - 014_app_config.sql
-- 015_house_foundation.sql (EP-1)
-- 016_house_public_rpc.sql (EP-2)
-
-## 롤백 스크립트 (House)
-
-### EP-2 롤백
-```sql
-DROP FUNCTION IF EXISTS rpc_get_public_house_slots_summary_by_nickname(text);
-DROP FUNCTION IF EXISTS rpc_get_public_house_slots_summary(uuid);
-```
-
-### EP-1 롤백
-```sql
-DROP FUNCTION IF EXISTS rpc_delete_house_slot(text);
-DROP FUNCTION IF EXISTS rpc_save_house_slot(text, uuid);
-DROP FUNCTION IF EXISTS rpc_get_my_house();
-DROP FUNCTION IF EXISTS guard_visibility_published(text, timestamptz);
-DROP FUNCTION IF EXISTS guard_block(uuid, uuid);
-DROP FUNCTION IF EXISTS guard_soft_state(timestamptz, timestamptz);
-DROP TABLE IF EXISTS house_slots;
-DROP TABLE IF EXISTS house_profiles;
-```
