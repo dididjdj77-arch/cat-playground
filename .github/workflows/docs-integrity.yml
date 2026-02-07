@@ -1,0 +1,15 @@
+name: docs-integrity
+
+on:
+  pull_request:
+    paths:
+      - "docs/**"
+      - "scripts/check-docs-integrity.sh"
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Run docs integrity checks
+        run: bash scripts/check-docs-integrity.sh
