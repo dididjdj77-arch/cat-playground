@@ -1,7 +1,5 @@
 # DECISIONS — 확정(LOCK) 원장
-
 규칙: LOCK만 기록. 변경 시 ADR 필요 여부를 함께 적는다.
-
 ## Class 분류 체계
 
 | Class | 의미 | 변경 요건 |
@@ -26,6 +24,7 @@
 - Class: POLICY
 - 무엇:
   - 다이어리 탭 = 내 것(관찰 + 내 냥스타그램), log_date 기준 그룹
+  - 소셜/웹 = 공개 + 발행된 것만 탐색/상호작용
 - 의미: “이게 공개냐?” 혼란을 설계로 제거.
 - 변경: ADR 필요(노출 사고 리스크).
 
@@ -47,7 +46,7 @@
 - 무엇:
   - 일괄작성(멀티 체크) + 개별작성(싱글) 모두 지원
 - 의미: 다묘 UX/정합성의 핵심.
-- See: ADR-002
+- See: docs/ADR/ADR-002-observation-storage.md
 - 변경: ADR 필요.
 
 ## D-006 하우스(집) 탭 방향
@@ -102,7 +101,7 @@
 - Class: POLICY
 - 무엇: 글/답글(1-depth)/좋아요/검색 + 인기/최신/팔로잉 + 토픽 팔로우.
 - 의미: 커뮤니티 축적/탐색 엔진을 v1부터 확보.
-- See: ADR-001
+- See: docs/ADR/ADR-001-channel-v1.md
 - 변경: ADR 필요.
 
 ## D-014 운영 최소장치 v1
@@ -116,7 +115,7 @@
 - 무엇:
   - 웹 목적=SEO 유입
 - 의미: 유입 엔진을 기술/정책으로 고정.
-- See: ADR-003
+- See: docs/ADR/ADR-003-web-seo-v1.md
 - 변경: ADR 필요.
 
 ## D-016 토픽 전부 공개(SEO 대상)
@@ -161,7 +160,7 @@
 - Class: GUARD
 - 무엇: Upsert(전체)/Patch(부분) 분리 + 트랜잭션 + idempotency + version 충돌(409).
 - 의미: 재시도/동시편집/부분편집에서 데이터 찢김 방지.
-- See: ADR-002
+- See: docs/ADR/ADR-002-observation-storage.md
 - See: docs/playbooks/rpc-owner.md
 - 변경: ADR 필요.
 
@@ -371,6 +370,7 @@
 - Class: GUARD
 - 무엇(원칙):
   - 읽기(조회/스크롤)는 제한하지 않는다.
+- 수치: See docs/CONFIG-BASELINES.md#1-rate-limits-d-053
 - 의미: 스팸/도배 최소 비용 억제 + 정상 UX 보존.
 - 변경: 수치는 CONFIG-BASELINES(config 변경). 원칙 변경은 ADR 권장.
 
@@ -378,14 +378,14 @@
 - Class: GUARD
 - 무엇(원칙):
   - 자동숨김 트리거: 서로 다른 신뢰 신고자 N명 충족 시 hidden_at 설정(삭제 아님).
+- 수치: See docs/CONFIG-BASELINES.md#2-auto-hide-threshold-d-054
 - 의미: 어뷰즈 방어 + 운영자 개입 전 1차 방어선.
 - 변경: 수치는 CONFIG-BASELINES(config 변경). 정책 변경은 ADR 권장.
 
 ## D-055. PublicHouseSlotSummaryDTO v1 허용 필드(whitelist)
 - Class: GUARD
-- 무엇(허용 필드):
-  - slot_key
-  - equipped_at (nullable)
+- 무엇(허용 필드): slot_key, equipped_at(nullable), type, catalog.standard_name
+- 금지(명시): inventory_item_id, raw_text/note/meta, cats.avatar_url, catalog_item_id
 - 의미: 공개 하우스는 존재 은닉/프라이버시 경계를 지키면서도 표현에 필요한 최소 정보만 제공.
 - 변경: ADR 불필요(기존 ADR-007 원칙의 구체화). 단 공개 범위 확대는 ADR 필요.
 
@@ -394,7 +394,7 @@
 - 무엇:
   - 운영 중 조정 가능한 파라미터는 DB app_config에 저장한다.
   - key(v1): rate_limits, rate_limits_new_account, auto_hide
-- 원칙/경계: direct SELECT 금지(권장), 읽기는 RPC whitelist, 쓰기는 서버/운영 도구만, 비밀값 저장 금지, 새 key는 D-056+whitelist 선행.
+- 원칙/경계: direct SELECT 금지(권장), 읽기=SECURITY DEFINER RPC(whitelist), 쓰기=서버/운영만, 비밀값 금지, 새 key는 D-056+whitelist 선행.
 - 의미: 수치 변경을 코드 배포와 분리하고 공개/비공개 경계를 단일 지점에서 통제한다.
 - See: docs/playbooks/ops-app-config.md
 - See: docs/CONFIG-BASELINES.md#3-app_config-key-매핑-d-056
