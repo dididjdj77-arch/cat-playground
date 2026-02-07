@@ -13,16 +13,18 @@
 
 ### 운영 규칙
 - 모든 D-### 항목은 Class를 명시한다.
-- MOVED 항목: `Status: MOVED → <경로>` + 최소 stub(3~4줄) 유지.
+- MOVED 항목: `Status`와 이동 경로를 명시하고 최소 stub(3~4줄) 유지.
 - Class 정의 자체의 변경: ADR 필요.
 
 ## D-001 앱 IA(하단 탭) + 소셜 세그먼트
+- Class: POLICY
 - 무엇: 하단 탭 4개(하우스/다이어리/소셜/설정). 소셜 세그먼트 2개(냥스타그램, 채널). (추후) 알림, 내 활동.
 - 의미: 도메인(기록 vs 공개)을 구조적으로 분리.
 - 영향: 라우팅/권한/캐시 구조 전반.
 - 변경: ADR 필요.
 
 ## D-002 공개/비공개 혼란 방지: 표면 분리
+- Class: POLICY
 - 무엇:
   - 다이어리 탭 = 내 것(관찰 + 내 냥스타그램), log_date 기준 그룹
   - 소셜/웹 = 공개 + 발행된 것만 탐색/상호작용
@@ -31,6 +33,7 @@
 - 변경: ADR 필요(노출 사고 리스크).
 
 ## D-003 다이어리 탭 UX(인라인 2패널 + B1)
+- Class: GUARD
 - 무엇:
   - 상단 인라인 작성 패널 2개(관찰/내 냥스타), 기본 접힘, 저장 시 자동 접힘
   - 하단 날짜 헤더 그룹 리스트(B1), log_date 기준
@@ -41,12 +44,14 @@
 - 변경: ADR 권장.
 
 ## D-004 드래프트 정책(로컬-only)
+- Class: GUARD
 - 무엇: 드래프트는 로컬 저장만. 서버 반영은 저장 버튼 시점.
 - 의미: 서버 복잡도↓, 입력 손실↓.
 - 영향: 멀티디바이스 동기화는 v2 선택.
 - 변경: ADR 권장.
 
 ## D-005 관찰(다묘) 핵심: C2/D2/E2 + 표현/저장 분리
+- Class: POLICY
 - 무엇:
   - 일괄작성(멀티 체크) + 개별작성(싱글) 모두 지원
   - 공통 입력 + 고양이별 override 옵션
@@ -58,6 +63,7 @@
 - 변경: ADR 필요.
 
 ## D-006 하우스(집) 탭 방향
+- Class: POLICY
 - 무엇:
   - 하우스 탭 = 2D 거실(방 1개, room_key='living_room') 씬 + 슬롯 기반 배치 UI.
   - 하우스는 "등록된 고양이 현황 + 슬롯 기반 장착(배치) 현황"을 보여준다.
@@ -74,6 +80,7 @@
 - 변경: ADR 권장.
 
 ## D-007 내 냥스타그램 상태 모델(V2 + N1)
+- Class: POLICY
 - 무엇:
   - log_date 선택(기본 오늘)
   - visibility(private/public)
@@ -87,39 +94,34 @@
 - 변경: ADR 필요.
 
 ## D-008 냥스타그램 v1 상호작용
+- Class: GUARD
 - 무엇: 좋아요 + 댓글 CRUD(수정 포함).
 - 의미: 커뮤니티 최소 완결.
 - 영향: 운영 장치(신고/차단/레이트리밋) 필수 결합.
 - 변경: ADR 권장.
 
 ## D-009 댓글 수정 정책(현업 표준형)
+- Class: GUARD
 - 무엇: 시간 제한 없음 + “수정됨” 표시 + 내부 감사로그(이전 본문 1개 보관). 사용자에게 이력 UI는 제공하지 않음.
 - 의미: UX 단순 + 분쟁 대응 최소 기반.
 - 영향: comment_revisions 등 감사로그 필요.
 - 변경: ADR 권장.
 
 ## D-010 log_date 방어(미래 금지)
+- Class: POLICY
 - 무엇: log_date는 오늘 이하만 허용. 극단 과거 허용.
 - 의미: 정렬/통계/회고의 일관성.
 - 영향: “미래 계획”은 schedule_date 같은 별도 도메인으로 분리해야 함.
 - 변경: ADR 필요.
 
 ## D-011 SSOT 운영 방식
-- Status: Updated 2026-02-04 (remove TODO SSOT, switch to EP-ID + PR)
-- 무엇:
-  - SSOT: CONTEXT / INDEX / DECISIONS / OPEN (+ ADR/* 필요 시)
-  - Work unit: EP-ID + PR (Execution Packet 기반). TODO 문서는 사용하지 않는다.
-  - 회차 종료 체크(3줄):
-    1) DECISIONS: 신규 D-### 추가/정정 반영 여부
-    2) OPEN: 상태 갱신(Resolved → D-### 링크) 반영 여부
-    3) PR: EP-ID ↔ PR 링크(또는 PR 본문 Result Packet) 기록 여부
-- 의미: “결정(DECISIONS) / 미정(OPEN) / 근거(ADR) / 실행(EP/PR)”를 분리해 누락과 재논의를 줄인다.
-- 영향:
-  - 구현/문서 변경은 EP 단위로만 진행한다(EP 없이 임의 변경 금지).
-  - 근본적 방향 전환은 ADR로 근거를 남긴다(Template 준수).
-
+- Class: PROCESS
+- Status: MOVED → docs/PROCESS.md#1-ssot-운영-방식-from-d-011
+- 무엇: EP-ID + PR 기반 작업 관리. TODO 문서 미사용.
+- 변경: PROCESS.md가 SSOT.
 
 ## D-012 AC-3 정규화(자동완성/추천/제안큐/승인 UI)
+- Class: POLICY
 - 무엇:
   - 자동완성 목록 → 없으면 자유입력 허용(막지 않음)
   - 자유입력 시: 기존 항목 매핑 추천 OR 신규 등록 요청(pending)
@@ -130,6 +132,7 @@
 - 변경: ADR 필요.
 
 ## D-013 채널 v1 범위(Blind 벤치마킹, 익명성 제외)
+- Class: POLICY
 - 무엇: 글/답글(1-depth)/좋아요/검색 + 인기/최신/팔로잉 + 토픽 팔로우.
 - 의미: 커뮤니티 축적/탐색 엔진을 v1부터 확보.
 - 영향: 검색/집계/운영 장치 필수.
@@ -137,12 +140,14 @@
 - 변경: ADR 필요.
 
 ## D-014 운영 최소장치 v1
+- Class: GUARD
 - 무엇: 액션별 레이트리밋 + 신고 + 차단(상호 비노출) + 조건부 자동숨김 + 감사로그.
 - 의미: 공개+SEO 환경에서 생존 조건.
 - 영향: 정책 레이어/관리 도구 필요.
 - 변경: ADR 권장.
 
 ## D-015 웹(SEO) 원칙
+- Class: POLICY
 - 무엇:
   - 웹 목적=SEO 유입
   - SSR/ISR 전제
@@ -154,18 +159,21 @@
 - 변경: ADR 필요.
 
 ## D-016 토픽 전부 공개(SEO 대상)
+- Class: POLICY
 - 무엇: 채널 토픽은 전부 공개 읽기 가능(웹 색인 대상).
 - 의미: 성장 극대화.
 - 영향: 운영/부하 리스크 ↑ (D-014/015 필수).
 - 변경: ADR 필요.
 
 ## D-017 닉네임 중심 탐색 UX(액션 메뉴)
+- Class: GUARD
 - 무엇: 닉네임 탭 시 즉시 이동이 아니라 메뉴(고양이정보/하우스보기/냥스타그램). 작성글/활동은 추후 확장.
 - 의미: Blind류 UX 유지 + 오동작/이탈 감소.
 - 영향: 권한/차단/공개 설정에 따른 메뉴 노출 제어 필요.
 - 변경: ADR 권장.
 
 ## D-018 인벤토리 원장(owner-only) + 공개는 하우스 슬롯 "장착 요약"만
+- Class: POLICY
 - 무엇:
   - 인벤토리 원장(inventory_items)은 항상 owner-only로 유지한다.
   - 타인에게 공개 가능한 인벤토리 정보는 "하우스 슬롯에 장착된 아이템 요약"으로 제한한다.
@@ -175,26 +183,29 @@
 - 영향: DATA-MODEL/AUTHZ/RPC(공개 하우스 조회)에서 "슬롯 요약만"을 강제해야 한다.
 - 변경: ADR 필요.
 
-
 ## D-019 차단(Block): 상호 비노출 + 상호작용 불가
+- Class: POLICY
 - 무엇: A가 B를 차단하면 서로 콘텐츠/프로필 비노출, 상호작용 불가.
 - 의미: 분쟁/괴롭힘 리스크 최소화.
 - 영향: 모든 조회/검색/프로필 공통 필터.
 - 변경: ADR 권장.
 
 ## D-020 공개글 프로필 노출 분리: hide_from_profile
+- Class: GUARD
 - 무엇: 공개+발행 글이라도 프로필 목록에서는 숨길 수 있음(피드/링크는 공개 유지). 문구로 명확화.
 - 의미: “공개”와 “프로필 진열” 니즈 분리.
 - 영향: 상태 조합 증가 → UX 명확화 필수.
 - 변경: ADR 권장.
 
 ## D-021 내부 검색 결과 noindex
+- Class: GUARD
 - 무엇: 검색 결과 페이지는 noindex.
 - 의미: 얇은 페이지/중복 색인 방지.
 - 영향: SEO 품질 유지.
 - 변경: ADR 권장.
 
 ## D-022 관찰 저장 가드레일(심화)
+- Class: GUARD
 - 무엇: Upsert(전체)/Patch(부분) 분리 + 트랜잭션 + idempotency + version 충돌(409).
 - 의미: 재시도/동시편집/부분편집에서 데이터 찢김 방지.
 - 영향: group.version / expected_version 필요.
@@ -202,6 +213,7 @@
 - 변경: ADR 필요.
 
 ## D-023 채널 기술 가드레일(심화)
+- Class: GUARD
 - 무엇: 
   - 피드 3종 쿼리/캐시 분리, cursor pagination, FTS 인덱스, likes unique + 카운트 보정 잡.
   - 검색(v1): Postgres FTS(tsvector(title+body) + GIN)로 시작한다.
@@ -214,30 +226,34 @@
 - 변경: ADR 권장.
 
 ## D-024 자동숨김 가드레일(심화)
+- Class: GUARD
 - 무엇: 신고 임계치 조건 충족 시 hidden_at만 설정(삭제 금지). 정책은 설정값화. 감사로그 필수.
 - 의미: 신고 악용/운영 사고 방지.
 - 영향: 수치(임계치/신뢰조건)는 D-054 기준(운영 파라미터는 D-056).
 - 변경: ADR 권장.
 
 ## D-025 SEO 가드레일(심화)
+- Class: GUARD
 - 무엇: SSR/ISR + index 범위 제한 + 품질 게이트(스팸/hidden 제외) + 이벤트 기반 재검증 트리거.
 - 의미: SEO를 “기술+운영”으로 보장.
 - 영향: hidden/deleted의 404 통일 전략은 D-050 기준.
 - 변경: ADR 권장.
 
 ## D-026 공개 부하/스크래핑 대응 여지
+- Class: GUARD
 - 무엇: 공개 페이지는 CDN/ISR 캐시 가능 형태로 설계. 공개 API/인증 API 분리. 필요 시 WAF/봇 룰 확장 여지.
 - 의미: 성장 엔진 부하를 인프라로 흡수.
 - 영향: 배포/캐시 정책 문서 필요.
 - 변경: ADR 권장.
 
-## D-027. SSOT 문서 자동 PR 규칙
-- SSOT 문서 변경은 D-### 결정 키를 기준으로 수행한다(헤딩 전체 텍스트 일치에 의존하지 않는다).
-- 동일 요청을 여러 번 실행해도 동일 PR을 반환해야 한다(멱등성).
-- GitHub Contents API는 대상 브랜치의 최신 sha 기준으로 처리한다.
-- sha mismatch(409) 발생 시 최신 sha 재조회 후 1회 재시도한다.
+## D-027 SSOT 문서 자동 PR 규칙
+- Class: PROCESS
+- Status: MOVED → docs/PROCESS.md#2-ssot-문서-자동-pr-규칙-from-d-027
+- 무엇: D-### 키 기준 변경 + 멱등성 + sha mismatch 재시도.
+- 변경: PROCESS.md가 SSOT.
 
 ## D-028. Payload Version State Machine + KPI
+- Class: POLICY
 - 무엇:
   - Observation payload는 payload_version을 가진다(Contract 식별자).
   - payload_version 상태 머신을 둔다: ACTIVE / DEPRECATED / REJECT.
@@ -256,6 +272,7 @@
 - 변경: ADR 필요.
 
 ## D-029. Common Filter Guard
+- Class: POLICY
 - 무엇:
   - 외부·공개·상품성 데이터 제공은 “집계 RPC 단일 경로”만 허용한다(원본 테이블 직접 노출 금지).
   - 모든 집계/공개 RPC 내부에서 공통 필터를 강제한다:
@@ -267,6 +284,7 @@
 - 변경: ADR 권장.
 
 ## D-030. JSONB Meta Promotion Rule
+- Class: POLICY
 - 무엇:
   - JSONB meta 포켓은 임시 확장 슬롯이며, 최종 안식처가 아니다.
   - meta → 컬럼 승격(Promotion) 시 규칙:
@@ -279,51 +297,32 @@
 - 변경: ADR 필요.
 
 ## D-031. SSOT 우선순위 체계 (협업 프로토콜)
+- Class: POLICY
 - 무엇: 모든 설계/구현 판단은 SSOT(등록 문서) > DECISIONS(LOCK) > 대화 LOCK 순으로 해석한다. 충돌 시 자동 결론 금지, 차이/영향을 제시한 뒤 질문으로 해소한다.
 - 의미: “문서가 진실”이며, 대화/PR/실행자는 문서를 따른다. 임의 추측/임의 결론은 신뢰 사고로 취급한다.
 - 영향: 불확실성은 모름/⚠가설/OPEN으로 명시한다. 실행자(데이터 플레인)도 동일 규칙을 따른다.
 - 변경: ADR 필요.
 
-## D-032. 고위험 판정 원칙 (영향도 기반)
-- 무엇: 고위험은 키워드가 아니라 영향도(Blast radius)와 롤백 가능성으로 판단한다. 아래 6문항 중 하나라도 “예/의심”이면 PRECISE 우선:
-  1) 롤백 난이도(되돌리기 비용/다운타임/복구 난이도)
-  2) 데이터 유실/오염 가능성(대량 UPDATE/DELETE/정합성 훼손)
-  3) 공개/비공개 경계 변화(anon 접근, SEO 노출, 공개 URL/스토리지)
-  4) 권한/정책 변화(RLS, SECURITY DEFINER RPC, 우회 가능성)
-  5) 스키마/마이그레이션 성격(컬럼/인덱스/제약/키 변경, 백필성 작업 포함)
-  6) 외부/클라이언트 영향(API 계약, 앱/웹 동시 영향, 캐시/검색 영향)
-- 의미: 본질적 위험을 먼저 판정하고, 안전장치/검증/롤백을 설계에 포함한다.
-- 영향: PRECISE는 최소 안전장치(DoD/검증/롤백)를 반드시 포함한다. FAST도 PR/스모크/체크리스트로 되돌리기 가능성을 확보한다.
-- 변경: ADR 필요.
+## D-032 고위험 판정 원칙 (영향도 기반)
+- Class: PROCESS
+- Status: MOVED → docs/PROCESS.md#6-고위험-판정-원칙-from-d-032
+- 무엇: 영향도(6문항) 기반 PRECISE/FAST 판정. 안전장치 필수.
+- 변경: PROCESS.md가 SSOT.
 
-## D-033. 컨트롤/데이터 플레인 분업
-- 무엇: 컨트롤(사용자+어시스턴트)은 설계/검증/승인, 데이터(omoc/Claude Code 등 실행자)는 컨트롤이 정한 스코프/금지/DoD 범위 내 구현 + PR 산출을 담당한다. SSOT 충돌/불확실 시 임의 결론 대신 질문으로 멈춘다.
-- 의미: 판단(설계)과 실행(구현)을 분리해 안정성과 속도를 동시에 확보한다.
-- 영향: Execution Packet(작업 지시서) 템플릿/PR 루프는 OPEN(미결정)과 DECISIONS(확정)로 관리하고, 필요 시 ADR로 근거를 남긴다.
-- 변경: ADR 필요.
+## D-033 컨트롤/데이터 플레인 분업
+- Class: PROCESS
+- Status: MOVED → docs/PROCESS.md#7-컨트롤데이터-플레인-분업-from-d-033
+- 무엇: 컨트롤(설계/검증/승인) vs 데이터(구현/PR). 충돌 시 질문.
+- 변경: PROCESS.md가 SSOT.
 
-## 해소된 충돌(근거)
-- 채널 v1 범위: “답글/좋아요/검색까지 포함” 사용자 확정 발언으로 D-013 고정.
-- 닉네임 이동 UX: “바로 페이지 이동 아님, 메뉴로” 사용자 확정 발언으로 D-017 고정.
-
-
-
-
-## D-034. DECISIONS 운영 규칙 개정(번호 고정 + 내용 수정 허용)
-- 무엇:
-  - D-### 번호는 "영구 할당"이며 재사용 금지.
-  - 기존 D-###의 "내용 수정"을 허용한다(오타/명확화/정정/정보 업데이트 포함).
-  - 삭제는 금지한다(참조 안정성). 필요 시 해당 D 항목 상단에 Status를 표시한다:
-    - Status: active | superseded
-    - See: ADR-### 또는 관련 D-### 링크
-  - 근본적 방향 전환(정책/권한/아키텍처 패턴 변경)은 ADR로 근거를 남긴다.
-  - Git commit 메시지에 변경 이유(Reason)를 남긴다(문서는 현재 상태 우선, 이력은 Git이 관리).
-- 의미: 문서는 "현재 상태"가 명확한 것이 최우선이며, 변경 이력은 Git이 담당한다.
-- 영향:
-  - append-only를 강제하는 CI/린트가 있다면, "삭제/번호 재사용 금지" 중심으로 규칙을 조정한다.
-- 변경: ADR 필요 시 추가.
+## D-034 DECISIONS 운영 규칙 개정
+- Class: PROCESS
+- Status: MOVED → docs/PROCESS.md#3-decisions-운영-규칙-from-d-034
+- 무엇: D-### 번호 영구 할당, 삭제 금지, 내용 수정 허용, 방향 전환은 ADR.
+- 변경: PROCESS.md가 SSOT.
 
 ## D-035. 하우스 공개 상태 모델(visibility + published_at)
+- Class: POLICY
 - 무엇:
   - 하우스 공개 모델은 visibility + published_at 패턴을 사용한다:
     - house_profiles.visibility: private | public
@@ -341,6 +340,7 @@
 - 변경: ADR 필요.
 
 ## D-036. 하우스 공개 ≠ 인벤토리 공개(슬롯 요약만 노출)
+- Class: POLICY
 - 무엇:
   - inventory_items(인벤 원장)는 항상 owner-only로 유지한다(D-018 유지).
   - 타인이 볼 수 있는 인벤 관련 정보는 "하우스 슬롯에 장착된 아이템 요약(화이트리스트)"로 제한한다.
@@ -350,6 +350,7 @@
 - 변경: ADR 필요.
 
 ## D-037. 공개 하우스 응답에서 고양이 사진(avatar_url) 금지
+- Class: POLICY
 - 무엇:
   - 공개 하우스 응답/뷰/DTO에는 cats.avatar_url을 **절대 포함하지 않는다**.
   - 공개 화면의 고양이 렌더는 breed 기반 기본 아바타(or generic)만 사용한다.
@@ -358,6 +359,7 @@
 - 변경: ADR 필요.
 
 ## D-038. 인벤토리 타입 v1 고정(정식 코드)
+- Class: GUARD
 - 무엇:
   - inventory_items.type은 v1에서 고정된 정식 코드 목록을 사용한다.
   - v1 정식 코드 목록(SSOT):
@@ -373,6 +375,7 @@
 - 변경: ADR 필요.
 
 ## D-039. 공개 하우스는 스냅샷 미채택(현재 상태 기반)
+- Class: POLICY
 - 무엇:
   - 공개 하우스는 발행 시점 고정 스냅샷이 아니라, 항상 현재 상태(현재 슬롯 바인딩/현재 데이터)를 계산해 노출한다.
   - publish는 "노출 허용 상태 전환"이며 데이터는 실시간(현재) 기준이다.
@@ -381,6 +384,7 @@
 - 변경: ADR 필요.
 
 ## D-040. 인벤토리 수정 정책(삭제 없음)
+- Class: POLICY
 - 무엇: 사용자는 inventory_items를 논리적으로도 삭제하지 않는다(사용자 기능으로 deleted_at 미사용; v1에서는 항상 NULL).
 - 정정 방법(LOCK): 잘못된 항목은 is_current=false로 전환하고, 새 항목을 추가한다(append-only).
 - UX: 사용자는 "수정"을 수행할 수 있으나, 내부적으로는 새 row 생성으로 처리한다(원장/이력 보존).
@@ -391,6 +395,7 @@
 - 변경: ADR 필요.
 
 ## D-041. observation idempotency TTL 정책
+- Class: GUARD
 - 무엇: observation_groups.idempotency_key 중복 검사 유효 기간은 7일로 한다.
 - cleanup 동작(LOCK): 7일 경과 observation_groups의 idempotency_key를 NULL로 설정한다.
   - observation 데이터는 유지된다.
@@ -402,12 +407,14 @@
 - 변경: ADR 필요.
 
 ## D-042. observation payload 최소 형태 검증(400)
+- Class: GUARD
 - 무엇: observation upsert/patch RPC 입구에서 payload의 최소 골격(필수 키/타입)을 검증하고 실패 시 400을 반환한다.
 - 의미: 잘못된 JSON 저장으로 normalize/롤업 파손을 방지한다.
 - 영향: RPC에 입력 검증 로직 추가 필요.
 - 변경: ADR 필요.
 
 ## D-043. current 변경 후 슬롯 노출 규칙
+- Class: POLICY
 - 무엇: 슬롯 저장 시점에는 is_current=true만 장착 가능하다.
 - 이후 non-current가 되면:
   - 본인 화면: "현재 아이템 아님" 경고 + 교체 유도
@@ -422,6 +429,7 @@
 - 변경: ADR 필요.
 
 ## D-044. House 보안 UX(존재 은닉)
+- Class: POLICY
 - 무엇: House 공개 조회 경로의 상태코드는 D-035의 보안 UX 규칙을 따른다.
 - 규칙: 미인증/비공개/숨김/삭제/차단/미발행은 모두 404로 통일한다.
 - See: D-035
@@ -430,12 +438,14 @@
 - 변경: ADR 필요.
 
 ## D-045. payload_version_events retention
+- Class: GUARD
 - 무엇: payload_version_events는 90일 보관 후 삭제한다. payload_version_rollups는 영구 보관한다.
 - 의미: 이벤트 로그 디스크 폭발 방지 + KPI는 롤업으로 장기 보존.
 - 영향: cleanup job 또는 파티션 정책 구현 필요.
 - 변경: ADR 필요.
 
 ## D-046. like_count 동시성 처리 원칙
+- Class: POLICY
 - 무엇: like_count 증감은 read-modify-write를 금지하고, 원자 UPDATE로 수행한다.
   - 예: SET like_count = like_count + 1 / SET like_count = like_count - 1
 - 의미: 동시 요청에서 lost update를 방지한다.
@@ -444,31 +454,19 @@
 - 변경: ADR 필요.
 
 ## D-047 Execution/Result Packet 운영 표준
-- 무엇:
-  - 모든 구현 작업은 Execution Packet(EP) 단위로 진행한다.
-  - 각 티켓은 Execution Packet(EP)으로 지시하며, EP는 `docs/PACKET-TEMPLATES.md` 형식을 따른다.
-  - 결과 제출은 PR 1개로 하며, PR 본문은 Result Packet 형식(`docs/PACKET-TEMPLATES.md`의 섹션 유지)을 채운다.
-  - PR 생성 시 기본 본문은 `.github/pull_request_template.md`를 따른다.
-  - EP에는 최소한 Allowed changes / Validation / DoD / Evidence required 를 포함한다.
-  - Result Packet에 Evidence(실행한 명령/SQL + 출력)가 없으면 “미검증”으로 간주하고 리뷰를 중단한다(불합격).
-- 의미: 스코프 누수와 검증 누락을 구조적으로 방지하고, “지시 ↔ 결과 ↔ 증빙”을 PR diff로 검증 가능하게 만든다.
-- 영향:
-  - 실행자(omoc 포함)는 EP만 보고 수행 가능해야 하며, PR에는 증빙이 남아야 한다.
-  - 작업 분해/우선순위는 EP-ID와 EP에 의해 결정된다.
-- 변경: ADR 불필요(프로세스). 단, 규칙 변경은 새 D-###로 남긴다.
+- Class: PROCESS
+- Status: MOVED → docs/PROCESS.md#4-executionresult-packet-운영-from-d-047
+- 무엇: 모든 작업은 EP 단위. Evidence 없으면 불합격.
+- 변경: PROCESS.md가 SSOT.
 
 ## D-048 EP 식별자(EP-ID) 관리
-- 무엇:
-  - EP 식별자는 EP-ID를 SSOT로 사용한다(예: EP-YYYYMMDD-<slug>).
-  - Execution Packet ID는 `EP-<EP-ID>`로 표기한다.
-  - PR 제목과 본문(Result Packet)에는 EP-ID를 반드시 포함한다.
-  - Result Packet은 `EP-ID`로 추적하며, 별도 “Result 번호”는 두지 않는다.
-  - (선택) GitHub Issue를 쓰는 경우, Issue 번호는 참고 링크로만 둔다(SSOT는 EP-ID 유지).
-- 의미: 번호 충돌을 방지하고, “지시(EP) ↔ 결과(PR/증빙)”를 1:1로 추적 가능하게 만든다.
-- 영향: 새 작업은 EP-ID를 발급한 뒤 EP/PR을 생성한다.
-- 변경: ADR 불필요(프로세스). 단, 규칙 변경은 새 D-###로 남긴다.
+- Class: PROCESS
+- Status: MOVED → docs/PROCESS.md#5-ep-id-관리-from-d-048
+- 무엇: EP-YYYYMMDD-<slug> 형식. PR에 EP-ID 필수.
+- 변경: PROCESS.md가 SSOT.
 
 ## D-049: 기술 스택/배포 확정 (O-010 해소)
+- Class: POLICY
   - 무엇: 제품 런타임 스택 + 배포 기준선을 확정
   - 결정:
     - App: Expo (React Native)
@@ -481,6 +479,7 @@
   - 근거: docs/CONTEXT.md에 기재된 스택 가정을 “확정”으로 승격하고, 배포를 명시해 구현/운영 편차를 줄인다.
 
 ## D-050. 공개 표면 "조회 불가" 상태코드: 404로 통일(존재 은닉)
+- Class: POLICY
 - 무엇: 웹/앱의 공개 표면에서 “조회 불가” 상태는 모두 404로 통일한다.
   - 포함: 미인증, 비공개, hidden, deleted, 차단(block), 미발행(unpublished)
   - 제외: (v1) 별도의 "삭제됨 안내 페이지" / 410 / 상태별 다른 코드 분기
@@ -493,6 +492,7 @@
 - 변경: ADR 필요.
 
 ## D-051. 닉네임 변경 정책
+- Class: GUARD
 - 무엇:
   - 닉네임 변경: 허용
   - 이전 닉네임 예약: 1시간 (타인 선점 방지)
@@ -506,6 +506,7 @@
 - 변경: ADR 권장
 
 ## D-052. 신고 시점 콘텐츠 스냅샷 (O-024 → D-052)
+- Class: GUARD
 - 무엇:
   - reports.snapshot (jsonb) 컬럼 추가
   - 신고 INSERT 시 target의 핵심 필드 스냅샷 저장
@@ -516,6 +517,7 @@
 - 변경: ADR 불필요 (운영 정책)
 
 ## D-053. 레이트리밋 v1 기본값
+- Class: GUARD
 - 무엇(원칙):
   - 읽기(조회/스크롤)는 제한하지 않는다.
   - 쓰기/신고 등 “행동”만 레이트리밋한다.
@@ -536,6 +538,7 @@
 - 변경: ADR 불필요(운영 파라미터). 단 “행동만 제한/읽기 제외” 원칙 변경은 ADR 권장.
 
 ## D-054. 조건부 자동숨김(신고 기반) v1 임계치/신뢰 조건
+- Class: GUARD
 - 무엇:
   - 자동숨김 트리거: 서로 다른 신고자 N명 충족 시
   - N = 5
@@ -547,6 +550,7 @@
 - 변경: ADR 권장(운영 정책/공개 경계 영향).
 
 ## D-055. PublicHouseSlotSummaryDTO v1 허용 필드(whitelist)
+- Class: GUARD
 - 무엇(허용 필드):
   - slot_key
   - equipped_at (nullable)
@@ -565,6 +569,7 @@
 - 변경: ADR 불필요(기존 ADR-007 원칙의 구체화). 단 공개 범위 확대는 ADR 필요.
 
 ## D-056. 운영 파라미터 저장소: app_config (rate_limits / auto_hide)
+- Class: GUARD
 - 무엇:
   - D-053 레이트리밋 수치는 운영 중 조정 가능한 파라미터이며 DB의 app_config에 저장한다.
   - D-054 자동숨김 임계치도 운영 중 조정 가능한 파라미터이며 DB의 app_config에 저장한다.
