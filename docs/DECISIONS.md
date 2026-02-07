@@ -46,7 +46,6 @@
 - 무엇:
   - 일괄작성(멀티 체크) + 개별작성(싱글) 모두 지원
 - 의미: 다묘 UX/정합성의 핵심.
-- See: docs/ADR/ADR-002-observation-storage.md
 - 변경: ADR 필요.
 
 ## D-006 하우스(집) 탭 방향
@@ -102,7 +101,6 @@
 - Class: POLICY
 - 무엇: 글/답글(1-depth)/좋아요/검색 + 인기/최신/팔로잉 + 토픽 팔로우.
 - 의미: 커뮤니티 축적/탐색 엔진을 v1부터 확보.
-- See: docs/ADR/ADR-001-channel-v1.md
 - 변경: ADR 필요.
 
 ## D-014 운영 최소장치 v1
@@ -116,7 +114,6 @@
 - 무엇:
   - 웹 목적=SEO 유입
 - 의미: 유입 엔진을 기술/정책으로 고정.
-- See: docs/ADR/ADR-003-web-seo-v1.md
 - 변경: ADR 필요.
 
 ## D-016 토픽 전부 공개(SEO 대상)
@@ -161,7 +158,6 @@
 - Class: GUARD
 - 무엇: Upsert(전체)/Patch(부분) 분리 + 트랜잭션 + idempotency + version 충돌(409).
 - 의미: 재시도/동시편집/부분편집에서 데이터 찢김 방지.
-- See: docs/ADR/ADR-002-observation-storage.md
 - See: docs/playbooks/rpc-owner.md
 - 변경: ADR 필요.
 
