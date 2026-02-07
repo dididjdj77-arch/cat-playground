@@ -554,20 +554,16 @@
 - 영향: public RPC는 whitelist 고정(서버에서 필드 누수 방지).
 - 변경: ADR 불필요(기존 ADR-007 원칙의 구체화). 단 공개 범위 확대는 ADR 필요.
 
-## D-056. 운영 파라미터 저장소: app_config (rate_limits / auto_hide)
+## D-056 운영 파라미터 저장소: app_config
 - Class: GUARD
 - 무엇:
-  - D-053 레이트리밋 수치는 운영 중 조정 가능한 파라미터이며 DB의 app_config에 저장한다.
-  - D-054 자동숨김 임계치도 운영 중 조정 가능한 파라미터이며 DB의 app_config에 저장한다.
-- key(v1):
-  - rate_limits
-  - rate_limits_new_account
-  - auto_hide
-- 노출/권한(원칙):
-  - app_config 원본 테이블 direct SELECT는 금지(권장).
-  - 클라이언트가 필요로 하는 값은 SECURITY DEFINER RPC로만 제공하고, 반환 key는 whitelist로 제한한다.
-  - 쓰기(변경)는 서비스/운영 도구(서버 사이드)만 수행한다.
-    - (주의) admin 권한을 profiles.is_admin 같은 컬럼으로 판별하는 방식은 O-009 결정 후에만 도입한다.
-- 의미: “수치 변경 = 코드 배포”를 피하고, 공개/비공개 경계를 단일 지점에서 통제한다.
-- 영향: 014_app_config.sql 마이그레이션(테이블+RPC+seed)이 필요.
-- 변경: ADR 불필요(운영 파라미터). 단 공개 범위 확대(anon 노출 등)는 ADR 필요.
+  - 운영 중 조정 가능한 파라미터는 DB app_config에 저장한다.
+  - key(v1): rate_limits, rate_limits_new_account, auto_hide
+- 원칙/경계:
+  - 원본 테이블 direct SELECT 금지(권장).
+  - 읽기: SECURITY DEFINER RPC + key whitelist.
+  - 쓰기: 서버/운영 도구만. admin 판별은 O-009 결정 후 도입.
+  - 비밀값(토큰/키) 저장 절대 금지. 새 key 추가 시 D-056 + RPC whitelist 업데이트 선행.
+- 구현/검증: See docs/playbooks/ops-app-config.md
+- 수치: See docs/CONFIG-BASELINES.md#3-app_config-key-매핑-d-056
+- 변경: ADR 불필요(운영 파라미터). 공개 범위 확대는 ADR 필요.
