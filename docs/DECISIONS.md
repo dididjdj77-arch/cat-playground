@@ -516,38 +516,24 @@
 - 영향: 신고 INSERT 시 1회 추가 조회
 - 변경: ADR 불필요 (운영 정책)
 
-## D-053. 레이트리밋 v1 기본값
+## D-053 레이트리밋 v1 기본값
 - Class: GUARD
 - 무엇(원칙):
   - 읽기(조회/스크롤)는 제한하지 않는다.
-  - 쓰기/신고 등 “행동”만 레이트리밋한다.
+  - 쓰기/신고 등 "행동"만 레이트리밋한다.
   - 분당 + 일간 이중 제한을 사용한다.
   - 신규 계정(가입 24h 이내)은 더 보수적 제한을 적용한다.
-- 수치(v1 기본값, 조정 가능 파라미터):
-  - posts: 2/min, 20/day
-  - comments/replies: 10/min, 200/day
-  - likes: 60/min, 1500/day
-  - reports: 3/min, 30/day
-  - 신규 계정(<=24h):
-    - posts: 1/min, 5/day
-    - comments/replies: 5/min, 50/day
-    - likes: 30/min, 500/day
-    - reports: 2/min, 10/day
-- 의미: 스팸/도배/신고 악용을 최소 비용으로 억제하면서 정상 UX를 보존.
-- 영향: 운영 중 수치 조정은 “코드 상수”가 아니라 config/환경변수 등으로 바꾸는 것이 권장(단, 이 PR에서는 문서만 다룸).
-- 변경: ADR 불필요(운영 파라미터). 단 “행동만 제한/읽기 제외” 원칙 변경은 ADR 권장.
+- 수치: See docs/CONFIG-BASELINES.md#1-rate-limits-d-053
+- 의미: 스팸/도배 최소 비용 억제 + 정상 UX 보존.
+- 변경: 수치는 CONFIG-BASELINES(config 변경). 원칙 변경은 ADR 권장.
 
-## D-054. 조건부 자동숨김(신고 기반) v1 임계치/신뢰 조건
+## D-054 조건부 자동숨김(신고 기반) v1 임계치/신뢰 조건
 - Class: GUARD
-- 무엇:
-  - 자동숨김 트리거: 서로 다른 신고자 N명 충족 시
-  - N = 5
-  - 카운트에 포함되는 신고자 신뢰 조건: 계정 생성 7일 이상 (created_at <= now()-7d)
-  - 시간창(window): 24시간 내 신고만 카운트(rolling)
-  - 트리거 충족 시: 대상에 hidden_at=now() 처리(삭제 아님)
-- 의미: 집단 공격/어뷰즈를 어렵게 하면서, 운영자介入 전 1차 방어선 제공.
-- 영향: “신고 INSERT 시 카운트/판정”이 필요(정확 구현은 별도 티켓).
-- 변경: ADR 권장(운영 정책/공개 경계 영향).
+- 무엇(원칙):
+  - 자동숨김 트리거: 서로 다른 신뢰 신고자 N명 충족 시 hidden_at 설정(삭제 아님).
+- 수치: See docs/CONFIG-BASELINES.md#2-auto-hide-threshold-d-054
+- 의미: 어뷰즈 방어 + 운영자 개입 전 1차 방어선.
+- 변경: 수치는 CONFIG-BASELINES(config 변경). 정책 변경은 ADR 권장.
 
 ## D-055. PublicHouseSlotSummaryDTO v1 허용 필드(whitelist)
 - Class: GUARD
