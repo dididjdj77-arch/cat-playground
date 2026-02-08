@@ -12,6 +12,7 @@ v1.1에서는 "공개/외부/상품성 읽기 경로는 SECURITY DEFINER RPC onl
 - SELECT: owner_id = auth.uid()
 - INSERT/UPDATE/DELETE: owner_id = auth.uid()
 - anon direct access는 허용하지 않는다(owner-only).
+- 공개/노출 정책의 원문은 See AUTHZ-MODEL §0.
 
 ## 공개 컨텐츠 (RPC 경유 필수)
 ### posts, threads, replies, topics
@@ -22,7 +23,6 @@ v1.1에서는 "공개/외부/상품성 읽기 경로는 SECURITY DEFINER RPC onl
   - guard_block(): block 관계 필터 (viewer_id가 null인 경우 no-op)
   - posts는 visibility/published_at 조건 강제
   - threads/replies는 visibility/published_at 가드 적용하지 않음
-- 공개 RPC/DTO의 inventory 필드 금지 원칙은 API-CONTRACTS.md, RPC-SPECS.md를 따른다.
 
 ### 하우스 (house_profiles, house_slots)
 - 직접 SELECT 제한(권장: REVOKE + RLS). 공개/타인 조회는 RPC만 허용.

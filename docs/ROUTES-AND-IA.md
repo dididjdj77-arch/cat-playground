@@ -17,17 +17,14 @@
 - "공개/발행 설정"으로 이동
 
 ## 냥벤토리 관리 화면(/inventory)
-- 타입별 현재 카드(food/litter/toy/furniture)와 사용 시작일(changed_at)을 표기한다.
+- 타입별 현재 카드(food/litter/toy/furniture)와 사용 시작일을 표기한다.
 - 액션 버튼 라벨:
   - "교체"(switch): 새 항목 등록 + 기존 current 종료
   - "중단"(discontinue): current 종료만 수행
-- 입력 필드:
-  - reason_note: 선택 메모
-  - reason_code는 UX 액션으로 자동 세팅:
-    - 최초 등록: initial
-    - 교체: switch
-    - 중단: discontinue
-    - 정정(correction): v1 UX에서 별도 노출 여부 미정(운영/정정 플로우)
+- 입력:
+  - 선택 메모를 남길 수 있다.
+  - 이벤트 코드는 액션 의미에 맞춰 시스템에서 기록한다(코드값/스키마는 See D-057, DATA-MODEL).
+  - 정정(correction)의 사용자 노출 UX는 v1에서 별도 확정하지 않는다.
 - 인벤 이벤트 모델은 D-057을 따른다.
 
 ## 관찰 작성 화면의 현재 인벤 참조
