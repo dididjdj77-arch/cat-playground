@@ -2,6 +2,7 @@
 
 > **참고**: 이 문서의 REST 경로(GET/POST/PUT 등)는 **논리적 API 계약**입니다.
 > 실제 구현은 Supabase RPC 함수로 대체될 수 있습니다. RPC 시그니처는 RPC-SPECS.md 참조.
+> Public DTO에는 inventory 원장 관련 필드(inventory_item_id 포함 여부는 owner-only 범위에서만) 누출을 금지한다. (D-018, D-036, D-037 준수; 화이트리스트만 허용)
 
 ## 관찰(고위험)
 RPC upsert_observation_group_with_items
@@ -12,6 +13,7 @@ RPC upsert_observation_group_with_items
   - idempotency_key: uuid (필수)
   - common_payload: jsonb
   - items[{cat_id, status, override_payload}]
+  - inventory_refs?: jsonb  (optional) — 타입별 inventory_item_id 맵
 - res: 
   - group_id: uuid
   - version: int
@@ -21,6 +23,8 @@ RPC upsert_observation_group_with_items
   - 400 rejected_version: REJECT 상태 버전
 - 비고: 트랜잭션 + 멱등성 필수, DEPRECATED/ACTIVE는 저장 허용
 - 멱등성: 동일 (owner_id, idempotency_key) 재요청은 기존 결과(group_id/version/items)를 반환
+- upsert 시 inventory_refs를 기록하면 observation_inventory_refs로 저장된다.
+- patch_observation_items는 observation_inventory_refs를 변경하지 않는다.
 
 RPC patch_observation_items
 - 목적: 부분 수정(excluded/override)
