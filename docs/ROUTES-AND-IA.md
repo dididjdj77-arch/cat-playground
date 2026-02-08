@@ -13,8 +13,27 @@
 - 2D 거실 씬 + 슬롯 표시
 - 빈 슬롯 탭 → 아이템 선택 모달(is_current=true 목록) → 바인딩 저장
 - current 없으면 → "먼저 냥벤토리에서 등록/현재 설정" 안내
-- "냥벤토리 관리"로 이동(추가/교체/히스토리)
+- "냥벤토리 관리"로 이동(추가/교체/중단/히스토리)
 - "공개/발행 설정"으로 이동
+
+## 냥벤토리 관리 화면(/inventory)
+- 타입별 현재 카드(food/litter/toy/furniture)와 사용 시작일(changed_at)을 표기한다.
+- 액션 버튼 라벨:
+  - "교체"(switch): 새 항목 등록 + 기존 current 종료
+  - "중단"(discontinue): current 종료만 수행
+- 입력 필드:
+  - reason_note: 선택 메모
+  - reason_code는 UX 액션으로 자동 세팅:
+    - 최초 등록: initial
+    - 교체: switch
+    - 중단: discontinue
+    - 정정(correction): v1 UX에서 별도 노출 여부 미정(운영/정정 플로우)
+- 인벤 이벤트 모델은 D-057을 따른다.
+
+## 관찰 작성 화면의 현재 인벤 참조
+- 관찰 저장 시점에 타입별 current를 inventory_refs로 전달해 observation_inventory_refs를 고정 기록한다.
+- 관찰 수정(Patch)은 refs를 바꾸지 않는다(변경 필요 시 D-058의 재작성 루트 준수).
+- 관찰 refs 고정은 D-058을 따른다.
 
 ## 채널 화면(Blind 벤치마킹)
 - 검색 + 피드(인기/최신/팔로잉)
