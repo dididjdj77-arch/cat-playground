@@ -68,6 +68,7 @@
   - (선택) unique(owner_id, log_date) — 날짜당 1묶음으로 고정할 때
   - index: (owner_id, log_date), (owner_id, payload_version), (owner_id, idempotency_key)
 - observations(id, group_id, owner_id, cat_id, status(active|excluded), override_payload jsonb?, created_at, updated_at, deleted_at)
+  - status 의미: excluded는 해당 관찰 항목을 "이번 그룹 집계에서 제외"하는 상태이며, payload_versions.state의 DEPRECATED와는 다른 개념이다.
   - unique(group_id, cat_id)
 - 필수: 트랜잭션 + idempotency + expected_version 기반 충돌 처리
 
