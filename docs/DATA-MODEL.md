@@ -45,6 +45,7 @@
   - is_current: ended_at IS NULL 과 동치로 유지한다(불변식).
   - reason_code: 해당 row의 생성/종료 이벤트 성격을 나타낸다.
     - 'initial'|'switch'|'discontinue'|'correction'
+    - v1에서는 NOT NULL + default='initial' 권장(기존 row 백필 포함).
   - reason_note: 짧은 메모(nullable).
 
 - Invariants:

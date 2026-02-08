@@ -2,7 +2,7 @@
 
 > **참고**: 이 문서의 REST 경로(GET/POST/PUT 등)는 **논리적 API 계약**입니다.
 > 실제 구현은 Supabase RPC 함수로 대체될 수 있습니다. RPC 시그니처는 RPC-SPECS.md 참조.
-> Public DTO에는 inventory 원장 관련 필드(inventory_item_id 포함 여부는 owner-only 범위에서만) 누출을 금지한다. (D-018, D-036, D-037 준수; 화이트리스트만 허용)
+> Public DTO에는 inventory 관련 필드를 어떤 형태로도 포함하지 않는다(IDs 포함). Owner-only DTO에서만 허용한다. (D-018, D-036, D-037 준수; 화이트리스트만 허용)
 
 ## 관찰(고위험)
 RPC upsert_observation_group_with_items

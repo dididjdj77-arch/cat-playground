@@ -36,7 +36,7 @@ FUNCTION rpc_upsert_observation_group_with_items(
   p_idempotency_key uuid,
   p_common_payload jsonb,
   p_items jsonb, -- [{cat_id, status, override_payload}]
-  p_inventory_refs jsonb -- {"food_item_id":"...","litter_item_id":"...","toy_item_id":"...","furniture_item_id":"..."}
+  p_inventory_refs jsonb default null -- optional: {"food_item_id":"...","litter_item_id":"...","toy_item_id":"...","furniture_item_id":"..."}
 ) RETURNS jsonb
 ```
 - 트랜잭션 필수
@@ -44,6 +44,7 @@ FUNCTION rpc_upsert_observation_group_with_items(
   - REJECT → 400 error
   - ACTIVE/DEPRECATED → 저장 허용
 - idempotency_key 기반 중복 방지
+- p_inventory_refs는 optional이며 NULL 허용이다. NULL이면 refs를 기록하지 않는다.
 - upsert 시점에 p_inventory_refs가 주어지면 observation_inventory_refs에 타입별 inventory_item_id를 기록한다.
 - Patch RPC로는 observation_inventory_refs를 변경하지 않는다.
 - 반환: {group_id, version, items[]}
