@@ -38,13 +38,28 @@
   resolved_catalog_item_id?, reviewed_by?, review_note?, created_at, updated_at)
 
 ## 4) inventory_items
-- inventory_items(id, owner_id, type, catalog_item_id?, raw_text, is_current, changed_at, note?, meta jsonb, created_at, updated_at, deleted_at)
+- inventory_items(id, owner_id, type, catalog_item_id?, raw_text, is_current, changed_at, ended_at?, reason_code, reason_note?, note?, meta jsonb, created_at, updated_at, deleted_at)
+- 의미(필드):
+  - changed_at: started_at(사용 시작 시각)으로 해석한다.
+  - ended_at: 사용 종료 시각(nullable).
+  - is_current: ended_at IS NULL 과 동치로 유지한다(불변식).
+  - reason_code: 해당 row의 생성/종료 이벤트 성격을 나타낸다.
+    - 'initial'|'switch'|'discontinue'|'correction'
+    - v1에서는 NOT NULL + default='initial' 권장(기존 row 백필 포함).
+  - reason_note: 짧은 메모(nullable).
+
+- Invariants:
+  - (ended_at IS NULL) == (is_current = true)
+
+- 이벤트 규칙(표준):
+  - switch: 기존 current row는 ended_at set + is_current=false. 신규 row를 추가하고 신규 row.reason_code='switch', ended_at=NULL, is_current=true.
+  - discontinue: 기존 current row만 ended_at set + is_current=false + reason_code='discontinue'. 신규 row는 만들지 않는다.
+  - correction: 정정 성격의 이벤트로 기록(reason_code='correction').
 - index: (owner_id, type, is_current), (owner_id, deleted_at)
 - constraint/index (권장): UNIQUE(owner_id, type) WHERE is_current=true AND deleted_at IS NULL
   - 의미: 한 타입당 current는 최대 1개(0..1)
-- v1 type SSOT: food | litter | toy | medicine | furniture
-  - 의미 통합: food는 간식 포함, medicine은 영양제 포함, furniture는 캣타워/침대/스크래처 포함
-- constraint(권장): CHECK (type IN ('food','litter','toy','medicine','furniture'))
+- v1 type SSOT: food | litter | toy | furniture
+- constraint(권장): CHECK (type IN ('food','litter','toy','furniture'))
 - deleted_at: 사용자 기능 미사용(v1에서 항상 NULL). 운영/데이터 수리 목적의 예약 필드.
 
 ## 5) observation (다묘)
@@ -53,8 +68,18 @@
   - (선택) unique(owner_id, log_date) — 날짜당 1묶음으로 고정할 때
   - index: (owner_id, log_date), (owner_id, payload_version), (owner_id, idempotency_key)
 - observations(id, group_id, owner_id, cat_id, status(active|excluded), override_payload jsonb?, created_at, updated_at, deleted_at)
+  - status 의미: excluded는 해당 관찰 항목을 "이번 그룹 집계에서 제외"하는 상태이며, payload_versions.state의 DEPRECATED와는 다른 개념이다.
   - unique(group_id, cat_id)
 - 필수: 트랜잭션 + idempotency + expected_version 기반 충돌 처리
+
+## 5a) observation_inventory_refs (관찰 시점 인벤 참조 고정)
+- observation_inventory_refs(id pk, owner_id, group_id, inv_type, inventory_item_id, created_at)
+  - inv_type SSOT: food | litter | toy | furniture
+  - unique(group_id, inv_type) — v1에서는 타입별 0..1
+  - FK: group_id → observation_groups.id, inventory_item_id → inventory_items.id
+- 의미:
+  - 관찰 저장 시점에 “당시 사용중이었던 인벤 항목”을 타입별 inventory_item_id로 고정 저장한다.
+  - 관찰 Patch(부분수정)로는 이 참조를 변경하지 않는다(변경 필요 시 DECISIONS D-058 참고).
 
 ## 6) nyanstagram
 - posts(id, author_id, body, log_date, visibility(private|public), published_at?, hide_from_profile bool,

@@ -396,3 +396,34 @@
 - See: docs/playbooks/ops-app-config.md
 - See: docs/CONFIG-BASELINES.md#3-app_config-key-매핑-d-056
 - 변경: ADR 불필요(운영 파라미터). 공개 범위 확대는 ADR 필요.
+
+## D-057. 인벤 교체/중단 이벤트 모델(switch/discontinue/correction)
+- Class: POLICY
+- 무엇:
+  - inventory_items는 원장 성격을 유지한다(D-040: 삭제 없음 유지).
+  - 변경은 “수정”이 아니라 이벤트로 기록한다: switch / discontinue / correction.
+  - 필드 의미/불변식: (ended_at IS NULL) == is_current 를 유지한다(See DATA-MODEL §4).
+  - switch: 기존 current 종료 + 신규 row 추가(current).
+  - discontinue: 기존 current 종료만(신규 row 없음).
+  - reason_code는 이벤트 성격을 표준 코드로 기록한다: initial|switch|discontinue|correction.
+- 의미: 히스토리 신뢰성(회고/원인분석) 확보 + UX 용어/모델 일치.
+- 변경: ADR 필요.
+
+## D-058. 관찰 ↔ 인벤 “참조 고정”(observation_inventory_refs)
+- Class: POLICY
+- 무엇:
+  - 관찰 저장 시점에 observation_inventory_refs로 타입별 inventory_item_id를 기록해 당시 맥락을 고정한다.
+  - 관찰 Patch(부분수정)로는 refs를 변경하지 않는다(기본 불변).
+  - refs가 잘못 기록된 정정이 필요하면: 기존 관찰을 직접 고치기보다
+    - (권장) 기존 observations.status를 excluded로 전환하고,
+    - 새 관찰 그룹으로 재작성(새 idempotency_key)하여 올바른 refs로 다시 저장한다.
+- 의미: 과거 관찰이 “현재 인벤”으로 덮여 재해석되는 모순 방지(회고 SSOT).
+- 변경: ADR 필요.
+
+## D-059. 투약(medicine)은 인벤토리에서 제외(도메인 분리)
+- Class: POLICY
+- 무엇:
+  - inventory_items.type v1 SSOT에서 medicine을 제외한다(See DATA-MODEL §4).
+  - 투약/복약은 관찰/계획(미래) 도메인에서 다룬다.
+- 의미: 인벤 원장 모델(타입별 0..1 current)과 투약 현실(동시 복수/스케줄)의 충돌 회피.
+- 변경: ADR 필요.
