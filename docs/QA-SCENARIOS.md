@@ -10,6 +10,17 @@
 - 멱등성 재시도 → 중복 생성 없음
 - 동시편집 충돌 → 409 발생, 데이터 찢김 없음
 
+## 관찰 refs (D-058)
+- Observation upsert with inventory_refs:
+  - given: owner has current inventory items for some types
+  - when: rpc_upsert_observation_group_with_items with p_inventory_refs
+  - then: observation_inventory_refs rows created/updated for provided types
+
+- Patch does not mutate refs:
+  - given: observation_group has refs stored
+  - when: rpc_patch_observation_items modifies status/override_payload
+  - then: observation_inventory_refs unchanged
+
 ## 냥스타그램
 - private 저장 → 다이어리엔 보임, 피드/웹엔 안 보임
 - public+미발행 → 피드/웹 노출 X

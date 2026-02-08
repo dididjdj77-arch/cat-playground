@@ -2,7 +2,7 @@
 
 - User 1:N Cat
 - User 1:N ObservationGroup
-- ObservationGroup 1:N ObservationItem(cat별)
+- ObservationGroup 1:N Observation(cat별)
 - User 1:N Post
 - Post 1:N Comment
 - Topic 1:N Thread
