@@ -271,6 +271,7 @@
   - inventory_items.type은 v1에서 고정된 정식 코드 목록을 사용한다.
 - 의미: 타입 변경은 UX/통계/검색/카탈로그에 파급이 크므로 v1에서 변동을 제한한다(목록은 See DATA-MODEL).
 - 변경: ADR 필요.
+- 예외/부채: D-060에 의해 v1에서 medicine 타입을 제외한다(절차 부채로 기록, ADR 미작성).
 
 ## D-039. 공개 하우스는 스냅샷 미채택(현재 상태 기반)
 - Class: POLICY
@@ -396,3 +397,41 @@
 - See: docs/playbooks/ops-app-config.md
 - See: docs/CONFIG-BASELINES.md#3-app_config-key-매핑-d-056
 - 변경: ADR 불필요(운영 파라미터). 공개 범위 확대는 ADR 필요.
+
+## D-058 인벤 교체/중단 이벤트 모델
+- Class: POLICY
+- 무엇:
+  - inventory_items에 reason_code, reason_note, ended_at을 도입해 switch/discontinue 이벤트를 구분한다.
+  - reason_code enum(v1): 'initial' | 'switch' | 'discontinue' | 'correction'
+  - reason_note는 nullable 메모로 유지한다.
+- 동작 규칙:
+  - switch: 기존 current row를 is_current=false + ended_at 설정으로 종료하고, 새 row를 is_current=true + reason_code='switch'로 추가한다.
+  - discontinue: 기존 current row만 is_current=false + ended_at 설정으로 종료하고, reason_code='discontinue'로 기록한다(새 row 없음).
+  - correction: 오타/정정용으로만 사용하며 원장 신뢰를 해치지 않는 범위에서 기존 row 수정을 허용한다.
+- See: DATA-MODEL §4 inventory_items
+- 의미: append-only 원장 신뢰성 + 히스토리 보존.
+- 변경: ADR 필요.
+
+## D-059 관찰 ↔ 인벤 참조 고정 연동
+- Class: POLICY
+- 무엇:
+  - 관찰 저장 시점의 인벤 맥락은 observation_inventory_refs에 타입별 inventory_item_id 참조로 고정 저장한다.
+  - observation_inventory_refs는 (group_id, inv_type) 당 0..1 레코드만 허용한다.
+  - 관찰 patch/수정에서는 refs를 갱신하지 않는다.
+- 의미: 회고 SSOT를 유지하면서도 jsonb 스냅샷 중복 저장을 피한다.
+- See: DATA-MODEL §5 observation + §5a observation_inventory_refs
+- 변경: ADR 필요.
+
+## D-060 투약은 인벤토리 제외 (관찰/계획 도메인)
+- Class: POLICY
+- 무엇:
+  - medicine(약/영양제)은 inventory_items.type에서 **제외**한다.
+  - 투약 기록은 관찰(observations) 내 payload로 관리.
+  - 투약 계획/알림은 별도 계획 도메인(O-025)에서 관리.
+- 이유:
+  - 약은 동시 복수 사용이 자연스러움 (current 1개 제약과 충돌).
+  - 약 스케줄/알림과의 연동이 필요하여 인벤과 성격이 다름.
+- 절차 메모: D-038의 "타입 변경 시 ADR" 원칙과 충돌하는 예외이며, 이번 PR은 ADR 없이 부채로 기록한다.
+- See: DATA-MODEL §4 v1 type SSOT
+- 의미: 인벤 = 물리적 소모품, 투약 = 행위/기록으로 도메인 분리.
+- 변경: 원칙상 ADR 필요. 단 본 항목(D-060)은 예외로 ADR 미작성(절차 부채 기록).

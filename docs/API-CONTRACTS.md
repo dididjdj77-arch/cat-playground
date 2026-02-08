@@ -12,15 +12,22 @@ RPC upsert_observation_group_with_items
   - idempotency_key: uuid (필수)
   - common_payload: jsonb
   - items[{cat_id, status, override_payload}]
+  - inventory_refs?: object (선택)
+    - food_item_id?: uuid
+    - litter_item_id?: uuid
+    - toy_item_id?: uuid
+    - furniture_item_id?: uuid
 - res: 
   - group_id: uuid
   - version: int
   - items[]
+  - inventory_refs?: object (owner-only 화면에서만 사용)
 - err:
   - 400 invalid_payload_version: 버전 포맷 오류
   - 400 rejected_version: REJECT 상태 버전
 - 비고: 트랜잭션 + 멱등성 필수, DEPRECATED/ACTIVE는 저장 허용
 - 멱등성: 동일 (owner_id, idempotency_key) 재요청은 기존 결과(group_id/version/items)를 반환
+- refs 규칙: upsert 시점 observation_inventory_refs 생성/설정. 이후 patch에서는 변경하지 않음.
 
 RPC patch_observation_items
 - 목적: 부분 수정(excluded/override)
@@ -37,6 +44,7 @@ RPC patch_observation_items
     - error_code: "version_conflict"
     - current_version: int
     - current_group_snapshot (권장)
+  - 400 inventory_refs_immutable: inventory refs 변경 시도
 
 ## 냥스타그램
 POST /posts
@@ -100,3 +108,7 @@ GET /profiles/{nickname}/house
 - res: 공개 DTO(화이트리스트). cats.avatar_url / inventory ids / raw_text / note / meta 금지
 - 상태코드: 미인증/비공개/숨김/삭제/차단/미발행은 모두 404로 통일 (D-035, D-044)
 - 설명: 로그인 필요 메시지는 UI 레이어에서 처리(존재 은닉 우선)
+
+DTO 노출 원칙:
+- public DTO에는 inventory_item_id/raw_text/meta를 노출하지 않는다.
+- inventory_item_id는 owner-only 화면/응답에서만 허용한다.

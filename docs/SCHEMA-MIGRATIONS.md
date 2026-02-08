@@ -3,7 +3,20 @@
 ## 필수 마이그레이션 (v1.1 기준)
 
 ### ✅ 완료된 마이그레이션
-- (아직 없음)
+- [x] migration file 추가
+  - `supabase/migrations/001_inventory_switch_discontinue_observation_refs.sql`
+- [x] inventory_items 확장/제약 갱신
+  - reason_code(text, not null, default 'initial') 추가
+  - reason_note(text, nullable), ended_at(timestamptz, nullable) 추가
+  - type CHECK에서 medicine 제거(food|litter|toy|furniture)
+  - backfill: reason_code IS NULL인 기존 row -> 'initial'
+- [x] observation_inventory_refs 테이블 생성
+  - FK: group_id -> observation_groups.id, inventory_item_id -> inventory_items.id
+  - UNIQUE(group_id, inv_type), CHECK(inv_type), 인덱스 2종 추가
+  - RLS enable + owner_id = auth.uid() 정책(SELECT/INSERT/UPDATE/DELETE)
+
+### 🔲 진행 예정(후속)
+- [ ] observation upsert/patch RPC에 inventory refs 고정 규칙 구현 완료 확인
 
 ### 🔲 진행 예정 마이그레이션
 

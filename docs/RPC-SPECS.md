@@ -35,7 +35,8 @@ FUNCTION rpc_upsert_observation_group_with_items(
   p_log_date date,
   p_idempotency_key uuid,
   p_common_payload jsonb,
-  p_items jsonb -- [{cat_id, status, override_payload}]
+  p_items jsonb, -- [{cat_id, status, override_payload}]
+  p_inventory_refs jsonb default null -- {food_item_id?, litter_item_id?, toy_item_id?, furniture_item_id?}
 ) RETURNS jsonb
 ```
 - 트랜잭션 필수
@@ -43,7 +44,11 @@ FUNCTION rpc_upsert_observation_group_with_items(
   - REJECT → 400 error
   - ACTIVE/DEPRECATED → 저장 허용
 - idempotency_key 기반 중복 방지
-- 반환: {group_id, version, items[]}
+- inventory refs 규칙:
+  - upsert(초기 저장)에서만 observation_inventory_refs를 생성/설정한다.
+  - p_inventory_refs의 key별 inventory_item_id는 inv_type(food/litter/toy/furniture)로 매핑해 저장한다.
+  - 동일 group_id + inv_type는 upsert로 1건 유지한다.
+- 반환: {group_id, version, items[], inventory_refs?}
 
 ### rpc_patch_observation_items
 - 접근: auth-only (auth.uid() required)
@@ -56,6 +61,9 @@ FUNCTION rpc_patch_observation_items(
 ) RETURNS jsonb
 ```
 - expected_version != current_version → 409 conflict
+- inventory refs 불변 규칙:
+  - patch RPC는 observation_inventory_refs를 갱신하지 않는다.
+  - p_patches 안에 inventory_refs 변경 의도가 포함되면 400(inventory_refs_immutable)으로 거부한다.
 - 409 응답 구조:
   ```json
   {
@@ -65,6 +73,32 @@ FUNCTION rpc_patch_observation_items(
   }
   ```
 - 성공 시 반환: {new_version, items[]}
+
+## 인벤토리 mutation RPC (switch/discontinue)
+
+### rpc_switch_inventory_item (owner)
+```sql
+FUNCTION rpc_switch_inventory_item(
+  p_type text, -- food|litter|toy|furniture
+  p_catalog_item_id uuid,
+  p_raw_text text,
+  p_reason_note text default null
+) RETURNS jsonb
+```
+- 동작:
+  - 기존 current(동일 type)를 is_current=false + ended_at=now()로 종료
+  - 새 row를 is_current=true + reason_code='switch'로 insert
+
+### rpc_discontinue_inventory_item (owner)
+```sql
+FUNCTION rpc_discontinue_inventory_item(
+  p_type text, -- food|litter|toy|furniture
+  p_reason_note text default null
+) RETURNS jsonb
+```
+- 동작:
+  - 기존 current(동일 type)만 is_current=false + ended_at=now() + reason_code='discontinue'로 종료
+  - 새 row는 생성하지 않음
 
 ## 공개 조회 RPC (대표 예시)
 

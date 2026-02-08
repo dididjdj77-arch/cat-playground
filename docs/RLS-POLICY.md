@@ -8,7 +8,7 @@ v1.1에서는 "공개/외부/상품성 읽기 경로는 SECURITY DEFINER RPC onl
 - 함수는 반환 컬럼을 화이트리스트로 제한(특히 하우스 슬롯 요약)
 
 ## Owner 테이블 (기본 RLS 허용)
-### cats, inventory_items, observation_groups, observations
+### cats, inventory_items, observation_groups, observations, observation_inventory_refs
 - SELECT: owner_id = auth.uid()
 - INSERT/UPDATE/DELETE: owner_id = auth.uid()
 
@@ -48,12 +48,7 @@ v1.1에서는 "공개/외부/상품성 읽기 경로는 SECURITY DEFINER RPC onl
 - p_viewer_id를 받는 경우, 입력을 무시하고 내부에서 viewer_id := auth.uid()로 덮어쓴다
 - 외부 공개 RPC는 원본 테이블 직접 노출 금지
 
-## 13) app_config (운영 파라미터 SSOT)
-- app_config(key text pk, value jsonb not null, updated_at timestamptz, updated_by uuid? fk profiles.id)
-- key(v1):
-  - rate_limits
-  - rate_limits_new_account
-  - auto_hide
-- 주의:
-  - 비밀값(토큰/키/내부 전용 플래그)은 절대 저장 금지.
-  - 새로운 key 추가 시: D-056 + RPC whitelist 업데이트가 선행.
+## 13) app_config (운영 파라미터)
+- 스키마/key 목록: See DATA-MODEL.md §13 app_config
+- RLS 정책: direct SELECT 제한. 읽기는 SECURITY DEFINER RPC 경유(whitelist).
+- 보안 주의: app_config에는 비밀값(토큰/키/내부 전용 플래그)을 저장하지 않는다.

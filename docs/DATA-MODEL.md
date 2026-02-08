@@ -38,13 +38,21 @@
   resolved_catalog_item_id?, reviewed_by?, review_note?, created_at, updated_at)
 
 ## 4) inventory_items
-- inventory_items(id, owner_id, type, catalog_item_id?, raw_text, is_current, changed_at, note?, meta jsonb, created_at, updated_at, deleted_at)
+- inventory_items(id, owner_id, type, catalog_item_id?, raw_text, is_current, changed_at, reason_code text, reason_note?, ended_at?, note?, meta jsonb, created_at, updated_at, deleted_at)
+  - reason_code: NOT NULL, default 'initial'
+  - reason_code SSOT: 'initial'|'switch'|'discontinue'|'correction'
+  - reason_note: 짧은 메모(nullable)
+  - ended_at: 중단/교체로 종료된 시각(nullable)
 - index: (owner_id, type, is_current), (owner_id, deleted_at)
 - constraint/index (권장): UNIQUE(owner_id, type) WHERE is_current=true AND deleted_at IS NULL
   - 의미: 한 타입당 current는 최대 1개(0..1)
-- v1 type SSOT: food | litter | toy | medicine | furniture
-  - 의미 통합: food는 간식 포함, medicine은 영양제 포함, furniture는 캣타워/침대/스크래처 포함
-- constraint(권장): CHECK (type IN ('food','litter','toy','medicine','furniture'))
+- v1 type SSOT: food | litter | toy | furniture
+  - 의미 통합: food는 간식 포함, furniture는 캣타워/침대/스크래처 포함
+  - medicine 제외: 투약은 관찰/계획 도메인에서 관리 (D-060)
+- constraint(권장): CHECK (type IN ('food','litter','toy','furniture'))
+- switch 규칙: 새 row를 current=true + reason_code='switch'로 추가하고, 기존 current row는 is_current=false + ended_at 설정으로 종료한다.
+- discontinue 규칙: 기존 current row만 is_current=false + ended_at 설정 + reason_code='discontinue'로 종료한다(새 row 없음).
+- correction 규칙: 오타/정정 목적의 최소 수정으로만 사용한다(원장 신뢰 유지).
 - deleted_at: 사용자 기능 미사용(v1에서 항상 NULL). 운영/데이터 수리 목적의 예약 필드.
 
 ## 5) observation (다묘)
@@ -55,6 +63,16 @@
 - observations(id, group_id, owner_id, cat_id, status(active|excluded), override_payload jsonb?, created_at, updated_at, deleted_at)
   - unique(group_id, cat_id)
 - 필수: 트랜잭션 + idempotency + expected_version 기반 충돌 처리
+
+## 5a) observation_inventory_refs
+- observation_inventory_refs(id, owner_id, group_id, inv_type, inventory_item_id, created_at)
+  - inv_type SSOT: food | litter | toy | furniture
+  - constraint(권장): CHECK (inv_type IN ('food','litter','toy','furniture'))
+  - FK: group_id -> observation_groups.id
+  - FK: inventory_item_id -> inventory_items.id
+  - unique(권장): (group_id, inv_type)  // 타입별 0..1
+  - index(권장): (owner_id, group_id), (owner_id, inv_type, created_at desc)
+  - 규칙: 관찰 저장 시점 refs를 고정 기록하고, patch/수정에서는 refs를 갱신하지 않는다.
 
 ## 6) nyanstagram
 - posts(id, author_id, body, log_date, visibility(private|public), published_at?, hide_from_profile bool,
