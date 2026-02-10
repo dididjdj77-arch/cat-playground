@@ -107,12 +107,17 @@ FUNCTION rpc_get_public_house_slots_summary(
   p_target_user_id uuid
 ) RETURNS jsonb
 ```
-- 접근: auth-only (auth.uid() required, anon 404)
+- 접근: auth-only (auth.uid() required). anon에 EXECUTE를 열지 않는다.
+- auth-only는 데이터 접근 요건이며, 미인증 404는 외부 표면 상태코드 정책이다.
+- DB 함수는 인증 컨텍스트 호출을 전제하고, 외부 라우트/API는 미인증을 404로 매핑한다.
 - viewer_id는 내부에서 auth.uid()로 도출(입력으로 받지 않음)
-- guard_soft_state() 적용: house_profiles.deleted_at/hidden_at is null, house_slots.deleted_at is null, inventory_items.deleted_at is null
+- 데이터모델 키 정합: house_slots.owner_id 기준으로 house_profiles.user_id와 조인
+- guard_soft_state() 적용: house_profiles.deleted_at/hidden_at is null, house_slots.deleted_at is null
+- inventory_items는 LEFT JOIN + i.deleted_at is null 조건으로 결합(빈 슬롯은 허용)
 - guard_visibility_published() 적용: house_profiles.visibility='public' AND house_profiles.published_at IS NOT NULL
 - guard_block(viewer_id, p_target_user_id) 적용
-- 반환 컬럼 화이트리스트(D-055)만: slot_key, equipped_at, type, (옵션) catalog 표준명/브랜드 등
+- 반환 컬럼 화이트리스트(D-055)만: slot_key, equipped_at, type, catalog.standard_name
+- D-055 비허용 예시: brand, days_since_equipped
 - cats.avatar_url 금지
 - inventory_item_id / inventory_items.id / raw_text / note / meta 금지
 
@@ -122,13 +127,13 @@ FUNCTION rpc_get_public_house_slots_summary_by_nickname(
   p_target_nickname text
 ) RETURNS jsonb
 ```
-- 접근: auth-only (auth.uid() required, anon 404)
+- 접근: auth-only (auth.uid() required). anon에 EXECUTE를 열지 않는다. 외부 라우트/API 미인증 응답은 404로 통일.
 내부에서 nickname → user_id resolve 후 rpc_get_public_house_slots_summary로 위임
 
 동일 guard/화이트리스트 적용
 
 **House 공개 조회 상태코드 (공통)**:
-- 상태코드: 미인증/비공개/숨김/삭제/차단/미발행은 모두 404로 통일 (D-035, D-044)
+- 상태코드: 미인증/비공개/숨김/삭제/차단/미발행은 모두 404로 통일 (D-035, D-050)
 - 설명: 로그인 필요 메시지는 UI 레이어에서 처리(존재 은닉 우선)
 
 ## 구현 결정 (검토 필요)

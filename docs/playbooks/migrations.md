@@ -12,16 +12,27 @@
 - [ ] 파일 번호는 오름차순(`001_`, `002_`) 규칙을 지킨다.
 - [ ] CHECK/UNIQUE 제약은 가능하면 `CREATE TABLE` 시점에 포함한다.
 - [ ] RLS 정책은 마이그레이션 파일과 분리해 별도 단계로 관리한다.
+- [ ] 대량 ALTER/백필 전 `lock_timeout`, `statement_timeout`을 설정한다.
 
 ### Don't
 - [ ] 롤백 계획 없이 배포하지 않는다.
 - [ ] RLS 변경을 스키마 변경과 한 파일에 혼합하지 않는다.
 - [ ] 검증 없이 대량 ALTER/백필을 본 환경에서 먼저 실행하지 않는다.
 
+## 실행 전략: fail-fast vs idempotent
+
+- fail-fast는 중간 오류 시 즉시 중단해 불완전 상태를 막는 기본 전략이다. 구조 변경(`ALTER TABLE`, 제약 추가, 컬럼 타입 변경)은 fail-fast가 기본이다.
+- idempotent는 재실행 안전성이 핵심인 단계에서 사용한다. `IF NOT EXISTS`, `ON CONFLICT DO NOTHING` 같은 구문은 반복 배포/복구 자동화에 유리하지만, 의도치 않은 드리프트를 숨기지 않도록 검증 쿼리와 함께 사용한다.
+
 ## 템플릿
 
 ```sql
 -- migration skeleton
+begin;
+
+set local lock_timeout = '3s';
+set local statement_timeout = '30s';
+
 create table if not exists public.example_items (
   id uuid primary key default gen_random_uuid(),
   owner_id uuid not null,
@@ -36,6 +47,20 @@ create table if not exists public.example_items (
 create index if not exists idx_example_items_owner_created
   on public.example_items (owner_id, created_at desc)
   where deleted_at is null;
+
+commit;
+```
+
+## Rollback Skeleton
+
+```sql
+-- 최소 revert 경로 예시(실서비스는 변경 영향도에 맞춰 보강)
+begin;
+
+drop index if exists public.idx_example_items_owner_created;
+drop table if exists public.example_items;
+
+commit;
 ```
 
 ## 검증

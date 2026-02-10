@@ -8,51 +8,70 @@
 ### Do
 - [ ] `SECURITY DEFINER` + 고정 `search_path`를 사용한다.
 - [ ] `guard_soft_state + guard_block + guard_visibility_published`를 적용한다.
-- [ ] 반환 DTO는 D-055 화이트리스트 필드만 반환한다.
-- [ ] 비공개/숨김/차단/미발행/미인증은 404로 통일한다.
-- [ ] 하우스 공개 조회는 auth-only 규칙을 유지한다.
-- [ ] non-current 슬롯은 공개 응답에서 제외(또는 empty)한다.
+- [ ] 반환 DTO는 D-055 화이트리스트(`slot_key`, `equipped_at`, `type`, `standard_name`)만 반환한다.
+- [ ] `house_slots.owner_id`와 `house_profiles.user_id`를 기준으로 조인한다.
+- [ ] `house_slots.deleted_at is null`을 필수로 적용한다.
+- [ ] 빈 슬롯(`inventory_item_id is null`)은 포함하고, 인벤/카탈로그 컬럼은 nullable로 반환한다.
+- [ ] auth-only는 DB 데이터 접근 요건으로 문서화하고 EXECUTE 권한으로 강제한다.
+- [ ] 외부 라우트/API는 미인증/비공개/숨김/삭제/차단/미발행을 404로 통일한다.
+- [ ] 인증/권한 실패 에러 표현은 API-CONTRACTS 표준 에러 체계와 정합되게 유지한다.
 
 ### Don't
 - [ ] `select *`를 사용하지 않는다.
 - [ ] `cats.avatar_url`을 join/노출하지 않는다.
 - [ ] `inventory_item_id` 같은 내부 id를 노출하지 않는다.
 - [ ] `raw_text/note/meta`를 공개 DTO에 포함하지 않는다.
+- [ ] D-055 비허용 필드를 DTO 예시/코드/주석 어디에도 넣지 않는다.
 
 ## 템플릿
 
 ```sql
-create or replace function public.rpc_get_public_house(p_target_user_id uuid)
+create or replace function public.rpc_get_public_house_slots_summary(
+  p_target_user_id uuid
+)
 returns table (
   slot_key text,
   equipped_at timestamptz,
   type text,
-  standard_name text,
-  brand text,
-  days_since_equipped int
+  standard_name text
 )
-language sql
+language plpgsql
 security definer
 set search_path = public, pg_temp
 as $$
+begin
+  if auth.uid() is null then
+    raise exception 'auth required';
+  end if;
+
+  return query
   select s.slot_key,
          s.equipped_at,
          i.type,
-         c.standard_name,
-         c.brand,
-         case
-           when s.equipped_at is null then null
-           else extract(day from now() - s.equipped_at)::int
-         end as days_since_equipped
+         c.standard_name
   from public.house_slots s
-  join public.house_profiles h on h.user_id = s.user_id
-  join public.inventory_items i on i.id = s.inventory_item_id and i.is_current = true
+  join public.house_profiles h
+    on h.user_id = s.owner_id
+  left join public.inventory_items i
+    on i.id = s.inventory_item_id
+   and i.is_current = true
+   and i.deleted_at is null
   left join public.catalog_items c on c.id = i.catalog_item_id
-  where s.user_id = p_target_user_id
+  where s.owner_id = p_target_user_id
+    and s.deleted_at is null
     and public.guard_soft_state(h.deleted_at, h.hidden_at)
     and public.guard_block(auth.uid(), p_target_user_id)
-    and public.guard_visibility_published(h.visibility, h.published_at);
+    and public.guard_visibility_published(h.visibility, h.published_at)
+  order by s.slot_key;
+end;
 $$;
+
+-- auth-only는 DB 데이터 접근 요건이다(anon EXECUTE 비허용 + 내부 auth check).
+revoke all on function public.rpc_get_public_house_slots_summary(uuid) from public;
+grant execute on function public.rpc_get_public_house_slots_summary(uuid) to authenticated;
+
+-- 미인증 404는 외부 표면 정책이다.
+-- 웹/API 라우트는 미인증 요청에서 DB 호출 유무와 무관하게 404를 반환한다.
 ```
 
 ## 검증
@@ -61,13 +80,15 @@ $$;
 
 ```sql
 -- 공개+발행+비차단 상태에서 whitelist 필드만 반환되는지 확인
-select * from public.rpc_get_public_house('00000000-0000-0000-0000-000000000000');
+select *
+from public.rpc_get_public_house_slots_summary('00000000-0000-0000-0000-000000000000');
 ```
 
 ### 네거티브 테스트
 
 ```sql
--- 비공개/숨김/차단/미발행/미인증 조건에서 404 또는 no rows 확인
+-- DB 직접 호출(anon)은 EXECUTE 거부 또는 auth required 에러 확인
+-- 외부 라우트/API는 미인증/비공개/숨김/삭제/차단/미발행에서 404 확인
 -- 반환 컬럼에 avatar_url, inventory_item_id, raw_text/note/meta 없는지 확인
 ```
 

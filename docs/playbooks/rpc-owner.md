@@ -10,6 +10,7 @@
 - [ ] 트랜잭션 경계를 명시해 partial write를 방지한다.
 - [ ] `idempotency_key` 중복을 서버에서 차단한다.
 - [ ] `expected_version` 불일치 시 409 충돌을 반환한다.
+- [ ] 충돌 응답은 `error_code/current_version/(optional) current_group_snapshot` 구조를 따른다.
 - [ ] like_count는 원자 UPDATE(`= like_count + 1`)로 처리한다.
 - [ ] inventory 수정은 `is_current=false + 새 row` 패턴을 사용한다.
 
@@ -53,7 +54,12 @@ begin
   limit 1;
 
   if v_current_version is not null and v_current_version <> p_expected_version then
-    raise exception 'conflict' using errcode = '40001';
+    -- 충돌 페이로드 구조는 RPC-SPECS/API-CONTRACTS를 따른다.
+    -- HTTP 상태코드 매핑은 라우트/API 계층에서 결정한다.
+    return jsonb_build_object(
+      'error_code', 'version_conflict',
+      'current_version', v_current_version
+    );
   end if;
 
   -- write payload in one transaction boundary

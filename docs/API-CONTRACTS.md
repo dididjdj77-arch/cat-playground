@@ -100,7 +100,8 @@ POST /house/unpublish
 GET /profiles/{nickname}/house
 - 목적: 공개 하우스 조회(화이트리스트 DTO)
 - 접근: **auth-only** (See AUTHZ-MODEL §0-4)
+- 해석: auth-only는 데이터 접근 요건이며, 외부 표면의 미인증 응답은 404로 매핑한다.
 - 내부: rpc_get_public_house_slots_summary_by_nickname(또는 동등 RPC) 호출
 - res: 공개 DTO(화이트리스트). cats.avatar_url / inventory ids / raw_text / note / meta 금지
-- 상태코드: 미인증/비공개/숨김/삭제/차단/미발행은 모두 404로 통일 (D-035, D-044)
+- 상태코드: 미인증/비공개/숨김/삭제/차단/미발행은 모두 404로 통일 (D-035, D-050)
 - 설명: 로그인 필요 메시지는 UI 레이어에서 처리(존재 은닉 우선)
