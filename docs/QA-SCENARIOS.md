@@ -9,6 +9,7 @@
 - 미래 log_date 금지 → 선택/저장 불가
 - 멱등성 재시도 → 중복 생성 없음
 - 동시편집 충돌 → 409 발생, 데이터 찢김 없음
+- Patch 멱등성 재시도 → 동일 (group_id, idempotency_key) 재요청 시 기존 결과 반환, 중복 적용 없음 (D-061)
 
 ## 관찰 refs (D-058)
 - Observation upsert with inventory_refs:
@@ -28,6 +29,9 @@
 - 발행취소 → 노출 X
 - 댓글 수정 → "수정됨" 표시 + 내부 감사로그 1개
 - hide_from_profile → 프로필 목록 제외(링크/피드 공개 유지)
+- 비공개 post의 댓글을 공개 경로로 조회 → 404 (D-063)
+- 삭제된 post의 댓글을 공개 경로로 조회 → 404
+- 차단 관계에서 post가 보이지 않는 경우 → 해당 post의 댓글 조회도 404
 
 ## 채널
 - 토픽 랜딩/스레드 상세 SSR 확인(SEO)
@@ -54,3 +58,12 @@
 - 신고 누적 → D-054 기준으로 hidden_at 설정(삭제 X)
 - 신고 악용 방지(중복/신뢰조건, D-054)
 - 공개 표면의 조회 불가 상태는 404로 통일(D-050)
+- anon viewer는 block 관계에 영향받지 않음(정상 동작 확인, AUTHZ-MODEL §0-2)
+- 404 통일 검증 (D-050): 아래 모든 조건에서 공개 RPC/라우트는 404 반환:
+  - 비공개(visibility=private)
+  - 미발행(published_at IS NULL)
+  - 삭제됨(deleted_at IS NOT NULL)
+  - 숨김(hidden_at IS NOT NULL)
+  - 차단(block 관계)
+  - 미인증(anon → auth-only 경로)
+  - 존재하지 않는 리소스

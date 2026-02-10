@@ -2,7 +2,7 @@
 
 v1.1 기준 CI에 반드시 포함되어야 할 테스트
 
-## CI 필수 테스트 4종
+## CI 필수 테스트 5종
 
 ### 1. 차단 스냅샷 테스트 (0 rows)
 
@@ -129,6 +129,37 @@ Then:
 - 허용 필드(D-055)만 존재
 - cats.avatar_url 미포함(D-037)
 - inventory_item_id / inventory_items.id / raw_text / note / meta 미포함
+
+### 5. 댓글 부모 post 가드 종속 테스트
+
+**목적**: 비공개/삭제/숨김 post의 댓글이 공개 경로에서 0건이 아닌 404인지 검증
+
+**대상 RPC**:
+- rpc_get_public_post_comments
+
+**시나리오**:
+```
+Given:
+  - User A가 public + published post 작성, 댓글 2개 존재
+
+When:
+  - post를 unpublish (published_at = null)
+
+Then:
+  - rpc_get_public_post_comments(post_id) → 404 (부모 post가 공개 조건 불만족)
+
+When:
+  - post를 다시 publish 후, hidden_at 설정
+
+Then:
+  - rpc_get_public_post_comments(post_id) → 404
+
+When:
+  - hidden_at 해제 후 정상 상태 복원
+
+Then:
+  - rpc_get_public_post_comments(post_id) → 댓글 2건 반환
+```
 
 ## CI 실행 원칙
 1. 테스트는 격리된 환경(테스트 DB)에서 실행

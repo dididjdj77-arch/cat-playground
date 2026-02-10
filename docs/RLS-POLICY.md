@@ -8,14 +8,15 @@ v1.1에서는 "공개/외부/상품성 읽기 경로는 SECURITY DEFINER RPC onl
 - 함수는 반환 컬럼을 화이트리스트로 제한(특히 하우스 슬롯 요약)
 
 ## Owner 테이블 (기본 RLS 허용)
-### cats, inventory_items, observation_groups, observations, observation_inventory_refs
-- SELECT: owner_id = auth.uid()
+### cats, inventory_items, observation_groups, observations, observation_inventory_refs, observation_patch_dedup
+- SELECT: owner_id = auth.uid() AND deleted_at IS NULL (deleted_at이 있는 테이블)
 - INSERT/UPDATE/DELETE: owner_id = auth.uid()
 - anon direct access는 허용하지 않는다(owner-only).
+- soft-delete 기본 규칙: RLS SELECT 정책에 deleted_at IS NULL을 포함한다. 운영/데이터 수리는 service_role(RLS bypass)로 수행.
 - 공개/노출 정책의 원문은 See AUTHZ-MODEL §0.
 
 ## 공개 컨텐츠 (RPC 경유 필수)
-### posts, threads, replies, topics
+### posts, threads, replies, topics, comments
 - 직접 SELECT 원칙적으로 금지
 - 공개 피드/검색/상세는 RPC로 제공
 - RPC 내부에서:
@@ -23,6 +24,7 @@ v1.1에서는 "공개/외부/상품성 읽기 경로는 SECURITY DEFINER RPC onl
   - guard_block(): block 관계 필터 (viewer_id가 null인 경우 no-op)
   - posts는 visibility/published_at 조건 강제
   - threads/replies는 visibility/published_at 가드 적용하지 않음
+  - comments는 부모 post의 공개 가드 통과를 전제로만 조회 허용 (D-063)
 
 ### 하우스 (house_profiles, house_slots)
 - 직접 SELECT 제한(권장: REVOKE + RLS). 공개/타인 조회는 RPC만 허용.
@@ -31,7 +33,7 @@ v1.1에서는 "공개/외부/상품성 읽기 경로는 SECURITY DEFINER RPC onl
   - guard_visibility_published(): visibility='public' AND published_at IS NOT NULL
   - guard_block(): 로그인 viewer(auth.uid()) 기준 block 필터
 - 반환 컬럼 화이트리스트(요약 DTO)만:
-  - 슬롯 요약: slot_key, equipped_at, type, (옵션) catalog 표준명/브랜드 등
+  - 슬롯 요약: slot_key, equipped_at, type, catalog.standard_name
   - cats.avatar_url 포함 금지(D-037)
   - inventory_item_id / inventory_items.id / raw_text / note / meta 등 금지(D-055)
 
@@ -45,10 +47,13 @@ v1.1에서는 "공개/외부/상품성 읽기 경로는 SECURITY DEFINER RPC onl
 - RPC 경유 또는 owner 필터만
 
 ## 보안 하드닝 (SECURITY DEFINER 함수)
-- search_path를 고정(예: public)
+- SET search_path = 'public' (함수 선언부에 고정)
+- 함수 소유자: 전용 service role (또는 supabase_admin). 일반 auth role에 EXECUTE만 GRANT.
 - viewer_id는 auth.uid()로 도출(anon이면 null)
 - p_viewer_id를 받는 경우, 입력을 무시하고 내부에서 viewer_id := auth.uid()로 덮어쓴다
-- 외부 공개 RPC는 원본 테이블 직접 노출 금지
+- 외부 공개 RPC는 원본 테이블 직접 노출 금지 (D-029)
+- SECURITY INVOKER 함수는 공개 경로에서 사용 금지 (RLS bypass가 불가하므로 guard 강제 불가)
+- 반환 타입은 명시적 컬럼 목록 사용 (RETURNS TABLE(...) 또는 명시적 jsonb 구성). SELECT * 금지.
 
 ## 13) app_config (운영 파라미터 SSOT)
 - app_config(key text pk, value jsonb not null, updated_at timestamptz, updated_by uuid? fk profiles.id)

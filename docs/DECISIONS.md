@@ -353,6 +353,7 @@
 - Class: GUARD
 - 무엇:
   - 닉네임 변경은 허용하되 이전 닉네임은 1시간 재할당 금지, /u/{nickname}은 리다이렉트 없이 404 유지.
+  - **v1 범위**: 닉네임 변경 기능은 v1에서 구현하지 않는다(최초 설정 후 고정). v1.1+에서 구현 시 nickname_reservations 등 저장소 설계가 선행되어야 한다.
 - 의미: 닉네임 변경 허용하되 단기간 혼란 방지
 - 변경: ADR 권장
 
@@ -404,7 +405,7 @@
   - 변경은 “수정”이 아니라 이벤트로 기록한다: switch / discontinue / correction.
   - 필드 의미/불변식: (ended_at IS NULL) == is_current 를 유지한다(See DATA-MODEL §4).
   - switch: 기존 current 종료 + 신규 row 추가(current).
-  - discontinue: 기존 current 종료만(신규 row 없음).
+  - discontinue: 기존 current 종료만(신규 row 없음). 기존 row의 reason_code를 'discontinue'로 업데이트한다.
   - reason_code는 이벤트 성격을 표준 코드로 기록한다: initial|switch|discontinue|correction.
 - 의미: 히스토리 신뢰성(회고/원인분석) 확보 + UX 용어/모델 일치.
 - 변경: ADR 필요.
@@ -427,3 +428,54 @@
   - 투약/복약은 관찰/계획(미래) 도메인에서 다룬다.
 - 의미: 인벤 원장 모델(타입별 0..1 current)과 투약 현실(동시 복수/스케줄)의 충돌 회피.
 - 변경: ADR 필요.
+
+## D-060. 관찰 그룹: owner당 log_date당 1그룹 (v1 LOCK)
+- Class: POLICY
+- 무엇:
+  - observation_groups에 UNIQUE(owner_id, log_date) WHERE deleted_at IS NULL 을 강제한다.
+  - 같은 날짜에 기존 group이 있으면 Upsert는 해당 group을 update(version 증가)한다.
+  - D-058 재작성 플로우: 기존 group의 observations를 status='excluded' 일괄 전환 → 기존 group을 soft delete(deleted_at set) → 새 group 생성(새 idempotency_key, 새 observations/refs).
+- 의미: UI(다이어리 = log_date 단위 1덩어리)와 스키마 정합. 조회/수정/Patch 대상이 항상 1개.
+- See: D-058
+- 변경: ADR 필요.
+
+## D-061. 관찰 Patch 멱등성 저장소 (observation_patch_dedup)
+- Class: GUARD
+- 무엇:
+  - rpc_patch_observation_items의 멱등성을 위해 observation_patch_dedup 테이블을 사용한다.
+  - unique(owner_id, group_id, idempotency_key). 동일 키 재요청 시 기존 결과(result_json) 반환.
+  - D-041과 동일하게 7일 TTL 적용(row cleanup).
+  - 동일 idempotency_key + 다른 payload 감지 시: v1은 기존 결과 반환(409 미발생), 서버 로그에 warning 기록.
+- 의미: Upsert(observation_groups.idempotency_key)와 Patch(patch_dedup.idempotency_key)의 dedup 저장소를 분리하여 의미 충돌 방지.
+- See: D-022, D-041
+- 변경: ADR 불필요(기존 가드레일 구체화).
+
+## D-062. House unpublish 전이 규칙
+- Class: POLICY
+- 무엇:
+  - unpublish = published_at를 NULL로 설정. visibility는 변경하지 않는다(기존 값 유지).
+  - 재발행(publish)은 published_at = now()만 set.
+  - 이 패턴은 냥스타그램 unpublish(D-007)와 동일하다.
+- 의미: 공개/발행 모델의 패턴 통일. "public + 미발행"은 D-035 노출 조건에 의해 안전하게 비노출.
+- See: D-035, D-007
+- 변경: ADR 필요.
+
+## D-063. Comments 공개 조회는 부모 post 가드에 종속
+- Class: GUARD
+- 무엇:
+  - 댓글(comments)의 공개 조회 경로는 반드시 부모 post의 공개 가드(guard_soft_state + guard_block + guard_visibility_published)를 먼저 통과한 후에만 허용한다.
+  - 댓글 독립 조회 경로(post 가드 없이 comment_id만으로 조회)는 공개 표면에서 금지한다.
+  - 댓글 자체에도 guard_soft_state + guard_block을 적용한다.
+- 의미: AUTHZ-MODEL "댓글 읽기: 부모 post 공개 조건 만족 시만"을 구현 경로에서 강제.
+- See: AUTHZ-MODEL §댓글, D-029
+- 변경: ADR 불필요(기존 정책의 구현 명세화).
+
+## D-064. observation_inventory_refs upsert 머지 규칙
+- Class: GUARD
+- 무엇:
+  - p_inventory_refs = NULL (파라미터 생략): 기존 refs를 변경하지 않는다(유지).
+  - p_inventory_refs = 빈 object {}: 기존 refs를 전부 삭제한다(클리어).
+  - p_inventory_refs에 특정 타입 키만 포함: 해당 타입만 upsert, 나머지 기존 refs는 유지.
+- 의미: NULL과 빈 값의 의미를 구분하여 구현자 해석 차이를 방지.
+- See: D-058
+- 변경: ADR 불필요(기존 가드레일 구체화).

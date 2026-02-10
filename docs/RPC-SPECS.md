@@ -46,6 +46,10 @@ FUNCTION rpc_upsert_observation_group_with_items(
 - idempotency_key 기반 중복 방지
 - p_inventory_refs는 optional이며 NULL 허용이다. NULL이면 refs를 기록하지 않는다.
 - upsert 시점에 p_inventory_refs가 주어지면 observation_inventory_refs에 타입별 inventory_item_id를 기록한다.
+- refs 머지 규칙 (D-064):
+  - p_inventory_refs = NULL → 기존 refs 유지
+  - p_inventory_refs = {} → 기존 refs 전부 삭제
+  - p_inventory_refs에 특정 타입만 → 해당 타입 upsert, 나머지 유지
 - Patch RPC로는 observation_inventory_refs를 변경하지 않는다.
 - 반환: {group_id, version, items[]}
 
@@ -69,6 +73,13 @@ FUNCTION rpc_patch_observation_items(
   }
   ```
 - 성공 시 반환: {new_version, items[]}
+- 멱등성: observation_patch_dedup(owner_id, group_id, idempotency_key) 기반.
+  - 동일 키 재요청 → 기존 result_json 반환 (재실행 없음).
+  - 동일 키 + 다른 payload 감지 → v1은 기존 결과 반환 + 서버 로그 warning. 409 미발생.
+  - See: D-061
+
+## 공통 입력 검증
+- log_date: posts, observation_groups 모두 log_date <= CURRENT_DATE 강제. 위반 시 400 (D-010).
 
 ## 공개 조회 RPC (대표 예시)
 - Public RPC 반환 DTO에는 inventory_items.id/raw_text/note/meta/reason_*/ended_at 등 owner-only 인벤 원장 필드를 포함하지 않는다(화이트리스트 원칙).
@@ -99,6 +110,21 @@ FUNCTION rpc_get_public_threads_feed(
 - guard_soft_state() 적용
 - guard_block(viewer_id, thread.author_id) 적용
 - threads/replies에는 visibility/published 가드 적용하지 않는다.
+- 반환 컬럼 화이트리스트
+
+### rpc_get_public_post_comments
+```sql
+FUNCTION rpc_get_public_post_comments(
+  p_post_id uuid,
+  p_cursor text,
+  p_limit int
+) RETURNS jsonb
+```
+- 접근: anon 가능. viewer_id는 내부에서 auth.uid()로 도출(anon이면 null).
+- 내부에서:
+  1. 먼저 부모 post에 guard_soft_state() + guard_block(viewer_id, post.author_id) + guard_visibility_published() 적용. 불만족 시 404.
+  2. 통과 시 comments에 guard_soft_state() + guard_block(viewer_id, comment.author_id) 적용.
+- 댓글 독립 조회 경로(post 가드 없이 comment_id만으로 조회)는 공개 표면에서 금지 (D-063).
 - 반환 컬럼 화이트리스트
 
 ### rpc_get_public_house_slots_summary

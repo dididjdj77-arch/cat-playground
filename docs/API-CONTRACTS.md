@@ -94,7 +94,7 @@ POST /house/publish
 
 POST /house/unpublish
 - 목적: 하우스 발행 취소(노출 금지)
-- 효과: house_profiles.published_at=null (visibility 유지 여부는 정책으로 명시)
+- 효과: house_profiles.published_at=null. visibility는 변경하지 않는다(기존 값 유지). (D-062)
 - res: { visibility, published_at }
 
 GET /profiles/{nickname}/house

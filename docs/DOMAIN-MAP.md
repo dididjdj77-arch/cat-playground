@@ -15,3 +15,5 @@
 - User 1:1 HouseProfile
 - User 1:N HouseSlot (room_key='living_room')
 - HouseSlot N:0..1 InventoryItem (inventory_item_id)
+- ObservationGroup 1:N ObservationInventoryRef (타입별 0..1)
+- ObservationGroup 1:N ObservationPatchDedup (Patch 멱등성)
