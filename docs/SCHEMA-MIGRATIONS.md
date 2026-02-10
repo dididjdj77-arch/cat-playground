@@ -25,16 +25,28 @@
   - equipped_at (nullable)
   - created_at, updated_at, deleted_at
   - unique(owner_id, room_key, slot_key)
+  - FK: inventory_item_id → inventory_items.id (nullable)
 - [ ] inventory_items current 무결성 인덱스 추가(부분 유니크)
   - UNIQUE(owner_id, type) WHERE is_current=true AND deleted_at IS NULL
 
 #### 2. observation_groups 확장
 - [ ] payload_version 컬럼 추가 (text, not null)
-- [ ] idempotency_key 타입 uuid 명시 (nullable 유지 — D-041 TTL cleanup용)
+- [ ] idempotency_key: uuid, NOT NULL (D-041 TTL은 row cleanup으로 처리, NULL 비우기 금지)
+- [ ] UNIQUE(owner_id, log_date) WHERE deleted_at IS NULL — 날짜당 1그룹 (D-060)
 - [ ] 인덱스 추가:
   - (owner_id, log_date)
   - (owner_id, payload_version)
-  - (owner_id, idempotency_key) WHERE idempotency_key IS NOT NULL
+  - (owner_id, idempotency_key)
+
+#### 2a. observation_patch_dedup 추가 (D-061)
+- [ ] observation_patch_dedup 테이블 생성
+  - id (pk, uuid)
+  - owner_id (uuid, not null)
+  - group_id (uuid, fk → observation_groups.id)
+  - idempotency_key (uuid, not null)
+  - result_json (jsonb)
+  - created_at
+  - UNIQUE(owner_id, group_id, idempotency_key)
 
 #### 3. inventory_items 확장
 - [ ] meta 컬럼 추가 (jsonb, default '{}')
@@ -85,13 +97,20 @@
   - created_at
   - index: (comment_id)
 
+#### 8a. reply_revisions 테이블 생성 (D-009 적용)
+- [ ] reply_revisions 테이블 생성
+  - id (pk, uuid)
+  - reply_id (fk → replies.id)
+  - previous_body (text, not null)
+  - created_at
+  - index: (reply_id)
+
 #### 9. reports snapshot 추가 (D-052)
 - [ ] reports.snapshot (jsonb, nullable) 컬럼 추가
 - [ ] reports.deleted_at (timestamptz, nullable) 컬럼 확인/없으면 추가
 
 #### 10. 닉네임 변경 지원 (D-051)
-- [ ] profiles.nickname_changed_at (timestamptz, nullable) 컬럼 추가
-- [ ] nickname_history 테이블 (선택, v1은 불필요)
+- [ ] **v1 스킵**: 닉네임 변경 기능은 v1에서 구현하지 않는다(D-051 v1 범위 참조).
 
 #### 11. app_config (D-056)
 - [ ] app_config 테이블 생성

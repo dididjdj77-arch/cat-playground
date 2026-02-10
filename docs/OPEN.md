@@ -113,3 +113,28 @@
   - 클릭 시 냥스타 Composer로 이동하며 관찰 요약을 초안으로 삽입(사용자 삭제/수정 가능)
 - 미결정:
   - 링크 저장(강결합 FK/링크테이블) 여부는 v1 보류(복잡도↑, 공개경계↑).
+
+## O-027. 스케줄드 작업 실행체(TTL cleanup / retention / 집계 보정)
+- 대상 정책:
+  - D-041: observation idempotency 7일 TTL
+  - D-061: observation_patch_dedup 7일 TTL
+  - D-045: payload_version_events 90일 retention
+  - 집계 보정: like_count/reply_count/comment_count
+- 결정에 필요한 질문:
+  - pg_cron vs Supabase Edge Function cron vs 외부 스케줄러?
+  - 실행 주기(매일/매시간)?
+  - 실패 시 알림/재시도 정책?
+
+## O-028. Channel popular 피드 임시 공식 (v1)
+- 배경: D-013에 인기 피드가 v1 범위이지만 O-004의 정식 공식은 미결정.
+- 임시안: score = like_count + reply_count * 2, window = 7d, ORDER BY score DESC, created_at DESC
+- 결정에 필요한 질문:
+  - 임시 공식으로 v1 출시할지, popular을 v1에서 숨길지?
+  - 가중치/윈도우를 CONFIG-BASELINES에 등록할지?
+
+## O-029. 관찰 멱등성 request_hash 방어 (v1.1+)
+- 배경: v1은 동일 idempotency_key 재요청 시 기존 결과 반환 + 서버 로그 warning (D-061).
+- 미결정: request_hash 저장 + payload mismatch 시 409 반환을 v1.1+에서 도입할지.
+- 결정에 필요한 질문:
+  - payload canonicalization(items 배열 순서 등) 비용은?
+  - 실제 mismatch 빈도(서버 로그 기반 판단)?

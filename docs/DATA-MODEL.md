@@ -22,6 +22,7 @@
   - 전이 규칙: visibility를 private로 변경하면 published_at=NULL 강제(서버/RPC) + DB CHECK로 방어
 - house_slots(id pk, owner_id, room_key, slot_key, inventory_item_id?, equipped_at?, created_at, updated_at, deleted_at)
   - unique(owner_id, room_key, slot_key)
+  - FK: inventory_item_id → inventory_items.id (nullable)
   - v1(living_room) slot_key SSOT: slot_01..slot_08
   - slot_key는 opaque id이며 의미/좌표/레이어는 클라이언트 씬 config가 소유한다.
 
@@ -63,14 +64,24 @@
 - deleted_at: 사용자 기능 미사용(v1에서 항상 NULL). 운영/데이터 수리 목적의 예약 필드.
 
 ## 5) observation (다묘)
-- observation_groups(id, owner_id, log_date, payload_version text, common_payload jsonb, version int, idempotency_key uuid, created_at, updated_at, deleted_at)
+- observation_groups(id, owner_id, log_date, payload_version text, common_payload jsonb, version int, idempotency_key uuid NOT NULL, created_at, updated_at, deleted_at)
   - unique(owner_id, idempotency_key)
-  - (선택) unique(owner_id, log_date) — 날짜당 1묶음으로 고정할 때
+  - unique(owner_id, log_date) WHERE deleted_at IS NULL — 날짜당 1그룹 (D-060)
   - index: (owner_id, log_date), (owner_id, payload_version), (owner_id, idempotency_key)
+  - TTL: 7일 경과 후 row cleanup (D-041). idempotency_key를 NULL로 비우는 방식은 금지(NOT NULL + unique 무력화 방지).
 - observations(id, group_id, owner_id, cat_id, status(active|excluded), override_payload jsonb?, created_at, updated_at, deleted_at)
   - status 의미: excluded는 해당 관찰 항목을 "이번 그룹 집계에서 제외"하는 상태이며, payload_versions.state의 DEPRECATED와는 다른 개념이다.
   - unique(group_id, cat_id)
 - 필수: 트랜잭션 + idempotency + expected_version 기반 충돌 처리
+
+## 5b) observation_patch_dedup (Patch 멱등성)
+- observation_patch_dedup(id pk, owner_id, group_id, idempotency_key uuid NOT NULL, result_json jsonb, created_at)
+  - unique(owner_id, group_id, idempotency_key)
+  - FK: group_id → observation_groups.id
+- 의미:
+  - rpc_patch_observation_items의 멱등성을 보장한다. 동일 (owner_id, group_id, idempotency_key) 재요청 시 result_json을 반환.
+  - D-041과 동일하게 7일 TTL(row cleanup).
+- See: D-061
 
 ## 5a) observation_inventory_refs (관찰 시점 인벤 참조 고정)
 - observation_inventory_refs(id pk, owner_id, group_id, inv_type, inventory_item_id, created_at)
@@ -80,6 +91,10 @@
 - 의미:
   - 관찰 저장 시점에 “당시 사용중이었던 인벤 항목”을 타입별 inventory_item_id로 고정 저장한다.
   - 관찰 Patch(부분수정)로는 이 참조를 변경하지 않는다(변경 필요 시 DECISIONS D-058 참고).
+- Upsert 머지 규칙 (D-064):
+  - p_inventory_refs = NULL → 기존 refs 유지 (변경 없음)
+  - p_inventory_refs = {} → 기존 refs 전부 삭제
+  - p_inventory_refs에 특정 타입만 포함 → 해당 타입만 upsert, 나머지 유지
 
 ## 6) nyanstagram
 - posts(id, author_id, body, log_date, visibility(private|public), published_at?, hide_from_profile bool,
@@ -97,6 +112,8 @@
   - FTS: tsvector(title+body) + GIN
 - replies(id, thread_id, author_id, body, edited_at?, like_count, hidden_at?, created_at, updated_at, deleted_at)
   - 1-depth(부모 reply 없음)
+  - 수정 정책: comments와 동일(D-009 적용). edited_at 표기 + 내부 감사로그(reply_revisions).
+- reply_revisions(id, reply_id, previous_body, created_at) — 이전 본문 1개만 유지(내부 감사)
 
 ## 8) likes(공통)
 - likes(id, user_id, target_type(post|comment|thread|reply), target_id, created_at)
