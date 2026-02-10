@@ -12,6 +12,7 @@
 - [ ] `guard_block`(viewer-target 상호 비노출) 필터를 항상 적용한다.
 - [ ] posts/house 계열은 `guard_visibility_published`를 함께 적용한다.
 - [ ] 반환 컬럼은 화이트리스트로 명시한다.
+- [ ] `p_limit`는 하한/상한 캡을 함께 적용한다(예: 1~100).
 
 ### Don't
 - [ ] `p_viewer_id` 같은 외부 입력 파라미터를 신뢰하지 않는다.
@@ -41,7 +42,7 @@ as $$
   select b.id, b.title, b.created_at
   from base b
   order by b.created_at desc
-  limit greatest(p_limit, 1);
+  limit least(greatest(p_limit, 1), 100);
 $$;
 ```
 
