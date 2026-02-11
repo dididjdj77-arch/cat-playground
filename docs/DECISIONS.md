@@ -258,10 +258,12 @@
 - 의미: 프라이버시 경계를 단순화하고 노출 사고 표면을 최소화한다.
 - 변경: ADR 필요.
 
-## D-037. 공개 하우스 응답에서 고양이 사진(avatar_url) 금지
+## D-037. 공개 하우스 응답에서 고양이 아바타 원본키 노출 금지
 - Class: POLICY
 - 무엇:
-  - 공개 하우스 응답/뷰/DTO에는 cats.avatar_url을 **절대 포함하지 않는다**(렌더는 기본/대체 아바타 사용).
+  - 공개 하우스 응답/뷰/DTO에는 cats avatar 원본 식별값을 **절대 포함하지 않는다**.
+  - 금지 컬럼: cats.avatar_key (canonical), cats.avatar_url (legacy/deprecated).
+  - 렌더는 기본/대체 아바타를 사용한다.
 - 의미: join/컬럼 확장 실수로 발생하는 치명적 누출을 구조적으로 차단한다.
 - 변경: ADR 필요.
 
@@ -383,7 +385,7 @@
 ## D-055. PublicHouseSlotSummaryDTO v1 허용 필드(whitelist)
 - Class: GUARD
 - 무엇(허용 필드): slot_key, equipped_at(nullable), type, catalog.standard_name
-- 금지(명시): inventory_item_id, raw_text/note/meta, cats.avatar_url, catalog_item_id
+- 금지(명시): inventory_item_id, raw_text/note/meta, cats.avatar_key, cats.avatar_url(legacy), catalog_item_id
 - 의미: 공개 하우스는 존재 은닉/프라이버시 경계를 지키면서도 표현에 필요한 최소 정보만 제공.
 - 변경: ADR 불필요(기존 ADR-007 원칙의 구체화). 단 공개 범위 확대는 ADR 필요.
 
@@ -492,3 +494,104 @@
 - 의미: D-050(404 통일)과 동일한 "외부 표면에서 상태코드 결정" 패턴을 비즈니스 에러(409 등)로 확장하고, DB 함수의 책임을 데이터/로직에 한정한다.
 - See: D-050, D-022
 - 변경: ADR 불필요(기존 패턴의 명시화).
+
+## D-066. AuthN v1 (Korea-first, Social-first)
+- Class: POLICY
+- 무엇:
+  - Providers(v1):
+    - Apple, Kakao는 필수.
+    - Google은 옵션(필요 시 on).
+    - Email/password는 복구/백업 채널로 유지.
+    - Naver는 Supabase native provider 미지원이므로 Brokered OAuth(서버/엣지)로 지원.
+  - 가입 UX:
+    - 첫 로그인 시 계정을 생성한다.
+    - 최초 설정: nickname 필수.
+    - terms_agreed_at은 약관 동의 시점에 설정하며, 초기에는 nullable로 시작한다.
+    - PII(생년월일/성별)는 v1 필수 수집에서 제외한다.
+  - 프로필 부트스트랩:
+    - auth.users 생성 이벤트에서 profiles upsert를 수행한다.
+    - 트리거는 최소 작업(upsert 1회)만 수행한다.
+    - 트리거 예외는 흡수하고 로깅하며(signup 경로 비차단), 후속 정합성 보정은 배치/잡으로 처리 가능해야 한다.
+  - 계정 링크:
+    - v1은 자동 링크를 금지한다.
+    - 명시적 링크(설정 화면)만 허용한다.
+    - 두 user_id 병합 기능은 v1에서 제공하지 않는다.
+  - 식별자 매핑(v1):
+    - profiles.id는 내부 PK를 유지한다.
+    - auth.users와 1:1 연결은 profiles.user_id(unique)로 고정한다.
+  - 가드:
+    - 민감/공개 기능(예: 게시/댓글/공개 전환) 실행 전에는 terms_agreed_at IS NOT NULL을 요구한다.
+- 의미: 한국 중심 소셜 로그인 전환율을 확보하면서, 링크/부트스트랩/약관 동의 타이밍으로 인한 가입 실패와 CS 리스크를 줄인다.
+- 변경: ADR 권장
+
+## D-067. Assets/Storage v1 (공개 경계 사고 방지 + SEO 이미지 정합)
+- Class: POLICY
+- 무엇:
+  - 버킷(v1):
+    - assets (private): 원본 자산 보관
+    - assets-public (public): 공개 포스트용 파생 썸네일만 보관
+  - 경로(prefix):
+    - 원본(private): avatars/{user_id}/{uuid}.webp, posts/{user_id}/{post_id}/{uuid}.webp, cats/{user_id}/{cat_id}/{uuid}.webp
+    - 썸네일(public): posts/{post_id}/{uuid}_thumb.webp (공개+발행 콘텐츠만)
+  - DB 저장 값:
+    - profiles는 avatar_key(storage key path)를 canonical 컬럼으로 사용한다(URL 아님).
+    - profiles.avatar_url은 레거시 호환을 위한 deprecated 컬럼으로만 유지하고 신규 쓰기는 금지한다(v1 전환기).
+    - cats도 avatar_key를 canonical 컬럼으로 사용한다.
+    - cats.avatar_url은 레거시 호환을 위한 deprecated 컬럼으로만 유지하고 신규 쓰기는 금지한다(v1 전환기).
+  - 제한:
+    - image/jpeg, image/png, image/webp 허용, 최대 10MB.
+  - 접근:
+    - 원본 업로드/삭제: owner-only
+    - 원본 읽기: signed URL(인증) 기본
+    - 공개 썸네일 읽기: anon 허용(공개+발행 상태의 파생본만)
+- 의미: 원본은 private로 보호하면서도 공개 웹 SEO/OG 이미지 요구를 충족한다.
+- See: D-015, D-050
+- 변경: ADR 권장
+
+## D-068. 관리자(운영) v1 범위 (O-009a 해소)
+- Class: POLICY
+- 무엇:
+  - v1 운영 기능(최소):
+    - 신고 큐 조회
+    - hide/unhide
+    - catalog_suggestions 승인/거절/별칭/병합
+  - 권한 모델(v1):
+    - profiles.is_admin boolean 기반 allowlist
+    - v1.1+에서 역할 분리(admin_roles 등) 검토
+  - 운영 액션은 admin 전용 경로(RPC/툴)로 수행하고 moderation_actions에 감사 로그를 남긴다.
+  - 관리자 UI(화면/라우팅/노출)는 본 결정의 범위에 포함하지 않는다.
+- 의미: 운영 최소 요건과 감사 가능성을 먼저 고정하고, UI는 별도 확장 지점으로 분리한다.
+- See: D-014, D-024
+- 변경: ADR 권장
+
+## D-069. 스케줄드 작업 실행체 (O-027 해소)
+- Class: POLICY
+- 무엇:
+  - 실행체: Supabase pg_cron(v1)
+  - 작업 대상:
+    - observation_groups idempotency cleanup (D-041)
+    - observation_patch_dedup cleanup (D-061)
+    - payload_version_events retention (D-045)
+    - like_count/reply_count/comment_count 보정
+  - 스케줄/타임존 기준선은 CONFIG-BASELINES에서 관리한다.
+    - SSOT 고정 항목: UTC 기준 + 주기(cadence)
+    - minute offset은 default 값으로만 두며 운영에서 조정 가능하다(LOCK 아님)
+  - 실패 처리:
+    - v1은 job_run_details/시스템 로그 기반 관측
+    - v1.1+ 알림 연동(슬랙/이메일) 확장 가능
+- 의미: 정책 TTL/retention/보정의 실행체를 고정해 운영 공백을 제거한다.
+- See: D-041, D-045, D-061
+- 변경: ADR 권장
+
+## D-070. 알림 v1 (푸시 제외, in-app inbox)
+- Class: POLICY
+- 무엇:
+  - v1 범위: in-app inbox(조회/읽음 처리)만 제공, 푸시는 제외(v1.1+)
+  - 이벤트: comment / reply / like
+  - type-target 매핑(v1 LOCK):
+    - comment -> target_type='post', target_id=post_id
+    - reply -> target_type='thread', target_id=thread_id
+    - like -> target_type='post'만 허용(v1 단순화)
+  - 스키마: notifications(id, user_id, type, actor_id, target_type, target_id, read_at, created_at)
+- 의미: 푸시 인프라 없이도 리텐션 최소 요건을 확보하고, 타입 매핑 혼선을 줄인다.
+- 변경: ADR 권장

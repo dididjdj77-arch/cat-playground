@@ -51,8 +51,25 @@
 #### 3. inventory_items 확장
 - [ ] meta 컬럼 추가 (jsonb, default '{}')
 
-#### 4. profile_settings 정리
-- [ ] inventory_visibility 컬럼 정리 (레거시일 수 있음; 존재 시 제거/비활성)
+#### 4. profiles / auth bootstrap 정리 (D-066, D-067, D-068)
+- [ ] profiles-auth 1:1 연결 키 고정
+  - profiles.user_id (uuid, NOT NULL, UNIQUE, FK -> auth.users.id)
+  - 주의: v1에서 profiles.id는 내부 PK 유지(독립 PK 유지)
+- [ ] profiles 약관/운영 컬럼 정리
+  - terms_agreed_at (timestamptz, nullable 유지; NOT NULL 금지)
+  - is_admin (boolean, NOT NULL, default false)
+- [ ] profiles 아바타 컬럼 명확화
+  - profiles.avatar_key 컬럼 추가/유지 (canonical)
+  - 기존 profiles.avatar_url -> profiles.avatar_key backfill
+  - profiles.avatar_url은 deprecated로 유지(신규 write 금지), 제거는 후속 migration으로 분리
+- [ ] cats 아바타 컬럼 정합(B안)
+  - cats.avatar_key 컬럼 추가 (canonical)
+  - 기존 cats.avatar_url -> cats.avatar_key backfill
+  - cats.avatar_url은 deprecated로 유지(신규 write 금지), 제거는 후속 migration으로 분리
+- [ ] auth bootstrap trigger 최소 작업 원칙
+  - auth.users -> profiles upsert 1회
+  - trigger 예외는 signup 경로를 끊지 않도록 흡수
+  - bootstrap_errors 로그 테이블(예: auth_profile_bootstrap_errors) 또는 동등 로깅 경로 준비
 
 #### 5. payload_versions + KPI 시스템
 - [ ] payload_versions 테이블 생성
@@ -124,6 +141,52 @@
   - rate_limits (D-053)
   - rate_limits_new_account (D-053)
   - auto_hide (D-054)
+
+#### 12. notifications (D-070)
+- [ ] notifications 테이블 생성
+  - id (pk, uuid)
+  - user_id (uuid, not null)
+  - type (comment|reply|like)
+  - actor_id (uuid, not null)
+  - target_type (post|thread)
+  - target_id (uuid, not null)
+  - read_at (timestamptz, nullable)
+  - created_at (timestamptz, not null default now())
+- [ ] 인덱스 추가
+  - (user_id, created_at desc)
+  - (user_id, read_at)
+- [ ] type-target 매핑 CHECK/가드 반영(v1 LOCK)
+  - comment -> target_type='post'
+  - reply -> target_type='thread'
+  - like -> target_type='post'만 허용
+
+#### 13. Storage buckets/policies (D-067)
+- [ ] private 원본 버킷 생성: assets
+- [ ] public 썸네일 버킷 생성: assets-public
+- [ ] 경로(prefix) 가드 반영
+  - 원본: avatars/{user_id}/{uuid}, posts/{user_id}/{post_id}/{uuid}, cats/{user_id}/{cat_id}/{uuid}
+  - 공개 썸네일: posts/{post_id}/{uuid}_thumb (공개+발행 콘텐츠 파생본만)
+- [ ] 접근 정책
+  - assets: owner write/read(signed URL) 기본
+  - assets-public: 썸네일 anon read 허용(공개+발행 상태 파생본만)
+
+#### 14. admin DB objects only (D-068)
+- [ ] profiles.is_admin 기반 allowlist 컬럼/인덱스 준비
+- [ ] 운영 감사 테이블(moderation_actions) 스키마 점검/보강
+- [ ] 주의: 관리자 전용 RPC 생성/계약 정의는 SCHEMA-MIGRATIONS 범위가 아니다
+  - RPC 계약/생성은 docs/RPC-SPECS.md + 구현 EP 체크리스트에서 관리
+
+#### 15. pg_cron 실행체 연결 (D-069)
+- [ ] pg_cron extension/job 등록 경로 준비
+- [ ] 대상 작업 등록
+  - observation_groups idempotency cleanup (D-041)
+  - observation_patch_dedup cleanup (D-061)
+  - payload_version_events retention (D-045)
+  - like/comment/reply 집계 보정
+- [ ] 등록 원칙
+  - DB job schedule은 UTC 기준으로 등록
+  - SSOT로 고정하는 것은 주기(cadence)이며, minute offset은 default 값(운영 조정 가능)으로 둔다
+  - 주기/환산표 기준 문서는 docs/CONFIG-BASELINES.md에서 관리
 
 ## 마이그레이션 실행 원칙
 1. 백업 먼저

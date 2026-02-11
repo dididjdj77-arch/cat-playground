@@ -49,7 +49,23 @@
 
 ---
 
-## 4. 변경 규칙
+## 4. pg_cron Baseline (D-069)
+
+원칙:
+- 모든 cron 표현식은 UTC 기준으로 기록/등록한다.
+- SSOT로 고정하는 값은 "주기(cadence)"이며, minute offset은 default(조정 가능)로 둔다.
+- 운영 커뮤니케이션에는 UTC 기준 표현을 우선 사용한다.
+
+| 작업 | UTC 주기(SSOT) | minute offset(default, configurable) | 비고 |
+|------|----------------|-------------------------------------|------|
+| observation_groups idempotency cleanup | 매시간 1회 | 15 | D-041, row cleanup |
+| observation_patch_dedup cleanup | 매시간 1회 | 20 | D-061, row cleanup |
+| payload_version_events retention | 매일 1회 (02:00 UTC 기준) | 30 | D-045, 90일 초과 삭제 |
+| engagement counter reconcile | 6시간마다 1회 | 0 | like/comment/reply 보정 |
+
+---
+
+## 5. 변경 규칙
 
 - 수치 변경: app_config(D-056)로 수행. 코드 상수 금지.
 - "행동만 제한 / 읽기 제외" 원칙 변경: ADR 권장.
