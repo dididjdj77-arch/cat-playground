@@ -63,6 +63,63 @@ drop table if exists public.example_items;
 commit;
 ```
 
+## 복합 마이그레이션 스켈레톤 (다중 테이블 + FK + seed)
+
+```sql
+begin;
+
+set local lock_timeout = '3s';
+set local statement_timeout = '30s';
+
+-- 1) 부모 테이블
+create table if not exists public.parent_items (
+  id uuid primary key default gen_random_uuid(),
+  owner_id uuid not null,
+  name text not null,
+  created_at timestamptz not null default now(),
+  updated_at timestamptz not null default now(),
+  deleted_at timestamptz null
+);
+
+-- 2) 자식 테이블 (FK -> 부모)
+create table if not exists public.child_records (
+  id uuid primary key default gen_random_uuid(),
+  parent_id uuid not null references public.parent_items(id),
+  owner_id uuid not null,
+  record_type text not null,
+  value jsonb not null default '{}'::jsonb,
+  created_at timestamptz not null default now(),
+  constraint child_records_type_chk check (record_type in ('type_a','type_b','type_c')),
+  constraint child_records_parent_type_uniq unique (parent_id, record_type)
+);
+
+-- 3) 인덱스
+create index if not exists idx_parent_items_owner
+  on public.parent_items (owner_id, created_at desc)
+  where deleted_at is null;
+
+create index if not exists idx_child_records_parent
+  on public.child_records (parent_id);
+
+-- 4) Seed (있으면)
+-- insert into ... on conflict do nothing;
+
+commit;
+```
+
+### 복합 Rollback
+
+```sql
+begin;
+
+drop index if exists public.idx_child_records_parent;
+drop index if exists public.idx_parent_items_owner;
+drop table if exists public.child_records;
+drop table if exists public.parent_items;
+
+commit;
+```
+
 ## 검증
 
 ### 스모크 테스트

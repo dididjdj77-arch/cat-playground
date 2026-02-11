@@ -20,7 +20,7 @@
 | ADR/* | 방향 전환 근거 (최대 5개) | 템플릿 미준수 ADR |
 | PROCESS | 프로세스/EP/PR 운영 규칙 | 정책/설계 결정 |
 | CONFIG-BASELINES | 운영 파라미터 기준값(수치/임계치) | 원칙/정책 |
-| playbooks/* | 수행자 실행 가이드(체크리스트/템플릿/검증) | 정책식 원문 복붙 |
+| playbooks/* | 수행자 실행 가이드(체크리스트/템플릿/검증). 작업유형별 8개: migrations, rls-and-guards, rpc-owner, rpc-public, ops-app-config, seo-web, moderation, payload-version-kpi | 정책식 원문 복붙 |
 
 ### 변경 규칙
 
