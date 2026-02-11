@@ -1,27 +1,41 @@
 # Playbook: RPC Public
 
 > 이 문서는 공개 조회 RPC(보안/노출/화이트리스트) 작업의 실행 가이드입니다.
-> 정책 근거: See DECISIONS D-029, D-035~037, D-043, D-050, D-055
+> 정책 근거: See DECISIONS D-029, D-035~037, D-043, D-050, D-055, D-063, D-065
 
 ## 체크리스트
 
-### Do
+### Do (공통 — 모든 공개 RPC)
 - [ ] `SECURITY DEFINER` + 고정 `search_path`를 사용한다.
-- [ ] `guard_soft_state + guard_block + guard_visibility_published`를 적용한다.
+- [ ] `guard_soft_state`(deleted_at/hidden_at) 필터를 적용한다.
+- [ ] `guard_block`(viewer_id, target_user_id) 필터를 적용한다.
+- [ ] posts/house 계열은 `guard_visibility_published`를 추가 적용한다. threads/replies는 적용하지 않는다.
+- [ ] 반환 컬럼은 명시적 화이트리스트로 제한한다 (`select *` 금지).
+- [ ] `p_limit`는 하한/상한 캡을 적용한다 (`least(greatest(p_limit, 1), 100)`).
+- [ ] cursor pagination은 keyset 방식을 기본으로 한다.
+- [ ] 비즈니스 에러는 JSON return으로 전달한다 (D-065).
+- [ ] 외부 라우트/API는 guard 불만족을 404로 통일한다 (D-050).
+- [ ] 인증/권한 실패 에러 표현은 API-CONTRACTS 표준 에러 체계와 정합되게 유지한다.
+
+### Do (House 보충 — house 공개 RPC만)
 - [ ] 반환 DTO는 D-055 화이트리스트(`slot_key`, `equipped_at`, `type`, `standard_name`)만 반환한다.
 - [ ] `house_slots.owner_id`와 `house_profiles.user_id`를 기준으로 조인한다.
 - [ ] `house_slots.deleted_at is null`을 필수로 적용한다.
 - [ ] 빈 슬롯(`inventory_item_id is null`)은 포함하고, 인벤/카탈로그 컬럼은 nullable로 반환한다.
 - [ ] auth-only는 DB 데이터 접근 요건으로 문서화하고 EXECUTE 권한으로 강제한다.
-- [ ] 외부 라우트/API는 미인증/비공개/숨김/삭제/차단/미발행을 404로 통일한다.
-- [ ] 인증/권한 실패 에러 표현은 API-CONTRACTS 표준 에러 체계와 정합되게 유지한다.
 
-### Don't
+### Do (Comments 보충 — 댓글 공개 RPC만)
+- [ ] 부모 post의 공개 가드(`guard_soft_state + guard_block + guard_visibility_published`)를 먼저 통과한 후에만 댓글을 반환한다 (D-063).
+- [ ] 부모 post 가드 불만족 시 404를 반환한다 (댓글 0건이 아님).
+- [ ] 댓글 자체에도 `guard_soft_state + guard_block`을 적용한다.
+
+### Don't (공통)
 - [ ] `select *`를 사용하지 않는다.
 - [ ] `cats.avatar_url`을 join/노출하지 않는다.
 - [ ] `inventory_item_id` 같은 내부 id를 노출하지 않는다.
 - [ ] `raw_text/note/meta`를 공개 DTO에 포함하지 않는다.
 - [ ] D-055 비허용 필드를 DTO 예시/코드/주석 어디에도 넣지 않는다.
+- [ ] threads/replies에 visibility/published 가드를 적용하지 않는다.
 
 ## 템플릿
 
@@ -74,6 +88,98 @@ grant execute on function public.rpc_get_public_house_slots_summary(uuid) to aut
 -- 웹/API 라우트는 미인증 요청에서 DB 호출 유무와 무관하게 404를 반환한다.
 ```
 
+### Posts Feed 스켈레톤 (예시)
+
+```sql
+create or replace function public.rpc_get_public_posts_feed(
+  p_cursor text default null,
+  p_limit int default 20
+)
+returns jsonb
+language plpgsql
+security definer
+set search_path = public, pg_temp
+as $$
+declare
+  v_viewer_id uuid := auth.uid(); -- anon이면 null
+  v_result jsonb;
+begin
+  with feed as (
+    select p.id, p.body, p.log_date, p.like_count, p.comment_count,
+           p.published_at, p.created_at,
+           pr.nickname as author_nickname
+    from public.posts p
+    join public.profiles pr on pr.id = p.author_id
+    where p.deleted_at is null
+      and p.hidden_at is null
+      and p.visibility = 'public'
+      and p.published_at is not null
+      and public.guard_block(v_viewer_id, p.author_id)
+      and (p_cursor is null or p.published_at < p_cursor::timestamptz)
+    order by p.published_at desc
+    limit least(greatest(p_limit, 1), 100)
+  )
+  select jsonb_agg(to_jsonb(feed)) into v_result from feed;
+
+  return coalesce(v_result, '[]'::jsonb);
+end;
+$$;
+```
+
+### Comments (부모 가드 종속) 스켈레톤 (예시)
+
+```sql
+create or replace function public.rpc_get_public_post_comments(
+  p_post_id uuid,
+  p_cursor text default null,
+  p_limit int default 20
+)
+returns jsonb
+language plpgsql
+security definer
+set search_path = public, pg_temp
+as $$
+declare
+  v_viewer_id uuid := auth.uid();
+  v_post_author_id uuid;
+  v_result jsonb;
+begin
+  -- Step 1: 부모 post 가드 (D-063)
+  select p.author_id into v_post_author_id
+  from public.posts p
+  where p.id = p_post_id
+    and p.deleted_at is null
+    and p.hidden_at is null
+    and p.visibility = 'public'
+    and p.published_at is not null
+    and public.guard_block(v_viewer_id, p.author_id);
+
+  if v_post_author_id is null then
+    -- 부모 post가 공개 조건 불만족 → 404 (댓글 0건이 아님)
+    return jsonb_build_object('error_code', 'not_found');
+  end if;
+
+  -- Step 2: 댓글 조회 (자체 guard)
+  with comments as (
+    select c.id, c.body, c.like_count, c.edited_at, c.created_at,
+           pr.nickname as author_nickname
+    from public.comments c
+    join public.profiles pr on pr.id = c.author_id
+    where c.post_id = p_post_id
+      and c.deleted_at is null
+      and c.hidden_at is null
+      and public.guard_block(v_viewer_id, c.author_id)
+      and (p_cursor is null or c.created_at < p_cursor::timestamptz)
+    order by c.created_at desc
+    limit least(greatest(p_limit, 1), 100)
+  )
+  select jsonb_agg(to_jsonb(comments)) into v_result from comments;
+
+  return coalesce(v_result, '[]'::jsonb);
+end;
+$$;
+```
+
 ## 검증
 
 ### 스모크 테스트
@@ -100,4 +206,6 @@ from public.rpc_get_public_house_slots_summary('00000000-0000-0000-0000-00000000
 - See: DECISIONS D-043
 - See: DECISIONS D-050
 - See: DECISIONS D-055
+- See: DECISIONS D-063
+- See: DECISIONS D-065
 - See: docs/AUTHZ-MODEL.md#0

@@ -479,3 +479,16 @@
 - 의미: NULL과 빈 값의 의미를 구분하여 구현자 해석 차이를 방지.
 - See: D-058
 - 변경: ADR 불필요(기존 가드레일 구체화).
+
+## D-065. RPC 에러 전달 패턴 (JSON return + 외부 표면 HTTP 매핑)
+- Class: GUARD
+- 무엇:
+  - DB RPC 함수는 비즈니스 에러를 JSON object로 반환한다 (예: `{"error_code":"version_conflict","current_version":5}`).
+  - DB 함수는 raise exception을 비즈니스 에러에 사용하지 않는다 (auth check 실패 등 hard fail만 예외).
+  - HTTP 상태코드 매핑은 외부 표면(Edge Function/API Route/클라이언트 SDK wrapper)이 담당한다.
+  - Supabase PostgREST에서 DB 함수가 예외 없이 정상 return하면 HTTP 200이 기본이며, 클라이언트는 `body.error_code`로 비즈니스 에러를 판별한다.
+  - 권한/EXECUTE 거부나 예외(hard fail) 발생은 PostgREST 에러로 4xx/5xx가 될 수 있으며, 이는 비즈니스 에러(JSON return) 범주가 아니다.
+  - 매핑 규칙: `error_code -> HTTP 상태코드` 테이블은 API-CONTRACTS에서 관리한다.
+- 의미: D-050(404 통일)과 동일한 "외부 표면에서 상태코드 결정" 패턴을 비즈니스 에러(409 등)로 확장하고, DB 함수의 책임을 데이터/로직에 한정한다.
+- See: D-050, D-022
+- 변경: ADR 불필요(기존 패턴의 명시화).

@@ -83,7 +83,9 @@ grant execute on function public.rpc_get_app_config(text[]) to authenticated;
 -- 필요 시에만:
 -- grant execute on function public.rpc_get_app_config(text[]) to service_role;
 
--- 아래 값은 샘플이며 기준값 SSOT는 CONFIG-BASELINES를 따른다.
+-- ⚠️ 아래 값은 playbook 예시(샘플)이다.
+-- 실제 seed는 반드시 CONFIG-BASELINES.md의 수치와 정합시킨다.
+-- CONFIG-BASELINES 수치와 다른 값을 seed하면 운영 파라미터 불일치가 발생한다.
 insert into public.app_config (key, value)
 values
   ('rate_limits', '{"posts":{"per_min":2,"per_day":20}}'::jsonb),
