@@ -31,8 +31,10 @@
 
 #### 2. observation_groups 확장
 - [ ] payload_version 컬럼 추가 (text, not null)
-- [ ] idempotency_key: uuid, NOT NULL (D-041 TTL은 row cleanup으로 처리, NULL 비우기 금지)
+- [ ] idempotency_key: uuid, NOT NULL (D-041 TTL은 sentinel swap 처리, NULL 비우기 금지)
 - [ ] UNIQUE(owner_id, log_date) WHERE deleted_at IS NULL — 날짜당 1그룹 (D-060)
+- [ ] UNIQUE(owner_id, idempotency_key) 부분 유니크 적용
+  - WHERE idempotency_key <> '00000000-0000-0000-0000-000000000000'
 - [ ] 인덱스 추가:
   - (owner_id, log_date)
   - (owner_id, payload_version)
@@ -84,14 +86,14 @@
   - id (pk)
   - ts (timestamp)
   - version (text)
-  - event_type (seen|reject|normalize_fail)
+  - event_type (seen|reject|normalize_fail|unknown)
   - request_id (nullable)
   - reason (nullable)
   - created_at
 - [ ] payload_version_rollups 테이블 생성
   - version (text)
   - bucket_ts (timestamp)
-  - seen_count, reject_count, normalize_fail_count
+  - seen_count, reject_count, normalize_fail_count, unknown_count
   - last_seen_at
 
 #### 6. ops_metrics
@@ -192,7 +194,7 @@
 #### 15. pg_cron 실행체 연결 (D-069)
 - [ ] pg_cron extension/job 등록 경로 준비
 - [ ] 대상 작업 등록
-  - observation_groups idempotency cleanup (D-041)
+  - observation_groups idempotency sentinel swap update (D-041)
   - observation_patch_dedup cleanup (D-061)
   - payload_version_events retention (D-045)
   - like/comment/reply 집계 보정

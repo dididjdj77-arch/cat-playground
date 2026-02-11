@@ -17,6 +17,8 @@
 - [ ] inventory 수정은 `is_current=false + 새 row` 패턴을 사용한다.
 - [ ] 비즈니스 에러는 JSON return으로 전달한다 (raise exception은 hard fail만). See D-065.
 - [ ] 모든 write RPC는 `guard_terms_agreed()`를 호출한다 (D-073).
+- [ ] write RPC guard 호출 순서를 고정한다: `guard_terms_agreed` → `guard_block` → `guard_soft_state` → `guard_visibility_published`.
+- [ ] RPC 성격상 불필요한 guard는 `N/A`로 명시한다(예: owner-write RPC의 `guard_visibility_published`).
 
 ### Don't
 - [ ] read-modify-write로 like_count를 업데이트하지 않는다.

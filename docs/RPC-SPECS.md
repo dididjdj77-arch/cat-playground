@@ -25,6 +25,14 @@ v1.1 기준 최소 RPC 목록과 공통 guard 패턴
 - 모든 write RPC에 적용. read RPC 제외.
 - See: D-073
 
+### Write RPC guard 호출 순서 (LOCK)
+- 모든 write RPC는 아래 순서로 guard를 평가한다.
+  1. `guard_terms_agreed()`
+  2. `guard_block(viewer_id, target_user_id)`
+  3. `guard_soft_state(...)`
+  4. `guard_visibility_published(...)`
+- RPC 성격상 불필요한 guard는 `N/A`로 명시하고 건너뛴다(순서 자체는 유지).
+
 추가 규칙(SECURITY DEFINER 공개 RPC):
 - viewer_id는 서버에서 auth.uid()로 도출한다(anon이면 null).
 - viewer_id를 파라미터로 받지 않는 것을 원칙으로 한다.
@@ -34,6 +42,7 @@ v1.1 기준 최소 RPC 목록과 공통 guard 패턴
 
 ### rpc_upsert_observation_group_with_items
 - 접근: auth-only (auth.uid() required). owner_id는 auth.uid()로 고정(파라미터로 받지 않음).
+- write guard 순서 적용: `guard_terms_agreed()` 후 진행, 나머지 가드는 owner-write 특성상 N/A.
 ```sql
 -- 시그니처 (의사 코드)
 FUNCTION rpc_upsert_observation_group_with_items(
@@ -61,6 +70,7 @@ FUNCTION rpc_upsert_observation_group_with_items(
 
 ### rpc_patch_observation_items
 - 접근: auth-only (auth.uid() required)
+- write guard 순서 적용: `guard_terms_agreed()` 후 진행, 나머지 가드는 owner-write 특성상 N/A.
 ```sql
 FUNCTION rpc_patch_observation_items(
   p_group_id uuid,
@@ -177,6 +187,7 @@ FUNCTION rpc_set_house_slot(
 ) RETURNS jsonb
 ```
 - auth-only. owner_id = auth.uid(). guard_terms_agreed()
+- write guard 순서 적용: `guard_terms_agreed()` 후 진행, 나머지 가드는 owner-write 특성상 N/A.
 - slot_key 허용 목록(slot_01..slot_08) 검증
 - inventory_item_id: is_current=true + owner_id 일치 검증
 - house_profiles lazy create(D-085)
@@ -190,6 +201,7 @@ FUNCTION rpc_clear_house_slot(
 ) RETURNS jsonb
 ```
 - auth-only. inventory_item_id=NULL, equipped_at=NULL
+- write guard 순서 적용: `guard_terms_agreed()` 후 진행, 나머지 가드는 owner-write 특성상 N/A.
 - 없는 슬롯이면 no-op
 
 ### rpc_toggle_like
@@ -199,7 +211,11 @@ FUNCTION rpc_toggle_like(
   p_target_id uuid
 ) RETURNS jsonb  -- {"liked": bool, "like_count": int}
 ```
-- auth-only. guard_terms_agreed(). guard_block
+- auth-only. write guard 순서 적용:
+  1. `guard_terms_agreed()`
+  2. `guard_block(viewer_id, target_user_id)`
+  3. `guard_soft_state(target.deleted_at, target.hidden_at)`
+  4. `guard_visibility_published(...)` (posts 대상일 때 필수, 그 외 target은 N/A)
 - 원자 카운트 UPDATE(D-046)
 - post like 시 notification INSERT(D-093)
 - See: D-090

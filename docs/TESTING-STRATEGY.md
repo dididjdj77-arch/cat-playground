@@ -161,6 +161,14 @@ Then:
   - rpc_get_public_post_comments(post_id) → 댓글 2건 반환
 ```
 
+## Phase 2 시작 조건 (Public Surface Gate)
+
+- Gate는 아래 3개를 모두 통과해야 한다.
+  - G-1 차단 0-rows: block 관계에서 공개 피드/조회 RPC가 대상 작성자의 결과를 0건으로 반환
+  - G-2 DTO whitelist 0 누출: 공개 DTO에 비허용 필드(예: inventory_item_id/raw_text/note/meta/avatar_url)가 0건 누출
+  - G-3 부모 가드 종속 404: 부모 post 공개 가드 실패 시 댓글 공개 RPC가 0건이 아니라 404를 반환
+- Gate 실패 시 Public RPC 추가/확장 PR은 머지 불가(Phase 2 시작 불가).
+
 ## CI 실행 원칙
 1. 테스트는 격리된 환경(테스트 DB)에서 실행
 2. 각 테스트는 독립적으로 실행 가능 (setup/teardown)

@@ -291,10 +291,11 @@
 
 ## D-041. observation idempotency TTL 정책
 - Class: GUARD
-- Status: Refined by D-083
+- Status: active
 - 무엇: observation_groups.idempotency_key 중복 검사 유효 기간은 7일로 한다.
-- SSOT 방식: sentinel 교체가 아니라 RPC 시간비교(created_at 기준) 방식으로 TTL을 판정한다(D-083).
-- cleanup: CONFIG-BASELINES의 cleanup 항목은 observation_patch_dedup row cleanup만 유지한다.
+- SSOT 방식: 7일 경과 row의 idempotency_key를 sentinel UUID(`00000000-0000-0000-0000-000000000000`)로 교체한다.
+- unique 정합: `UNIQUE(owner_id, idempotency_key) WHERE idempotency_key <> '00000000-0000-0000-0000-000000000000'` 부분 유니크를 사용한다.
+- cleanup 실행체: pg_cron에서 observation_groups sentinel swap UPDATE를 수행하고, observation_patch_dedup은 별도 row cleanup(D-061)으로 유지한다.
 - 의미: 멱등성 보장 기간과 저장 공간 균형.
 - 변경: ADR 필요.
 
@@ -714,13 +715,12 @@
   - FK/링크테이블 v1 미생성
 - 변경: ADR 불필요
 
-## D-083. observation_groups idempotency TTL 방식
+## D-083. observation_groups idempotency TTL 적용 메모 (D-041 종속)
 - Class: GUARD
+- Status: superseded by D-041
 - 무엇:
-  - observation_groups row 자체는 삭제하지 않는다(log_date 데이터 보존)
-  - 멱등성 중복 방지 기간(7일)은 RPC 로직에서 created_at 기준 시간 비교로 판정
-  - 7일 초과 요청은 새 idempotency_key 필수(같은 log_date면 기존 group overwrite + version++)
-  - observation_patch_dedup은 기존대로 7일 TTL row cleanup(pg_cron)
+  - TTL 정책 SSOT는 D-041이며, D-083은 독립 정책을 정의하지 않는다.
+  - 구현/운영 세부는 D-041(Observation sentinel swap) + D-061(Observation patch row cleanup)을 따른다.
 - See: D-041, D-060, D-061
 - 변경: ADR 불필요
 

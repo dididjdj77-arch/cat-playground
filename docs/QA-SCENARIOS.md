@@ -1,5 +1,10 @@
 # QA-SCENARIOS — 검증 시나리오
 
+## Public Surface Gate (필수 자동)
+- [필수 자동][G-1] 차단 0-rows: block 관계에서 공개 피드/조회 RPC 결과가 대상 작성자 기준 0건이어야 한다.
+- [필수 자동][G-2] DTO whitelist 0 누출: 공개 DTO에 inventory_item_id/raw_text/note/meta/avatar_url 등 비허용 필드가 포함되면 실패다.
+- [필수 자동][G-3] 부모 가드 종속 404: 부모 post 공개 가드 실패 시 `rpc_get_public_post_comments`는 0건이 아니라 404를 반환해야 한다.
+
 ## 다이어리/관찰
 - 공통만 저장 → 선택한 모든 고양이에 동일 적용
 - 공통+오버라이드 → 특정 고양이만 덮어쓰기
