@@ -61,6 +61,10 @@
 - [ ] profiles 아바타 컬럼 명확화
   - avatar_key (storage key path)
   - 레거시 avatar_url 사용 중이면 rename/avatar_key 전환 migration 포함
+- [ ] cats 아바타 컬럼 정합(B안)
+  - cats.avatar_key 컬럼 추가 (canonical)
+  - 기존 cats.avatar_url -> cats.avatar_key backfill
+  - cats.avatar_url은 deprecated로 유지(신규 write 금지), 제거는 후속 migration으로 분리
 - [ ] auth bootstrap trigger 최소 작업 원칙
   - auth.users -> profiles upsert 1회
   - trigger 예외는 signup 경로를 끊지 않도록 흡수
@@ -180,7 +184,8 @@
   - like/comment/reply 집계 보정
 - [ ] 등록 원칙
   - DB job schedule은 UTC 기준으로 등록
-  - 주기/환산표 SSOT는 docs/CONFIG-BASELINES.md에서 관리
+  - SSOT로 고정하는 것은 주기(cadence)이며, minute offset은 default 값(운영 조정 가능)으로 둔다
+  - 주기/환산표 기준 문서는 docs/CONFIG-BASELINES.md에서 관리
 
 ## 마이그레이션 실행 원칙
 1. 백업 먼저

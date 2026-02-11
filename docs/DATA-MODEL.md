@@ -19,11 +19,13 @@
 - 경로(prefix) 기준:
   - 원본: avatars/{user_id}/{uuid}.webp, posts/{user_id}/{post_id}/{uuid}.webp, cats/{user_id}/{cat_id}/{uuid}.webp
   - 공개 썸네일: posts/{post_id}/{uuid}_thumb.webp (공개+발행 콘텐츠만)
-- 프로필 이미지 DB 값은 URL이 아니라 `avatar_key`(storage key path)를 저장한다(D-067).
+- 프로필/고양이 이미지 DB 값은 URL이 아니라 `avatar_key`(storage key path)를 저장한다(D-067).
 
 ## 2) cats
-- cats(id pk, owner_id, name, birth_date, sex, breed, avatar_url, created_at, updated_at, deleted_at)
-- avatar_url: 개인/비공개 자산. 공개 하우스 응답/뷰/DTO에는 포함 금지(D-037).
+- cats(id pk, owner_id, name, birth_date, sex, breed, avatar_key, avatar_url? deprecated, created_at, updated_at, deleted_at)
+- avatar_key: canonical storage key path (private 원본)
+- avatar_url(deprecated): 레거시 호환 컬럼. 신규 쓰기 금지, 단계적 제거 대상.
+- 공개 하우스 응답/뷰/DTO에는 avatar_key/avatar_url 모두 포함 금지(D-037).
 - index: (owner_id, deleted_at), (owner_id, name)
 
 ## 2a) house

@@ -53,14 +53,15 @@
 
 원칙:
 - 모든 cron 표현식은 UTC 기준으로 기록/등록한다.
-- 운영 커뮤니케이션에는 KST 환산 시각을 함께 표기한다.
+- SSOT로 고정하는 값은 "주기(cadence)"이며, minute offset은 default(조정 가능)로 둔다.
+- 운영 커뮤니케이션에는 UTC 기준 표현을 우선 사용한다.
 
-| 작업 | Cron (UTC) | KST 환산 | 비고 |
-|------|------------|----------|------|
-| observation_groups idempotency cleanup | `15 * * * *` | 매시 15분 | D-041, row cleanup |
-| observation_patch_dedup cleanup | `20 * * * *` | 매시 20분 | D-061, row cleanup |
-| payload_version_events retention | `30 2 * * *` | 매일 11:30 | D-045, 90일 초과 삭제 |
-| engagement counter reconcile | `0 */6 * * *` | 6시간 간격(03:00/09:00/15:00/21:00) | like/comment/reply 보정 |
+| 작업 | UTC 주기(SSOT) | minute offset(default, configurable) | 비고 |
+|------|----------------|-------------------------------------|------|
+| observation_groups idempotency cleanup | 매시간 1회 | 15 | D-041, row cleanup |
+| observation_patch_dedup cleanup | 매시간 1회 | 20 | D-061, row cleanup |
+| payload_version_events retention | 매일 1회 (02:00 UTC 기준) | 30 | D-045, 90일 초과 삭제 |
+| engagement counter reconcile | 6시간마다 1회 | 0 | like/comment/reply 보정 |
 
 ---
 

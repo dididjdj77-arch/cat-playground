@@ -258,10 +258,12 @@
 - 의미: 프라이버시 경계를 단순화하고 노출 사고 표면을 최소화한다.
 - 변경: ADR 필요.
 
-## D-037. 공개 하우스 응답에서 고양이 사진(avatar_url) 금지
+## D-037. 공개 하우스 응답에서 고양이 아바타 원본키 노출 금지
 - Class: POLICY
 - 무엇:
-  - 공개 하우스 응답/뷰/DTO에는 cats.avatar_url을 **절대 포함하지 않는다**(렌더는 기본/대체 아바타 사용).
+  - 공개 하우스 응답/뷰/DTO에는 cats avatar 원본 식별값을 **절대 포함하지 않는다**.
+  - 금지 컬럼: cats.avatar_key (canonical), cats.avatar_url (legacy/deprecated).
+  - 렌더는 기본/대체 아바타를 사용한다.
 - 의미: join/컬럼 확장 실수로 발생하는 치명적 누출을 구조적으로 차단한다.
 - 변경: ADR 필요.
 
@@ -383,7 +385,7 @@
 ## D-055. PublicHouseSlotSummaryDTO v1 허용 필드(whitelist)
 - Class: GUARD
 - 무엇(허용 필드): slot_key, equipped_at(nullable), type, catalog.standard_name
-- 금지(명시): inventory_item_id, raw_text/note/meta, cats.avatar_url, catalog_item_id
+- 금지(명시): inventory_item_id, raw_text/note/meta, cats.avatar_key, cats.avatar_url(legacy), catalog_item_id
 - 의미: 공개 하우스는 존재 은닉/프라이버시 경계를 지키면서도 표현에 필요한 최소 정보만 제공.
 - 변경: ADR 불필요(기존 ADR-007 원칙의 구체화). 단 공개 범위 확대는 ADR 필요.
 
@@ -533,6 +535,8 @@
     - 썸네일(public): posts/{post_id}/{uuid}_thumb.webp (공개+발행 콘텐츠만)
   - DB 저장 값:
     - profiles는 avatar_key(storage key path)를 저장한다(URL 아님).
+    - cats도 avatar_key를 canonical 컬럼으로 사용한다.
+    - cats.avatar_url은 레거시 호환을 위한 deprecated 컬럼으로만 유지하고 신규 쓰기는 금지한다(v1 전환기).
   - 제한:
     - image/jpeg, image/png, image/webp 허용, 최대 10MB.
   - 접근:
@@ -568,7 +572,9 @@
     - observation_patch_dedup cleanup (D-061)
     - payload_version_events retention (D-045)
     - like_count/reply_count/comment_count 보정
-  - 스케줄/타임존 기준선은 CONFIG-BASELINES에서 관리한다(UTC 기준 등록 + KST 환산 표기).
+  - 스케줄/타임존 기준선은 CONFIG-BASELINES에서 관리한다.
+    - SSOT 고정 항목: UTC 기준 + 주기(cadence)
+    - minute offset은 default 값으로만 두며 운영에서 조정 가능하다(LOCK 아님)
   - 실패 처리:
     - v1은 job_run_details/시스템 로그 기반 관측
     - v1.1+ 알림 연동(슬랙/이메일) 확장 가능
