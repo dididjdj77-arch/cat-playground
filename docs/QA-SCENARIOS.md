@@ -67,3 +67,18 @@
   - 차단(block 관계)
   - 미인증(anon → auth-only 경로)
   - 존재하지 않는 리소스
+
+## 썸네일 라이프사이클 (D-072)
+- post publish → assets-public에 썸네일 존재
+- post unpublish → 썸네일 삭제(직링크 404)
+- post hide → 썸네일 삭제
+- 재발행 → 썸네일 재생성
+
+## terms_agreed_at 가드 (D-073)
+- terms NULL + write RPC → terms_not_agreed
+- terms 설정 후 → 정상
+- read RPC → terms 무관
+
+## Popular 피드 (D-076)
+- 7일 이내만 popular 노출
+- score 순서(like + reply×2) 검증

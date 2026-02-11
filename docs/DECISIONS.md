@@ -290,6 +290,10 @@
 ## D-041. observation idempotency TTL 정책
 - Class: GUARD
 - 무엇: observation_groups.idempotency_key 중복 검사 유효 기간은 7일로 한다.
+- TTL cleanup 방식: observation_groups 자체는 삭제하지 않는다. 멱등성 TTL이 만료된 row의 idempotency_key를 sentinel UUID(`00000000-0000-0000-0000-000000000000`)로 교체한다.
+  - sentinel 교체 후에도 UNIQUE(owner_id, idempotency_key)는 충돌하지 않는다(sentinel은 공유 가능하도록 부분 유니크 조건 조정 필요).
+  - 대안: UNIQUE(owner_id, idempotency_key) WHERE idempotency_key != '00000000-...' 부분 유니크로 변경.
+  - observation_patch_dedup은 단순 row DELETE(7일 TTL)로 처리한다(FK cascade 없음).
 - 의미: 멱등성 보장 기간과 저장 공간 균형.
 - 변경: ADR 필요.
 
@@ -404,11 +408,18 @@
 - Class: POLICY
 - 무엇:
   - inventory_items는 원장 성격을 유지한다(D-040: 삭제 없음 유지).
-  - 변경은 “수정”이 아니라 이벤트로 기록한다: switch / discontinue / correction.
+  - 변경은 "수정"이 아니라 이벤트로 기록한다: switch / discontinue / correction.
   - 필드 의미/불변식: (ended_at IS NULL) == is_current 를 유지한다(See DATA-MODEL §4).
-  - switch: 기존 current 종료 + 신규 row 추가(current).
-  - discontinue: 기존 current 종료만(신규 row 없음). 기존 row의 reason_code를 'discontinue'로 업데이트한다.
-  - reason_code는 이벤트 성격을 표준 코드로 기록한다: initial|switch|discontinue|correction.
+  - **reason_code 의미(LOCK)**: reason_code는 **"해당 row가 생성된 원인"**을 나타내며, 생성 이후 변경하지 않는다(불변).
+    - initial: 최초 등록으로 생성된 row
+    - switch: 교체 이벤트로 생성된 신규 row
+    - correction: 정정 이벤트로 생성된 row
+    - (discontinue는 신규 row를 만들지 않으므로 reason_code 값으로 사용하지 않는다)
+  - 이벤트 규칙(표준):
+    - switch: 기존 current row → ended_at set + is_current=false (reason_code **변경 없음**). 신규 row 추가(reason_code='switch').
+    - discontinue: 기존 current row → ended_at set + is_current=false (reason_code **변경 없음**). 신규 row 없음.
+    - correction: 기존 current row → ended_at set + is_current=false (reason_code **변경 없음**). 신규 row 추가(reason_code='correction').
+  - 종료 원인 추적: v1에서는 별도 end_reason 컬럼을 두지 않는다. "ended_at 직후 생성된 신규 row의 reason_code"로 종료 맥락을 추론한다. discontinue는 신규 row가 없으므로 ended_at만으로 식별한다. 필요 시 v1.1+에서 end_reason 컬럼 승격(ADR-004 방식).
 - 의미: 히스토리 신뢰성(회고/원인분석) 확보 + UX 용어/모델 일치.
 - 변경: ADR 필요.
 
@@ -521,6 +532,8 @@
     - auth.users와 1:1 연결은 profiles.user_id(unique)로 고정한다.
   - 가드:
     - 민감/공개 기능(예: 게시/댓글/공개 전환) 실행 전에는 terms_agreed_at IS NOT NULL을 요구한다.
+    - **적용 방식(LOCK)**: guard_terms_agreed()를 공통 guard 함수로 구현하고, **모든 write RPC**(post/comment/reply/thread/like/report/block/house publish·slot bind/inventory switch·discontinue 등)에서 필수 호출한다. read-only RPC에는 적용하지 않는다.
+    - See: RPC-SPECS "공통 Guard 패턴"
 - 의미: 한국 중심 소셜 로그인 전환율을 확보하면서, 링크/부트스트랩/약관 동의 타이밍으로 인한 가입 실패와 CS 리스크를 줄인다.
 - 변경: ADR 권장
 
@@ -544,6 +557,11 @@
     - 원본 업로드/삭제: owner-only
     - 원본 읽기: signed URL(인증) 기본
     - 공개 썸네일 읽기: anon 허용(공개+발행 상태의 파생본만)
+  - **파생본(썸네일) 라이프사이클(LOCK)**:
+    - 생성: publish 시점에 원본에서 썸네일을 생성해 assets-public에 저장한다.
+    - 삭제: unpublish / hide(hidden_at set) / delete(deleted_at set) 시 assets-public의 해당 썸네일을 즉시 삭제한다.
+    - 재발행: re-publish 시 썸네일을 재생성한다.
+    - 연동: 썸네일 삭제 시 Next.js ISR revalidate도 함께 트리거한다(seo-web playbook 참조).
 - 의미: 원본은 private로 보호하면서도 공개 웹 SEO/OG 이미지 요구를 충족한다.
 - See: D-015, D-050
 - 변경: ADR 권장
@@ -595,3 +613,186 @@
   - 스키마: notifications(id, user_id, type, actor_id, target_type, target_id, read_at, created_at)
 - 의미: 푸시 인프라 없이도 리텐션 최소 요건을 확보하고, 타입 매핑 혼선을 줄인다.
 - 변경: ADR 권장
+
+## D-071. Transport Adapter 규약
+- Class: GUARD
+- 무엇:
+  - DB RPC는 JSON return(D-065 유지). HTTP 매핑은 두 경로:
+    - (A) 앱: 클라이언트 SDK wrapper가 body.error_code 파싱/throw
+    - (B) 웹 SSR: Next.js route handler에서 error_code→HTTP 변환
+  - 매핑 테이블 SSOT는 API-CONTRACTS "Transport Adapter" 섹션
+- See: D-065, D-050
+- 변경: ADR 불필요
+
+## D-072. 공개 썸네일 파생본 라이프사이클
+- Class: POLICY
+- 무엇:
+  - publish 시 생성 / unpublish·hide·delete·private전환 시 즉시 삭제 / 재발행 시 재생성
+  - 삭제 시 ISR revalidate 동시 트리거
+- See: D-067, D-025
+- 변경: ADR 권장
+
+## D-073. Write RPC 공통 가드: guard_terms_agreed
+- Class: GUARD
+- 무엇:
+  - 모든 write RPC 실행 전 profiles.terms_agreed_at IS NOT NULL 검증
+  - 미동의 시 `{"error_code":"terms_not_agreed"}` 반환
+  - read RPC 제외
+- See: D-066
+- 변경: ADR 불필요
+
+## D-074. House 슬롯 API: slot_key 기반 통일
+- Class: GUARD
+- 무엇:
+  - rpc_set_house_slot(p_room_key, p_slot_key, p_inventory_item_id) — upsert
+  - rpc_clear_house_slot(p_room_key, p_slot_key) — 비우기
+  - house_slots.id(PK)는 API 표면 미노출
+- See: D-006
+- 변경: ADR 불필요
+
+## D-075. reason_code = "row 생성 원인"(불변)
+- Class: GUARD
+- 무엇:
+  - reason_code는 생성 시 기록, 이후 변경 금지: initial / switch / correction
+  - 종료 시 기존 row의 reason_code 변경 안 함(ended_at + is_current=false만)
+  - 'discontinue'는 reason_code 값으로 미사용(종료 행위이며 신규 row 없음)
+- See: D-057
+- 변경: ADR 불필요
+
+## D-076. 채널 Popular 피드 v1 공식 (O-004/O-028 해소)
+- Class: CONFIG
+- 무엇:
+  - score = like_count + reply_count × 2, window = 7d, ORDER BY score DESC, created_at DESC
+  - app_config 키 `popular_feed`로 런타임 조정
+- 수치: See CONFIG-BASELINES §5
+- 변경: 수치는 CONFIG-BASELINES. 공식 구조 변경은 ADR 권장
+
+## D-077. 채널 검색 UX v1 (O-005 해소)
+- Class: GUARD
+- 무엇:
+  - keyset cursor 통일. 파라미터: q(필수), topic(선택), cursor, limit
+  - 정렬: FTS rank 기본, created_at desc 폴백. noindex 유지(D-021)
+- 변경: ADR 불필요
+
+## D-078. 프로필 SEO: v1 noindex (O-006 해소)
+- Class: POLICY
+- 무엇:
+  - /u/{nickname} v1 noindex. 콘텐츠는 /p/, /c/로 index
+- 변경: ADR 권장
+
+## D-079. 작성글/활동 보기: v1 미포함 (O-007 해소)
+- Class: POLICY
+- 무엇:
+  - v1.1+에서 범위 결정
+- 변경: ADR 불필요
+
+## D-080. 관리자 UI: v1은 Supabase 내부 도구 + admin RPC (O-009b 해소)
+- Class: POLICY
+- 무엇:
+  - 별도 /admin 웹 UI는 v1 미구현. See: D-068
+- 변경: ADR 불필요
+
+## D-081. unhide 시 신고 카운터 처리 (O-022 해소)
+- Class: GUARD
+- 무엇:
+  - unhide 시 해당 target의 기존 reports 일괄 soft delete(deleted_at=now())
+  - 이후 신규 신고만 auto-hide 카운트 대상
+  - moderation_actions 감사 로그 필수
+- See: D-024, D-054
+- 변경: ADR 불필요
+
+## D-082. 관찰→냥스타 CTA: v1 UI 플로우만 (O-026 해소)
+- Class: GUARD
+- 무엇:
+  - 관찰 저장 후 CTA → 냥스타 Composer 이동(초안 삽입, 수정 가능)
+  - FK/링크테이블 v1 미생성
+- 변경: ADR 불필요
+
+## D-083. observation_groups idempotency TTL 방식
+- Class: GUARD
+- 무엇:
+  - observation_groups row 자체는 삭제하지 않는다(log_date 데이터 보존)
+  - 멱등성 중복 방지 기간(7일)은 RPC 로직에서 created_at 기준 시간 비교로 판정
+  - 7일 초과 요청은 새 idempotency_key 필수(같은 log_date면 기존 group overwrite + version++)
+  - observation_patch_dedup은 기존대로 7일 TTL row cleanup(pg_cron)
+- See: D-041, D-060, D-061
+- 변경: ADR 불필요
+
+## D-084. 같은 log_date + 다른 idempotency_key = overwrite
+- Class: GUARD
+- 무엇:
+  - UNIQUE(owner_id, log_date) WHERE deleted_at IS NULL 유지(D-060)
+  - 같은 날짜에 다른 key로 upsert: 기존 group의 idempotency_key를 새 key로 갱신 + version++ + items 교체
+  - 멱등성은 갱신된 key 기준으로 동작
+- See: D-060
+- 변경: ADR 불필요
+
+## D-085. house_profiles 생성 시점: lazy create
+- Class: GUARD
+- 무엇:
+  - 하우스 탭 최초 접근 또는 슬롯 바인딩 시 house_profiles upsert(없으면 생성)
+  - auth bootstrap trigger에서는 생성하지 않는다
+  - 기본값: visibility='private', published_at=NULL
+- 변경: ADR 불필요
+
+## D-086. inventory_items.raw_text: NOT NULL
+- Class: GUARD
+- 무엇:
+  - raw_text NOT NULL, 최소 1자
+  - catalog_item_id 있으면 catalog.standard_name을 raw_text에 canonicalize
+- 변경: ADR 불필요
+
+## D-087. 콘텐츠 필드 길이 제약 v1
+- Class: GUARD
+- 무엇:
+  - posts.body: 1~5000 / threads.title: 1~120 / threads.body: 1~10000
+  - replies.body: 1~5000 / comments.body: 1~2000
+  - profiles.nickname: 2~20 / profiles.bio: 0~200
+  - inventory_items.raw_text: 1~200 / inventory_items.reason_note: 0~500
+  - 모두 DB CHECK로 강제
+- 변경: ADR 불필요
+
+## D-088. Post 이미지: v1은 posts.meta JSONB
+- Class: GUARD
+- 무엇:
+  - v1은 posts.meta->'images' (storage key 배열, 최대 5개)로 저장
+  - 별도 post_images 테이블은 v1 미생성. 필요 시 ADR-004 승격
+- 변경: ADR 불필요
+
+## D-089. unknown payload_version: ACCEPT + warn
+- Class: POLICY
+- 무엇:
+  - payload_versions 테이블에 없는 version은 저장 허용(기능 차단 금지)
+  - payload_version_events에 event_type='unknown'으로 기록
+  - 롤업에서 unknown 버킷으로 집계
+- 변경: ADR 불필요
+
+## D-090. like toggle RPC + notification 생성
+- Class: GUARD
+- 무엇:
+  - rpc_toggle_like(p_target_type, p_target_id): 있으면 삭제+카운트-1, 없으면 삽입+카운트+1
+  - 원자 UPDATE(D-046). guard_block 필수. guard_terms_agreed 필수
+  - notification: post like만(D-070). block 관계면 미생성
+- See: D-046, D-070
+- 변경: ADR 불필요
+
+## D-091. reports.reason_code v1 허용 값
+- Class: GUARD
+- 무엇:
+  - CHECK (reason_code IN ('spam','harassment','inappropriate','copyright','other'))
+- 변경: ADR 불필요
+
+## D-092. FTS: stored generated + simple config
+- Class: GUARD
+- 무엇:
+  - threads.fts_vector: generated column, to_tsvector('simple', title || ' ' || body)
+  - GIN 인덱스. 한국어 형태소는 v1.1+
+- 변경: ADR 불필요
+
+## D-093. Notification 생성 경로
+- Class: GUARD
+- 무엇:
+  - 각 write RPC(comment/reply/like) 내부 동일 트랜잭션에서 notifications INSERT
+  - trigger 미사용. block 관계면 notification 미생성
+- See: D-070
+- 변경: ADR 불필요

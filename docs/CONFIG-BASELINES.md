@@ -46,6 +46,7 @@
 | rate_limits | §1 일반 계정 |
 | rate_limits_new_account | §1 신규 계정 |
 | auto_hide | §2 |
+| popular_feed | §4a |
 
 ---
 
@@ -65,7 +66,20 @@
 
 ---
 
-## 5. 변경 규칙
+## 4a. Popular Feed (D-083)
+
+| 파라미터 | 값 |
+|----------|----|
+| like 가중치 | 1 |
+| reply 가중치 | 2 |
+| 윈도우 | 7일 |
+| 정렬 | score DESC, created_at DESC |
+
+app_config key: `popular_feed`
+
+---
+
+## 6. 변경 규칙
 
 - 수치 변경: app_config(D-056)로 수행. 코드 상수 금지.
 - "행동만 제한 / 읽기 제외" 원칙 변경: ADR 권장.

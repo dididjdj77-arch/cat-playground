@@ -19,6 +19,12 @@ v1.1 기준 최소 RPC 목록과 공통 guard 패턴
 - visibility = 'public'
 - published_at IS NOT NULL
 
+### guard_terms_agreed() — write RPC 전용
+- profiles.terms_agreed_at IS NOT NULL
+- 미동의 시 `{"error_code":"terms_not_agreed"}` 반환
+- 모든 write RPC에 적용. read RPC 제외.
+- See: D-073
+
 추가 규칙(SECURITY DEFINER 공개 RPC):
 - viewer_id는 서버에서 auth.uid()로 도출한다(anon이면 null).
 - viewer_id를 파라미터로 받지 않는 것을 원칙으로 한다.
@@ -162,8 +168,44 @@ FUNCTION rpc_get_public_house_slots_summary_by_nickname(
 - 상태코드: 미인증/비공개/숨김/삭제/차단/미발행은 모두 404로 통일 (D-035, D-050)
 - 설명: 로그인 필요 메시지는 UI 레이어에서 처리(존재 은닉 우선)
 
+### rpc_set_house_slot
+```sql
+FUNCTION rpc_set_house_slot(
+  p_room_key text DEFAULT 'living_room',
+  p_slot_key text,
+  p_inventory_item_id uuid
+) RETURNS jsonb
+```
+- auth-only. owner_id = auth.uid(). guard_terms_agreed()
+- slot_key 허용 목록(slot_01..slot_08) 검증
+- inventory_item_id: is_current=true + owner_id 일치 검증
+- house_profiles lazy create(D-085)
+- See: D-074, D-043
+
+### rpc_clear_house_slot
+```sql
+FUNCTION rpc_clear_house_slot(
+  p_room_key text DEFAULT 'living_room',
+  p_slot_key text
+) RETURNS jsonb
+```
+- auth-only. inventory_item_id=NULL, equipped_at=NULL
+- 없는 슬롯이면 no-op
+
+### rpc_toggle_like
+```sql
+FUNCTION rpc_toggle_like(
+  p_target_type text,  -- 'post'|'comment'|'thread'|'reply'
+  p_target_id uuid
+) RETURNS jsonb  -- {"liked": bool, "like_count": int}
+```
+- auth-only. guard_terms_agreed(). guard_block
+- 원자 카운트 UPDATE(D-046)
+- post like 시 notification INSERT(D-093)
+- See: D-090
+
 ## 구현 결정 (검토 필요)
-- guard 함수를 SQL 함수로 구현할지, RPC 내부 로직으로 구현할지는 구현 단계에서 결정
+- guard 함수는 SQL STABLE 함수로 구현한다(재사용 + 플래너 최적화). guard_terms_agreed 포함 4종.
 - 플래너 최적화를 위해 SQL 함수로 단순화 권장
 - SECURITY DEFINER 함수는 search_path 고정 + 입력 검증 필수
 
