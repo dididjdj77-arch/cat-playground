@@ -8,7 +8,9 @@
 - log_date는 오늘 이하만
 
 ## 1) profiles
-- profiles(id pk, user_id unique fk -> auth.users.id, nickname unique, avatar_key, bio, terms_agreed_at?, is_admin bool default false, nickname_changed_at?, created_at, updated_at, deleted_at?)
+- profiles(id pk, user_id unique fk -> auth.users.id, nickname unique, avatar_key, avatar_url? deprecated, bio, terms_agreed_at?, is_admin bool default false, nickname_changed_at?, created_at, updated_at, deleted_at?)
+  - avatar_key: canonical storage key path (private 원본)
+  - avatar_url(deprecated): 레거시 호환 컬럼. 신규 쓰기 금지, 단계적 제거 대상.
   - `terms_agreed_at`는 약관 동의 시점에 설정하며, 초기 signup 직후에는 nullable 허용(D-066).
   - 민감/공개 기능(예: 게시/댓글/공개 전환)은 terms_agreed_at IS NOT NULL 가드를 요구한다(D-066).
 - profile_settings(user_id pk, default_post_visibility?, created_at, updated_at)

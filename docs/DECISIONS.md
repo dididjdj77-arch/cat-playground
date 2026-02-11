@@ -534,7 +534,8 @@
     - 원본(private): avatars/{user_id}/{uuid}.webp, posts/{user_id}/{post_id}/{uuid}.webp, cats/{user_id}/{cat_id}/{uuid}.webp
     - 썸네일(public): posts/{post_id}/{uuid}_thumb.webp (공개+발행 콘텐츠만)
   - DB 저장 값:
-    - profiles는 avatar_key(storage key path)를 저장한다(URL 아님).
+    - profiles는 avatar_key(storage key path)를 canonical 컬럼으로 사용한다(URL 아님).
+    - profiles.avatar_url은 레거시 호환을 위한 deprecated 컬럼으로만 유지하고 신규 쓰기는 금지한다(v1 전환기).
     - cats도 avatar_key를 canonical 컬럼으로 사용한다.
     - cats.avatar_url은 레거시 호환을 위한 deprecated 컬럼으로만 유지하고 신규 쓰기는 금지한다(v1 전환기).
   - 제한:

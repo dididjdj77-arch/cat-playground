@@ -59,8 +59,9 @@
   - terms_agreed_at (timestamptz, nullable 유지; NOT NULL 금지)
   - is_admin (boolean, NOT NULL, default false)
 - [ ] profiles 아바타 컬럼 명확화
-  - avatar_key (storage key path)
-  - 레거시 avatar_url 사용 중이면 rename/avatar_key 전환 migration 포함
+  - profiles.avatar_key 컬럼 추가/유지 (canonical)
+  - 기존 profiles.avatar_url -> profiles.avatar_key backfill
+  - profiles.avatar_url은 deprecated로 유지(신규 write 금지), 제거는 후속 migration으로 분리
 - [ ] cats 아바타 컬럼 정합(B안)
   - cats.avatar_key 컬럼 추가 (canonical)
   - 기존 cats.avatar_url -> cats.avatar_key backfill
