@@ -50,6 +50,9 @@
 
 #### 3. inventory_items 확장
 - [ ] meta 컬럼 추가 (jsonb, default '{}')
+- [ ] raw_text: NOT NULL, CHECK(char_length BETWEEN 1 AND 200) — D-086, D-087
+- [ ] reason_code: CHECK (reason_code IN ('initial','switch','correction')) — D-075
+- [ ] reason_note: CHECK(char_length <= 500) — D-087
 
 #### 4. profiles / auth bootstrap 정리 (D-066, D-067, D-068)
 - [ ] profiles-auth 1:1 연결 키 고정
@@ -105,6 +108,15 @@
 #### 7. posts CHECK 제약 추가
 - [ ] posts 테이블에 CHECK 추가
   - CHECK: NOT (visibility = 'private' AND published_at IS NOT NULL)
+- [ ] posts.body CHECK(char_length BETWEEN 1 AND 5000) — D-087
+- [ ] posts.meta jsonb default '{}' — D-088
+
+#### 7a. channel 길이 제약 + FTS (D-087, D-092)
+- [ ] threads.title CHECK(char_length BETWEEN 1 AND 120)
+- [ ] threads.body CHECK(char_length BETWEEN 1 AND 10000)
+- [ ] threads.fts_vector: generated column + GIN index (config='simple')
+- [ ] replies.body CHECK(char_length BETWEEN 1 AND 5000)
+- [ ] comments.body CHECK(char_length BETWEEN 1 AND 2000)
 
 #### 8. comment_revisions 테이블 생성 (D-009)
 - [ ] comment_revisions 테이블 생성
@@ -141,6 +153,7 @@
   - rate_limits (D-053)
   - rate_limits_new_account (D-053)
   - auto_hide (D-054)
+  - popular_feed (D-076)
 
 #### 12. notifications (D-070)
 - [ ] notifications 테이블 생성
@@ -198,6 +211,20 @@
 ## 마일스톤 (1) migration file order (요약)
 - 001_extensions.sql
 - 002_profiles.sql
-- …
-- 013_seed.sql
-- 014_app_config.sql
+- 003_cats.sql
+- 004_catalog.sql
+- 005_inventory.sql
+- 006_observation.sql
+- 007_nyanstagram.sql (posts + comments + comment_revisions)
+- 008_channel.sql (topics + threads + replies + reply_revisions + FTS)
+- 009_likes.sql
+- 010_house.sql
+- 011_moderation.sql (blocks + reports + moderation_actions)
+- 012_ops.sql (ops_metrics + payload_versions + events + rollups)
+- 013_notifications.sql
+- 014_app_config.sql (테이블 + RPC + seed)
+- 015_auth_trigger.sql
+- 016_storage.sql (buckets + policies)
+- 017_length_checks.sql (D-075 CHECK 제약 일괄)
+- 018_guard_functions.sql
+- 019_rls.sql

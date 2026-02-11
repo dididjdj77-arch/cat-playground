@@ -4,6 +4,27 @@
 > 실제 구현은 Supabase RPC 함수로 대체될 수 있습니다. RPC 시그니처는 RPC-SPECS.md 참조.
 > Public DTO에는 inventory 관련 필드를 어떤 형태로도 포함하지 않는다(IDs 포함). Owner-only DTO에서만 허용한다. (D-018, D-036, D-037 준수; 화이트리스트만 허용)
 
+## Transport Adapter 규약 (D-071)
+
+DB RPC는 항상 JSON return(D-065). HTTP 매핑은 호출 계층이 담당.
+
+| error_code | HTTP (웹 SSR) | 앱(SDK wrapper) |
+|------------|--------------|-----------------|
+| (정상) | 200 | 정상 처리 |
+| not_found | 404 | NotFoundError throw |
+| version_conflict | 409 | ConflictError throw |
+| invalid_payload_version | 400 | ValidationError throw |
+| rejected_version | 400 | ValidationError throw |
+| terms_not_agreed | 403 | TermsError throw |
+| duplicate_report | 409 | ConflictError throw |
+| target_not_found | 404 | NotFoundError throw |
+| invalid_target_type | 400 | ValidationError throw |
+| invalid_inventory_item | 400 | ValidationError throw |
+
+- D-050: guard 불만족은 모두 not_found → 404
+- 앱은 body.error_code 기반 분기(HTTP 상태코드 미의존)
+- 웹 SSR은 route handler에서 위 테이블 기준 HTTP 응답 생성
+
 ## 관찰(고위험)
 RPC upsert_observation_group_with_items
 - 목적: 생성/전체 저장(일괄작성/초기 저장)
@@ -78,13 +99,12 @@ GET /house/me
 - 목적: 내 하우스(거실 씬 + 슬롯/바인딩 데이터) 조회
 - res: { room_key, slots[{slot_key, inventory_item_id, equipped_at, ...}], cats[...] }
 
-PUT /house/slots/{slotId}
-- 목적: 슬롯 바인딩 저장(배치)
-- req: { inventory_item_id: uuid }  // v1: 저장 시점에 is_current=true 검증
-- res: { slot }
+RPC rpc_set_house_slot(p_room_key, p_slot_key, p_inventory_item_id)
+- 목적: 슬롯 바인딩 저장(upsert). v1: 저장 시점에 is_current=true 검증 (D-043, D-074)
+- res: { slot_key, equipped_at }
 
-DELETE /house/slots/{slotId}
-- 목적: 슬롯 비우기
+RPC rpc_clear_house_slot(p_room_key, p_slot_key)
+- 목적: 슬롯 비우기 (D-074)
 - res: { ok: true }
 
 POST /house/publish

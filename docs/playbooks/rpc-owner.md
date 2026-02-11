@@ -16,6 +16,7 @@
 - [ ] like_count는 원자 UPDATE(`= like_count + 1`)로 처리한다.
 - [ ] inventory 수정은 `is_current=false + 새 row` 패턴을 사용한다.
 - [ ] 비즈니스 에러는 JSON return으로 전달한다 (raise exception은 hard fail만). See D-065.
+- [ ] 모든 write RPC는 `guard_terms_agreed()`를 호출한다 (D-073).
 
 ### Don't
 - [ ] read-modify-write로 like_count를 업데이트하지 않는다.

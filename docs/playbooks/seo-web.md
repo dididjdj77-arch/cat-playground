@@ -56,7 +56,17 @@ export default async function ThreadPage({ params }) {
 }
 ```
 
-## 재검증 트리거 (권장)
+## 재검증 트리거 (D-072)
+
+### 이벤트→revalidate 경로 매핑
+
+| 이벤트 | revalidate 경로 | 추가 작업 |
+|--------|----------------|----------|
+| post publish | `/p/{postId}`, `/p` | 썸네일 생성 |
+| post unpublish/hide/delete | `/p/{postId}`, `/p` | **썸네일 삭제** |
+| thread create | `/c/{topicSlug}/{threadId}`, `/c/{topicSlug}` | — |
+| thread hide/delete | `/c/{topicSlug}/{threadId}`, `/c/{topicSlug}` | — |
+| topic create/delete | `/c`, `/c/{topicSlug}` | — |
 
 ```typescript
 await fetch(`/api/revalidate?path=/c/${topicSlug}/${threadId}`, { method: "POST" });

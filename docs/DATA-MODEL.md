@@ -6,6 +6,7 @@
 - hidden_at(운영 숨김)
 - 공개 조회는 hidden/deleted/blocked 필터 강제
 - log_date는 오늘 이하만
+- 텍스트 필드 길이 제한은 DB CHECK로 강제한다 (D-075). 구체 수치는 각 테이블 정의 참조.
 
 ## 1) profiles
 - profiles(id pk, user_id unique fk -> auth.users.id, nickname unique, avatar_key, avatar_url? deprecated, bio, terms_agreed_at?, is_admin bool default false, nickname_changed_at?, created_at, updated_at, deleted_at?)
@@ -53,26 +54,30 @@
   resolved_catalog_item_id?, reviewed_by?, review_note?, created_at, updated_at)
 
 ## 4) inventory_items
-- inventory_items(id, owner_id, type, catalog_item_id?, raw_text, is_current, changed_at, ended_at?, reason_code, reason_note?, note?, meta jsonb, created_at, updated_at, deleted_at)
+- inventory_items(id, owner_id, type, catalog_item_id?, raw_text text NOT NULL, is_current, changed_at, ended_at?, reason_code, reason_note?, note?, meta jsonb, created_at, updated_at, deleted_at)
 - 의미(필드):
   - changed_at: started_at(사용 시작 시각)으로 해석한다.
   - ended_at: 사용 종료 시각(nullable).
   - is_current: ended_at IS NULL 과 동치로 유지한다(불변식).
-  - reason_code: 해당 row의 생성/종료 이벤트 성격을 나타낸다.
-    - 'initial'|'switch'|'discontinue'|'correction'
-    - v1에서는 NOT NULL + default='initial' 권장(기존 row 백필 포함).
+  - reason_code: 해당 row가 **생성된 원인**(불변, 변경 금지). See D-075.
+    - 'initial'|'switch'|'correction'
+    - v1: NOT NULL + default='initial'
+    - 'discontinue'는 값으로 미사용(종료 행위, 신규 row 없음)
   - reason_note: 짧은 메모(nullable).
 
 - Invariants:
   - (ended_at IS NULL) == (is_current = true)
 
 - 이벤트 규칙(표준):
-  - switch: 기존 current row는 ended_at set + is_current=false. 신규 row를 추가하고 신규 row.reason_code='switch', ended_at=NULL, is_current=true.
-  - discontinue: 기존 current row만 ended_at set + is_current=false + reason_code='discontinue'. 신규 row는 만들지 않는다.
-  - correction: 정정 성격의 이벤트로 기록(reason_code='correction').
+  - switch: 기존 current → ended_at set + is_current=false(reason_code 불변). 신규 row(reason_code='switch').
+  - discontinue: 기존 current → ended_at set + is_current=false(reason_code 불변). 신규 row 없음.
+  - correction: 기존 row → ended_at set + is_current=false. 신규 row(reason_code='correction').
 - index: (owner_id, type, is_current), (owner_id, deleted_at)
 - constraint/index (권장): UNIQUE(owner_id, type) WHERE is_current=true AND deleted_at IS NULL
   - 의미: 한 타입당 current는 최대 1개(0..1)
+- constraint: CHECK (char_length(raw_text) BETWEEN 1 AND 200) — D-086, D-087
+- constraint: CHECK (reason_code IN ('initial','switch','correction')) — D-075
+- constraint: CHECK (char_length(reason_note) <= 500) — D-087
 - v1 type SSOT: food | litter | toy | furniture
 - constraint(권장): CHECK (type IN ('food','litter','toy','furniture'))
 - deleted_at: 사용자 기능 미사용(v1에서 항상 NULL). 운영/데이터 수리 목적의 예약 필드.
@@ -82,7 +87,9 @@
   - unique(owner_id, idempotency_key)
   - unique(owner_id, log_date) WHERE deleted_at IS NULL — 날짜당 1그룹 (D-060)
   - index: (owner_id, log_date), (owner_id, payload_version), (owner_id, idempotency_key)
-  - TTL: 7일 경과 후 row cleanup (D-041). idempotency_key를 NULL로 비우는 방식은 금지(NOT NULL + unique 무력화 방지).
+  - TTL(D-041): 7일 경과 후 idempotency_key를 sentinel UUID('00000000-0000-0000-0000-000000000000')로 교체한다. NULL 비우기는 금지(NOT NULL). row 자체는 삭제하지 않는다(D-060 정합).
+  - UNIQUE 조정: UNIQUE(owner_id, idempotency_key) WHERE idempotency_key != '00000000-0000-0000-0000-000000000000' (부분 유니크).
+  - observation_patch_dedup은 단순 row DELETE로 TTL cleanup한다(FK cascade 없음).
 - observations(id, group_id, owner_id, cat_id, status(active|excluded), override_payload jsonb?, created_at, updated_at, deleted_at)
   - status 의미: excluded는 해당 관찰 항목을 "이번 그룹 집계에서 제외"하는 상태이며, payload_versions.state의 DEPRECATED와는 다른 개념이다.
   - unique(group_id, cat_id)
@@ -112,19 +119,26 @@
 
 ## 6) nyanstagram
 - posts(id, author_id, body, log_date, visibility(private|public), published_at?, hide_from_profile bool,
-  like_count int, comment_count int, hidden_at?, created_at, updated_at, deleted_at)
+  like_count int, comment_count int, meta jsonb default '{}', hidden_at?, created_at, updated_at, deleted_at)
   - constraint(권장): CHECK (NOT (visibility='private' AND published_at IS NOT NULL))
+  - constraint: CHECK (char_length(body) BETWEEN 1 AND 5000) — D-087
+  - meta: v1은 images(storage key 배열, max 5)를 저장. See D-088.
   - 전이 규칙: visibility를 private로 변경하면 published_at=NULL 강제(서버/RPC) + DB CHECK로 방어
   - index: (author_id, log_date desc), (visibility,published_at desc where public+published), (published_at desc)
 - comments(id, post_id, author_id, body, edited_at?, like_count, hidden_at?, created_at, updated_at, deleted_at)
+  - constraint: CHECK (char_length(body) BETWEEN 1 AND 2000) — D-087
 - comment_revisions(id, comment_id, previous_body, created_at) — 이전 본문 1개만 유지(내부 감사)
 
 ## 7) channel
 - topics(id, slug unique, name, description?, is_public=true, created_at, updated_at, deleted_at)
 - topic_follows(user_id, topic_id, created_at) pk(user_id, topic_id)
 - threads(id, topic_id, author_id, title, body, like_count, reply_count, hidden_at?, created_at, updated_at, deleted_at)
-  - FTS: tsvector(title+body) + GIN
+  - constraint: CHECK (char_length(title) BETWEEN 1 AND 120) — D-087
+  - constraint: CHECK (char_length(body) BETWEEN 1 AND 10000) — D-087
+  - fts_vector tsvector GENERATED ALWAYS AS (to_tsvector('simple', coalesce(title,'') || ' ' || coalesce(body,''))) STORED — D-092
+  - index: GIN(fts_vector)
 - replies(id, thread_id, author_id, body, edited_at?, like_count, hidden_at?, created_at, updated_at, deleted_at)
+  - constraint: CHECK (char_length(body) BETWEEN 1 AND 5000) — D-087
   - 1-depth(부모 reply 없음)
   - 수정 정책: comments와 동일(D-009 적용). edited_at 표기 + 내부 감사로그(reply_revisions).
 - reply_revisions(id, reply_id, previous_body, created_at) — 이전 본문 1개만 유지(내부 감사)
