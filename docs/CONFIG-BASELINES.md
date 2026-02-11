@@ -59,14 +59,14 @@
 
 | 작업 | UTC 주기(SSOT) | minute offset(default, configurable) | 비고 |
 |------|----------------|-------------------------------------|------|
-| observation_groups idempotency cleanup | 매시간 1회 | 15 | D-041, row cleanup |
+| observation_groups idempotency cleanup | 매시간 1회 | 15 | D-041, sentinel swap update |
 | observation_patch_dedup cleanup | 매시간 1회 | 20 | D-061, row cleanup |
 | payload_version_events retention | 매일 1회 (02:00 UTC 기준) | 30 | D-045, 90일 초과 삭제 |
 | engagement counter reconcile | 6시간마다 1회 | 0 | like/comment/reply 보정 |
 
 ---
 
-## 4a. Popular Feed (D-083)
+## 4a. Popular Feed (D-076)
 
 | 파라미터 | 값 |
 |----------|----|

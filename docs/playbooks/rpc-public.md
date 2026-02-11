@@ -17,6 +17,8 @@
 - [ ] 외부 라우트/API는 guard 불만족을 404로 통일한다 (D-050).
 - [ ] 인증/권한 실패 에러 표현은 API-CONTRACTS 표준 에러 체계와 정합되게 유지한다.
 - [ ] write RPC는 `guard_terms_agreed()`를 적용한다 (D-073).
+- [ ] write RPC가 섞이는 경우 guard 호출 순서를 고정한다: `guard_terms_agreed` → `guard_block` → `guard_soft_state` → `guard_visibility_published`.
+- [ ] RPC 성격상 불필요한 guard는 `N/A`로 명시한다.
 
 ### Do (House 보충 — house 공개 RPC만)
 - [ ] 반환 DTO는 D-055 화이트리스트(`slot_key`, `equipped_at`, `type`, `standard_name`)만 반환한다.

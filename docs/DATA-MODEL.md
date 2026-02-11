@@ -85,10 +85,10 @@
 
 ## 5) observation (다묘)
 - observation_groups(id, owner_id, log_date, payload_version text, common_payload jsonb, version int, idempotency_key uuid NOT NULL, created_at, updated_at, deleted_at)
-  - unique(owner_id, idempotency_key)
+  - unique(owner_id, idempotency_key) WHERE idempotency_key <> '00000000-0000-0000-0000-000000000000' (부분 유니크)
   - unique(owner_id, log_date) WHERE deleted_at IS NULL — 날짜당 1그룹 (D-060)
   - index: (owner_id, log_date), (owner_id, payload_version), (owner_id, idempotency_key)
-  - TTL(D-041/D-083): 멱등성 판정은 RPC에서 created_at 기준 7일 시간비교로 처리한다. observation_groups의 idempotency_key sentinel 교체는 사용하지 않는다.
+  - TTL(D-041): 7일 경과 row의 idempotency_key를 sentinel UUID('00000000-0000-0000-0000-000000000000')로 교체한다. row 자체는 삭제하지 않는다.
   - observation_patch_dedup은 단순 row DELETE로 TTL cleanup한다(FK cascade 없음).
 - observations(id, group_id, owner_id, cat_id, status(active|excluded), override_payload jsonb?, created_at, updated_at, deleted_at)
   - status 의미: excluded는 해당 관찰 항목을 "이번 그룹 집계에서 제외"하는 상태이며, payload_versions.state의 DEPRECATED와는 다른 개념이다.

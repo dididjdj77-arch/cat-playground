@@ -99,6 +99,15 @@ PRECISE는 최소 안전장치(DoD/검증/롤백)를 반드시 포함한다. FAS
 
 ---
 
+## 8. Public Surface Gate 운영 규칙
+
+- Public RPC를 추가/확장하는 PR은 DTO whitelist 테스트를 반드시 동반한다.
+- Public Surface Gate(G-1/G-2/G-3)는 Phase 2 시작 조건이며, 3개 모두 통과해야 한다.
+- G-1/G-2/G-3 중 하나라도 실패하면 해당 PR은 불합격(머지 불가)이다.
+- 게이트 정의와 시나리오는 `docs/TESTING-STRATEGY.md`, `docs/QA-SCENARIOS.md`를 SSOT로 참조한다.
+
+---
+
 ## History
 
 ### 해소된 충돌 (DECISIONS에서 이관)
