@@ -7,6 +7,7 @@
 - 공개 조회는 hidden/deleted/blocked 필터 강제
 - log_date는 오늘 이하만
 - 텍스트 필드 길이 제한은 DB CHECK로 강제한다 (D-075). 구체 수치는 각 테이블 정의 참조.
+- 모든 owner_id/author_id FK는 auth.users.id를 참조한다(D-094).
 
 ## 1) profiles
 - profiles(id pk, user_id unique fk -> auth.users.id, nickname unique, avatar_key, avatar_url? deprecated, bio, terms_agreed_at?, is_admin bool default false, nickname_changed_at?, created_at, updated_at, deleted_at?)
@@ -56,7 +57,7 @@
 ## 4) inventory_items
 - inventory_items(id, owner_id, type, catalog_item_id?, raw_text text NOT NULL, is_current, changed_at, ended_at?, reason_code, reason_note?, note?, meta jsonb, created_at, updated_at, deleted_at)
 - 의미(필드):
-  - changed_at: started_at(사용 시작 시각)으로 해석한다.
+  - changed_at: 사용 시작일(사용자 입력 가능). NOT NULL, default now().
   - ended_at: 사용 종료 시각(nullable).
   - is_current: ended_at IS NULL 과 동치로 유지한다(불변식).
   - reason_code: 해당 row가 **생성된 원인**(불변, 변경 금지). See D-075.
@@ -87,8 +88,7 @@
   - unique(owner_id, idempotency_key)
   - unique(owner_id, log_date) WHERE deleted_at IS NULL — 날짜당 1그룹 (D-060)
   - index: (owner_id, log_date), (owner_id, payload_version), (owner_id, idempotency_key)
-  - TTL(D-041): 7일 경과 후 idempotency_key를 sentinel UUID('00000000-0000-0000-0000-000000000000')로 교체한다. NULL 비우기는 금지(NOT NULL). row 자체는 삭제하지 않는다(D-060 정합).
-  - UNIQUE 조정: UNIQUE(owner_id, idempotency_key) WHERE idempotency_key != '00000000-0000-0000-0000-000000000000' (부분 유니크).
+  - TTL(D-041/D-083): 멱등성 판정은 RPC에서 created_at 기준 7일 시간비교로 처리한다. observation_groups의 idempotency_key sentinel 교체는 사용하지 않는다.
   - observation_patch_dedup은 단순 row DELETE로 TTL cleanup한다(FK cascade 없음).
 - observations(id, group_id, owner_id, cat_id, status(active|excluded), override_payload jsonb?, created_at, updated_at, deleted_at)
   - status 의미: excluded는 해당 관찰 항목을 "이번 그룹 집계에서 제외"하는 상태이며, payload_versions.state의 DEPRECATED와는 다른 개념이다.
@@ -146,6 +146,7 @@
 ## 8) likes(공통)
 - likes(id, user_id, target_type(post|comment|thread|reply), target_id, created_at)
   - unique(user_id, target_type, target_id)
+  - unlike은 hard DELETE로 처리한다(soft delete 미사용).
 
 ## 8a) notifications (in-app inbox, v1)
 - notifications(id, user_id, type(comment|reply|like), actor_id, target_type(post|thread), target_id, read_at?, created_at)
@@ -167,8 +168,8 @@
 
 ## 11) payload_versions / KPI
 - payload_versions(version text pk, state(ACTIVE|DEPRECATED|REJECT), meta jsonb?, created_at, updated_at)
-- payload_version_events(id, ts, version, event_type(seen|reject|normalize_fail), request_id?, reason?, created_at)
-- payload_version_rollups(version, bucket_ts, seen_count, reject_count, normalize_fail_count, last_seen_at)
+- payload_version_events(id, ts, version, event_type(seen|reject|normalize_fail|unknown), request_id?, reason?, created_at)
+- payload_version_rollups(version, bucket_ts, seen_count, reject_count, normalize_fail_count, unknown_count, last_seen_at)
 
 ## 12) ops_metrics
 - ops_metrics(id, ts, metric_key, metric_value_num?, metric_value_text?, meta jsonb?, created_at)

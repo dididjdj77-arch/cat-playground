@@ -139,6 +139,7 @@
 ## D-019 차단(Block): 상호 비노출 + 상호작용 불가
 - Class: POLICY
 - 무엇: A가 B를 차단하면 서로 콘텐츠/프로필 비노출, 상호작용 불가.
+  - 차단 관계에서는 신고(report)도 허용하지 않는다(guard_block 적용).
 - 의미: 분쟁/괴롭힘 리스크 최소화.
 - 변경: ADR 권장.
 
@@ -284,16 +285,16 @@
 ## D-040. 인벤토리 수정 정책(삭제 없음)
 - Class: POLICY
 - 무엇: 사용자는 inventory_items를 논리적으로도 삭제하지 않는다(사용자 기능으로 deleted_at 미사용; v1에서는 항상 NULL).
+  - `deleted_at IS NULL` 조건은 미래 확장 방어용으로 유지한다. v1 owner RPC에서는 생략 가능하나 인덱스 정의는 유지한다.
 - 의미: 이력 보존 + 원장 무결성 유지.
 - 변경: ADR 필요.
 
 ## D-041. observation idempotency TTL 정책
 - Class: GUARD
+- Status: Refined by D-083
 - 무엇: observation_groups.idempotency_key 중복 검사 유효 기간은 7일로 한다.
-- TTL cleanup 방식: observation_groups 자체는 삭제하지 않는다. 멱등성 TTL이 만료된 row의 idempotency_key를 sentinel UUID(`00000000-0000-0000-0000-000000000000`)로 교체한다.
-  - sentinel 교체 후에도 UNIQUE(owner_id, idempotency_key)는 충돌하지 않는다(sentinel은 공유 가능하도록 부분 유니크 조건 조정 필요).
-  - 대안: UNIQUE(owner_id, idempotency_key) WHERE idempotency_key != '00000000-...' 부분 유니크로 변경.
-  - observation_patch_dedup은 단순 row DELETE(7일 TTL)로 처리한다(FK cascade 없음).
+- SSOT 방식: sentinel 교체가 아니라 RPC 시간비교(created_at 기준) 방식으로 TTL을 판정한다(D-083).
+- cleanup: CONFIG-BASELINES의 cleanup 항목은 observation_patch_dedup row cleanup만 유지한다.
 - 의미: 멱등성 보장 기간과 저장 공간 균형.
 - 변경: ADR 필요.
 
@@ -409,6 +410,7 @@
 - 무엇:
   - inventory_items는 원장 성격을 유지한다(D-040: 삭제 없음 유지).
   - 변경은 "수정"이 아니라 이벤트로 기록한다: switch / discontinue / correction.
+  - changed_at은 사용 시작일이며 NOT NULL, default now()를 유지한다(사용자 입력 가능).
   - 필드 의미/불변식: (ended_at IS NULL) == is_current 를 유지한다(See DATA-MODEL §4).
   - **reason_code 의미(LOCK)**: reason_code는 **"해당 row가 생성된 원인"**을 나타내며, 생성 이후 변경하지 않는다(불변).
     - initial: 최초 등록으로 생성된 row
@@ -448,6 +450,7 @@
   - observation_groups에 UNIQUE(owner_id, log_date) WHERE deleted_at IS NULL 을 강제한다.
   - 같은 날짜에 기존 group이 있으면 Upsert는 해당 group을 update(version 증가)한다.
   - D-058 재작성 플로우: 기존 group의 observations를 status='excluded' 일괄 전환 → 기존 group을 soft delete(deleted_at set) → 새 group 생성(새 idempotency_key, 새 observations/refs).
+  - D-060 재작성 플로우는 v1에서 미구현으로 둔다. v1 동작은 D-084 overwrite 규칙으로 통일한다.
 - 의미: UI(다이어리 = log_date 단위 1덩어리)와 스키마 정합. 조회/수정/Patch 대상이 항상 1개.
 - See: D-058
 - 변경: ADR 필요.
@@ -466,6 +469,7 @@
 ## D-062. House unpublish 전이 규칙
 - Class: POLICY
 - 무엇:
+  - publish = visibility를 public으로 설정 + published_at=now() 원샷 적용.
   - unpublish = published_at를 NULL로 설정. visibility는 변경하지 않는다(기존 값 유지).
   - 재발행(publish)은 published_at = now()만 set.
   - 이 패턴은 냥스타그램 unpublish(D-007)와 동일하다.
@@ -611,6 +615,7 @@
     - reply -> target_type='thread', target_id=thread_id
     - like -> target_type='post'만 허용(v1 단순화)
   - 스키마: notifications(id, user_id, type, actor_id, target_type, target_id, read_at, created_at)
+  - unlike 시 기존 notification은 삭제하지 않는다(v1 단순화).
 - 의미: 푸시 인프라 없이도 리텐션 최소 요건을 확보하고, 타입 매핑 혼선을 줄인다.
 - 변경: ADR 권장
 
@@ -629,6 +634,7 @@
 - 무엇:
   - publish 시 생성 / unpublish·hide·delete·private전환 시 즉시 삭제 / 재발행 시 재생성
   - 삭제 시 ISR revalidate 동시 트리거
+  - 삭제 메커니즘: DB는 hidden_at/deleted_at만 set하고, 후속 삭제/재검증 처리는 DB webhook(pg_net) 또는 Edge Function이 비동기 수행한다.
 - See: D-067, D-025
 - 변경: ADR 권장
 
@@ -724,6 +730,7 @@
   - UNIQUE(owner_id, log_date) WHERE deleted_at IS NULL 유지(D-060)
   - 같은 날짜에 다른 key로 upsert: 기존 group의 idempotency_key를 새 key로 갱신 + version++ + items 교체
   - 멱등성은 갱신된 key 기준으로 동작
+  - 같은 idempotency_key + 다른 log_date 요청은 `invalid_request` 에러를 반환한다.
 - See: D-060
 - 변경: ADR 불필요
 
@@ -763,14 +770,16 @@
 - Class: POLICY
 - 무엇:
   - payload_versions 테이블에 없는 version은 저장 허용(기능 차단 금지)
-  - payload_version_events에 event_type='unknown'으로 기록
-  - 롤업에서 unknown 버킷으로 집계
+  - payload_version_events event_type 목록에 `unknown`을 포함하고 unknown 입력은 event_type='unknown'으로 기록한다.
+  - payload_version_rollups에 unknown_count 컬럼을 두고 unknown 버킷 집계를 반영한다.
 - 변경: ADR 불필요
 
 ## D-090. like toggle RPC + notification 생성
 - Class: GUARD
 - 무엇:
   - rpc_toggle_like(p_target_type, p_target_id): 있으면 삭제+카운트-1, 없으면 삽입+카운트+1
+  - target 존재 + guard_soft_state + (posts) guard_visibility_published 검증을 필수로 수행한다. 불만족 시 `not_found` 반환.
+  - unlike은 hard DELETE로 처리한다(soft delete 미사용).
   - 원자 UPDATE(D-046). guard_block 필수. guard_terms_agreed 필수
   - notification: post like만(D-070). block 관계면 미생성
 - See: D-046, D-070
@@ -795,4 +804,21 @@
   - 각 write RPC(comment/reply/like) 내부 동일 트랜잭션에서 notifications INSERT
   - trigger 미사용. block 관계면 notification 미생성
 - See: D-070
+- 변경: ADR 불필요
+
+## D-094. FK 기준 통일 (auth.users 중심)
+- Class: POLICY
+- 무엇:
+  - 모든 owner_id/author_id/blocker_id/blocked_id/reporter_id FK는 profiles.user_id(= auth.users.id)를 참조한다.
+  - profiles.id는 프로필 자체 조회용 내부 PK로만 사용한다.
+- 의미: 도메인 전반의 사용자 식별 키를 auth.users.id로 단일화해 조인/권한 가드 기준을 일관화한다.
+- 변경: ADR 권장
+
+## D-095. inventory 이벤트 RPC 표면 고정
+- Class: GUARD
+- 무엇:
+  - inventory 이벤트 RPC를 `rpc_inventory_switch`, `rpc_inventory_discontinue`로 분리해 제공한다.
+  - 각 RPC는 단일 트랜잭션으로 기존 current 종료 + 신규 row 생성(또는 종료만)을 보장한다.
+  - correction은 v1 UX 미확정이므로 RPC만 예비 등록한다.
+- 의미: 이벤트 의미(switch/discontinue/correction)와 API 표면을 고정해 구현자 해석 차이를 줄인다.
 - 변경: ADR 불필요
