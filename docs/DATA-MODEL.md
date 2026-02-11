@@ -8,8 +8,18 @@
 - log_date는 오늘 이하만
 
 ## 1) profiles
-- profiles(id pk, nickname unique, avatar_url, bio, nickname_changed_at?, created_at, updated_at)
+- profiles(id pk, user_id unique fk -> auth.users.id, nickname unique, avatar_key, bio, terms_agreed_at?, is_admin bool default false, nickname_changed_at?, created_at, updated_at, deleted_at?)
+  - `terms_agreed_at`는 약관 동의 시점에 설정하며, 초기 signup 직후에는 nullable 허용(D-066).
+  - 민감/공개 기능(예: 게시/댓글/공개 전환)은 terms_agreed_at IS NOT NULL 가드를 요구한다(D-066).
 - profile_settings(user_id pk, default_post_visibility?, created_at, updated_at)
+
+## 1a) assets/storage
+- 원본 자산: private bucket(`assets`) + signed URL 접근(인증 기본)
+- 공개 썸네일: public bucket(`assets-public`)에 파생본만 저장
+- 경로(prefix) 기준:
+  - 원본: avatars/{user_id}/{uuid}.webp, posts/{user_id}/{post_id}/{uuid}.webp, cats/{user_id}/{cat_id}/{uuid}.webp
+  - 공개 썸네일: posts/{post_id}/{uuid}_thumb.webp (공개+발행 콘텐츠만)
+- 프로필 이미지 DB 값은 URL이 아니라 `avatar_key`(storage key path)를 저장한다(D-067).
 
 ## 2) cats
 - cats(id pk, owner_id, name, birth_date, sex, breed, avatar_url, created_at, updated_at, deleted_at)
@@ -118,6 +128,14 @@
 ## 8) likes(공통)
 - likes(id, user_id, target_type(post|comment|thread|reply), target_id, created_at)
   - unique(user_id, target_type, target_id)
+
+## 8a) notifications (in-app inbox, v1)
+- notifications(id, user_id, type(comment|reply|like), actor_id, target_type(post|thread), target_id, read_at?, created_at)
+  - index: (user_id, created_at desc), (user_id, read_at)
+  - type-target 매핑(v1 LOCK):
+    - comment -> target_type='post', target_id=post_id
+    - reply -> target_type='thread', target_id=thread_id
+    - like -> target_type='post'만 허용(v1 단순화)
 
 ## 9) moderation
 - blocks(blocker_id, blocked_id, created_at) pk(blocker_id, blocked_id)

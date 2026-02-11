@@ -33,9 +33,11 @@
   - 포함이면 범위(채널 글만? 냥스타 포함?)?
 
 ## O-009 관리자 UI 범위(운영 도구)
-- 결정에 필요한 질문:
-  - v1 최소 관리자 화면 목록(신고 큐/숨김/복구/카탈로그 승인/별칭/병합)?
-  - 관리자 권한 모델(단일 운영자 vs 역할 분리)?
+- O-009a 운영 기능/권한 범위: **Status: Resolved → D-068**
+- O-009b 관리자 UI(화면/라우팅/노출)
+  - 결정에 필요한 질문:
+    - v1 최소 관리자 화면 목록(신고 큐/숨김/복구/카탈로그 승인/별칭/병합)?
+    - 관리자 화면 노출 방식(앱 내 라우트 vs 별도 운영 도구)?
 
 ## O-010 기술 스택/배포 확정
 **Status: Resolved → D-049**
@@ -115,15 +117,7 @@
   - 링크 저장(강결합 FK/링크테이블) 여부는 v1 보류(복잡도↑, 공개경계↑).
 
 ## O-027. 스케줄드 작업 실행체(TTL cleanup / retention / 집계 보정)
-- 대상 정책:
-  - D-041: observation idempotency 7일 TTL
-  - D-061: observation_patch_dedup 7일 TTL
-  - D-045: payload_version_events 90일 retention
-  - 집계 보정: like_count/reply_count/comment_count
-- 결정에 필요한 질문:
-  - pg_cron vs Supabase Edge Function cron vs 외부 스케줄러?
-  - 실행 주기(매일/매시간)?
-  - 실패 시 알림/재시도 정책?
+- **Status: Resolved → D-069**
 
 ## O-028. Channel popular 피드 임시 공식 (v1)
 - 배경: D-013에 인기 피드가 v1 범위이지만 O-004의 정식 공식은 미결정.

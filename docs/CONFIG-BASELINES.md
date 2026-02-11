@@ -49,7 +49,22 @@
 
 ---
 
-## 4. 변경 규칙
+## 4. pg_cron Baseline (D-069)
+
+원칙:
+- 모든 cron 표현식은 UTC 기준으로 기록/등록한다.
+- 운영 커뮤니케이션에는 KST 환산 시각을 함께 표기한다.
+
+| 작업 | Cron (UTC) | KST 환산 | 비고 |
+|------|------------|----------|------|
+| observation_groups idempotency cleanup | `15 * * * *` | 매시 15분 | D-041, row cleanup |
+| observation_patch_dedup cleanup | `20 * * * *` | 매시 20분 | D-061, row cleanup |
+| payload_version_events retention | `30 2 * * *` | 매일 11:30 | D-045, 90일 초과 삭제 |
+| engagement counter reconcile | `0 */6 * * *` | 6시간 간격(03:00/09:00/15:00/21:00) | like/comment/reply 보정 |
+
+---
+
+## 5. 변경 규칙
 
 - 수치 변경: app_config(D-056)로 수행. 코드 상수 금지.
 - "행동만 제한 / 읽기 제외" 원칙 변경: ADR 권장.
