@@ -38,7 +38,7 @@ as $$
 declare
   v_owner_id uuid := auth.uid();
   v_current_version int;
-  v_cached jsonb;
+  v_replay_json jsonb;
 begin
   if v_owner_id is null then
     raise exception 'unauthorized';
@@ -113,14 +113,14 @@ end if;
 
 ```sql
 select d.result_json
-into v_cached
+into v_replay_json
 from public.observation_patch_dedup d
 where d.owner_id = v_owner_id
   and d.group_id = p_group_id
   and d.idempotency_key = p_idempotency_key;
 
 if found then
-  return v_cached;
+  return v_replay_json;
 end if;
 ```
 
