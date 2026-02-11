@@ -48,6 +48,15 @@
 - PR 생성 시 기본 본문은 `.github/pull_request_template.md`를 따른다.
 - EP에는 최소한 Allowed changes / Validation / DoD / Evidence required를 포함한다.
 - Result Packet에 Evidence(실행한 명령/SQL + 출력)가 없으면 "미검증"으로 간주하고 리뷰를 중단한다(불합격).
+- EP는 작업 유형에 따라 Annex를 첨부한다 (See PACKET-TEMPLATES.md):
+  - Annex A (RPC/API): Contract + Security/Data integrity
+  - Annex B (Migration): Migration file path + rollback + backfill
+  - Annex C (Config/Ops): Config key + seed + access control
+  - Annex가 없는 작업(문서/UI 등): 공용 코어만 작성
+- EP Meta 섹션에는 Risk level(PRECISE/FAST), Playbook refs, Prerequisites를 필수 기재한다.
+- Validation 기대 수준은 Risk level에 따라 구분한다:
+  - PRECISE: exact smoke + exact negative + expected output
+  - FAST: exact smoke 1개 이상 + negative는 조건 설명(output 생략 가능)
 
 ---
 

@@ -46,3 +46,6 @@
 - docs/playbooks/rpc-owner.md
 - docs/playbooks/rpc-public.md
 - docs/playbooks/ops-app-config.md
+- docs/playbooks/seo-web.md
+- docs/playbooks/moderation.md
+- docs/playbooks/payload-version-kpi.md

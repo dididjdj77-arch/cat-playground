@@ -11,6 +11,7 @@
 - [ ] `guard_soft_state`(deleted/hidden) 필터를 항상 적용한다.
 - [ ] `guard_block`(viewer-target 상호 비노출) 필터를 항상 적용한다.
 - [ ] posts/house 계열은 `guard_visibility_published`를 함께 적용한다.
+- [ ] posts/house 계열은 `guard_visibility_published`를 적용하고, threads/replies에는 적용하지 않는다 (D-016).
 - [ ] 반환 컬럼은 화이트리스트로 명시한다.
 - [ ] `p_limit`는 하한/상한 캡을 함께 적용한다(예: 1~100).
 
@@ -45,6 +46,33 @@ as $$
   limit least(greatest(p_limit, 1), 100);
 $$;
 ```
+
+## 부모→자식 가드 체인 패턴 (D-063)
+
+댓글처럼 부모 엔티티 공개 조건에 종속되는 자식 조회는 2단계 가드를 적용한다.
+
+```sql
+-- Step 1: 부모 가드 (post 예시)
+select p.author_id into v_post_author
+from public.posts p
+where p.id = p_post_id
+  and public.guard_soft_state(p.deleted_at, p.hidden_at)
+  and public.guard_block(auth.uid(), p.author_id)
+  and public.guard_visibility_published(p.visibility, p.published_at);
+
+if v_post_author is null then
+  return jsonb_build_object('error_code', 'not_found');  -- 외부 표면 404 (D-050)
+end if;
+
+-- Step 2: 자식 가드 (comments 예시)
+select ...
+from public.comments c
+where c.post_id = p_post_id
+  and public.guard_soft_state(c.deleted_at, c.hidden_at)
+  and public.guard_block(auth.uid(), c.author_id);
+```
+
+핵심: 부모 가드 불만족 시 자식 0건이 아니라 `not_found`를 반환한다.
 
 ## 검증
 
