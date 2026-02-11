@@ -8,6 +8,7 @@
 ### Do
 - [ ] 신고 시 `reports.snapshot(jsonb)`에 대상 콘텐츠의 현재 상태를 저장한다 (D-052).
 - [ ] 동일 사용자/동일 대상 중복 신고를 방지한다.
+- [ ] 대상 콘텐츠가 존재하지 않으면 report row를 생성하지 않고 에러를 반환한다.
 - [ ] 자동숨김 트리거: 서로 다른 신뢰 신고자 N명(CONFIG-BASELINES §2) 충족 시 `hidden_at` 설정.
 - [ ] 자동숨김은 `hidden_at`만 설정한다 (`deleted_at` 아님, D-024).
 - [ ] 신고자 신뢰 조건(계정 생성 경과일)과 시간창(window)은 CONFIG-BASELINES를 따른다.
@@ -59,6 +60,10 @@ begin
     else
       return jsonb_build_object('error_code', 'invalid_target_type');
   end case;
+
+  if v_snapshot is null then
+    return jsonb_build_object('error_code', 'target_not_found');
+  end if;
 
   insert into public.reports (reporter_id, target_type, target_id, reason_code, note, snapshot)
   values (v_reporter_id, p_target_type, p_target_id, p_reason_code, p_note, v_snapshot)
@@ -133,15 +138,20 @@ $$;
 ### 스모크 테스트
 
 ```sql
-select public.rpc_report_content('post', '00000000-0000-0000-0000-000000000000', 'spam', 'test report');
--- 기대: {"report_id":"..."} 또는 대상 미존재 시 에러코드 반환
+-- 사전조건: 대상 post가 존재
+select public.rpc_report_content('post', '<existing-post-uuid>', 'spam', 'test report');
+-- 기대: {"report_id":"..."}
 ```
 
 ### 네거티브 테스트
 
 ```sql
 select public.rpc_report_content('post', '00000000-0000-0000-0000-000000000000', 'spam');
--- 기대: 중복 상황이면 {"error_code":"duplicate_report"}
+-- 기대: {"error_code":"target_not_found"}
+
+-- 사전조건: 동일 reporter/target으로 이미 신고 1건 존재
+select public.rpc_report_content('post', '<existing-post-uuid>', 'spam');
+-- 기대: {"error_code":"duplicate_report"}
 ```
 
 ## 근거 링크

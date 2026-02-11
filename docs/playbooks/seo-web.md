@@ -6,7 +6,7 @@
 ## 체크리스트
 
 ### Do
-- [ ] index 대상 라우트: `/c/{topicSlug}`, `/c/{topicSlug}/{threadId}`, `/p/{postId}`
+- [ ] index 대상 라우트: `/c`, `/c/{topicSlug}`, `/c/{topicSlug}/{threadId}`, `/p`, `/p/{postId}`
 - [ ] noindex 대상: `/search?q=...` (D-021)
 - [ ] SSR/ISR 캐시 전략을 라우트별로 명시한다.
 - [ ] hidden_at/deleted_at이 설정된 콘텐츠는 404를 반환한다 (D-050).
@@ -28,6 +28,7 @@
 | /c | index | ISR | topic.deleted_at is null |
 | /c/{topicSlug} | index | ISR | topic 존재 + deleted_at null |
 | /c/{topicSlug}/{threadId} | index | ISR | thread guard_soft_state + guard_block(anon=no-op) |
+| /p | index | ISR | 공개 post 목록 품질 게이트 통과 |
 | /p/{postId} | index | ISR | post guard_soft_state + guard_visibility_published |
 | /search?q=... | noindex | SSR | - |
 | /u/{nickname}/house | noindex | - | auth-only (v1 SEO 제외) |

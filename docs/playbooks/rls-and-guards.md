@@ -10,7 +10,6 @@
 - [ ] viewer 식별은 `auth.uid()`에서 직접 도출한다.
 - [ ] `guard_soft_state`(deleted/hidden) 필터를 항상 적용한다.
 - [ ] `guard_block`(viewer-target 상호 비노출) 필터를 항상 적용한다.
-- [ ] posts/house 계열은 `guard_visibility_published`를 함께 적용한다.
 - [ ] posts/house 계열은 `guard_visibility_published`를 적용하고, threads/replies에는 적용하지 않는다 (D-016).
 - [ ] 반환 컬럼은 화이트리스트로 명시한다.
 - [ ] `p_limit`는 하한/상한 캡을 함께 적용한다(예: 1~100).

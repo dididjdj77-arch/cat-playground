@@ -49,8 +49,10 @@ begin
   -- B) canonical 테이블에서 재조립해 동일 응답 shape로 반환
   -- (도메인별 스키마에 맞춰 택1)
 
+  -- 도메인별 최신 version 조회 (예시)
+  -- e.g. public.<owner_aggregate_table>(owner_id, version, created_at)
   select version into v_current_version
-  from public.observation_groups
+  from public.<owner_aggregate_table>
   where owner_id = v_owner_id
   order by created_at desc
   limit 1;

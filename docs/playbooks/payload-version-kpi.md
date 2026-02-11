@@ -16,6 +16,7 @@
 - [ ] 롤업(`payload_version_rollups`)은 배치/cron으로 집계한다.
 - [ ] `payload_version_events`는 90일 보관 후 삭제하고(D-045), rollups는 장기 보존한다.
 - [ ] ⚠ Policy pending: unknown payload_version 처리(ACCEPT/REJECT)는 미결정이다. 이 playbook은 semver 검증과 KPI 기록 원칙만 규정한다.
+- [ ] unknown 정책 확정 전에는 placeholder 동작을 production 기본값으로 고정하지 않는다.
 
 ### Don't
 - [ ] `payload_versions` 단일 row에 `seen_count++` 같은 카운터 UPDATE를 하지 않는다.
@@ -57,7 +58,8 @@ begin
   if v_state is null then
     -- ⚠ Policy pending:
     -- unknown version을 ACCEPT할지 REJECT할지 별도 결정 필요.
-    return jsonb_build_object('error_code', 'unknown_payload_version');
+    -- 아래는 임시 placeholder이며, 정책 확정 후 교체해야 한다.
+    return jsonb_build_object('error_code', 'unknown_version_policy_pending');
   end if;
 
   insert into public.payload_version_events (version, event_type, ts)
@@ -127,7 +129,7 @@ select public.validate_payload_version('abc');
 -- 기대: {"error_code":"invalid_payload_version"}
 
 select public.validate_payload_version('0.5');
--- 기대: {"error_code":"rejected_version"} 또는 {"error_code":"unknown_payload_version"}
+-- 기대: {"error_code":"rejected_version"} 또는 {"error_code":"unknown_version_policy_pending"}
 -- (정확한 unknown 정책은 별도 결정 필요)
 ```
 
