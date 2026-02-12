@@ -1,9 +1,11 @@
 # QA-SCENARIOS — 검증 시나리오
 
 ## Public Surface Gate (필수 자동)
-- [필수 자동][G-1] 차단 0-rows: block 관계에서 공개 피드/조회 RPC 결과가 대상 작성자 기준 0건이어야 한다.
-- [필수 자동][G-2] DTO whitelist 0 누출: 공개 DTO에 inventory_item_id/raw_text/note/meta/avatar_url 등 비허용 필드가 포함되면 실패다.
-- [필수 자동][G-3] 부모 가드 종속 404: 부모 post 공개 가드 실패 시 `rpc_get_public_post_comments`는 0건이 아니라 404를 반환해야 한다.
+- [필수 자동][CI 필수][G-1] 차단 0-rows: block 관계에서 공개 피드/조회 RPC 결과가 대상 작성자 기준 0건이어야 한다.
+  - 대상: posts_feed, threads_feed, post_detail, thread_detail, house_slots_summary, posts_by_user
+- [필수 자동][CI 필수][G-2] DTO whitelist 0 누출: 공개 DTO에서 house + posts/threads 표면은 nickname 외 비허용 필드(inventory_item_id/raw_text/note/meta/avatar_url 등) 누출이 0건이어야 한다.
+- [필수 자동][CI 필수][G-3] 부모 가드 종속 404: 부모 post/thread 공개 가드 실패 시 comments/replies 공개 조회는 0건이 아니라 404를 반환해야 한다.
+- [필수 자동][CI 필수][G-4] 404 통일: 공개 표면의 조회 불가 상태(비공개/미발행/삭제/숨김/차단/미인증/리소스 없음)는 모두 404를 반환해야 한다.
 
 ## 다이어리/관찰
 - 공통만 저장 → 선택한 모든 고양이에 동일 적용
@@ -34,9 +36,9 @@
 - 발행취소 → 노출 X
 - 댓글 수정 → "수정됨" 표시 + 내부 감사로그 1개
 - hide_from_profile → 프로필 목록 제외(링크/피드 공개 유지)
-- 비공개 post의 댓글을 공개 경로로 조회 → 404 (D-063)
-- 삭제된 post의 댓글을 공개 경로로 조회 → 404
-- 차단 관계에서 post가 보이지 않는 경우 → 해당 post의 댓글 조회도 404
+- [CI 필수][G-3] 비공개 post의 댓글을 공개 경로로 조회 → 404 (D-063)
+- [CI 필수][G-3] 삭제된 post의 댓글을 공개 경로로 조회 → 404
+- [CI 필수][G-3] 차단 관계에서 post가 보이지 않는 경우 → 해당 post의 댓글 조회도 404
 
 ## 채널
 - 토픽 랜딩/스레드 상세 SSR 확인(SEO)
@@ -64,7 +66,7 @@
 - 신고 악용 방지(중복/신뢰조건, D-054)
 - 공개 표면의 조회 불가 상태는 404로 통일(D-050)
 - anon viewer는 block 관계에 영향받지 않음(정상 동작 확인, AUTHZ-MODEL §0-2)
-- 404 통일 검증 (D-050): 아래 모든 조건에서 공개 RPC/라우트는 404 반환:
+- [CI 필수][G-4] 404 통일 검증 (D-050): 아래 모든 조건에서 공개 RPC/라우트는 404 반환:
   - 비공개(visibility=private)
   - 미발행(published_at IS NULL)
   - 삭제됨(deleted_at IS NOT NULL)

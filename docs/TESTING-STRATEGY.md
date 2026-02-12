@@ -161,13 +161,21 @@ Then:
   - rpc_get_public_post_comments(post_id) → 댓글 2건 반환
 ```
 
-## Phase 2 시작 조건 (Public Surface Gate)
+## Sprint 2b 게이트 (Phase 2 시작 조건)
 
-- Gate는 아래 3개를 모두 통과해야 한다.
-  - G-1 차단 0-rows: block 관계에서 공개 피드/조회 RPC가 대상 작성자의 결과를 0건으로 반환
-  - G-2 DTO whitelist 0 누출: 공개 DTO에 비허용 필드(예: inventory_item_id/raw_text/note/meta/avatar_url)가 0건 누출
-  - G-3 부모 가드 종속 404: 부모 post 공개 가드 실패 시 댓글 공개 RPC가 0건이 아니라 404를 반환
+- Gate는 아래 4개를 모두 통과해야 한다.
+  - G-1 차단 0-rows: block 관계에서 공개 조회 RPC가 대상 작성자의 결과를 0건으로 반환한다.
+    - 대상: posts_feed, threads_feed, post_detail, thread_detail, house_slots_summary, posts_by_user
+  - G-2 DTO whitelist 누출 0: house + posts/threads 공개 DTO는 whitelist 외 필드 누출이 0건이어야 하며, 작성자 식별은 nickname만 허용한다.
+  - G-3 부모 가드 종속 404: comments→post, replies→thread 공개 경로에서 부모 가드 실패는 0건이 아니라 404를 반환한다.
+  - G-4 404 통일: 공개 표면의 조회 불가 상태(비공개/미발행/삭제/숨김/차단/미인증/리소스 없음)는 모두 404를 반환한다.
+- G-1~G-4 전부 CI green이어야 Sprint 3 진입 가능하다.
 - Gate 실패 시 Public RPC 추가/확장 PR은 머지 불가(Phase 2 시작 불가).
+
+## 런치 체크리스트 (운영 백업)
+
+- [ ] Supabase PITR(Point-in-Time Recovery) 활성화 및 복구 시나리오(복구 시점/절차) 점검 항목을 출시 전 체크한다.
+- [ ] S5-6에서 런치 체크리스트 전용 문서로 분리한다(현재는 TESTING-STRATEGY에 임시 유지).
 
 ## CI 실행 원칙
 1. 테스트는 격리된 환경(테스트 DB)에서 실행

@@ -30,8 +30,10 @@ v1.1 기준 최소 RPC 목록과 공통 guard 패턴
   1. `guard_terms_agreed()`
   2. `guard_block(viewer_id, target_user_id)`
   3. `guard_soft_state(...)`
-  4. `guard_visibility_published(...)`
+  4. domain-specific guard (`guard_visibility_published(...)` 등)
 - RPC 성격상 불필요한 guard는 `N/A`로 명시하고 건너뛴다(순서 자체는 유지).
+- 순서 근거: 약관 미동의는 최우선 차단, block은 데이터 조회 전 차단, soft_state/domain guard는 데이터 의존 단계다.
+- See: D-096
 
 추가 규칙(SECURITY DEFINER 공개 RPC):
 - viewer_id는 서버에서 auth.uid()로 도출한다(anon이면 null).
