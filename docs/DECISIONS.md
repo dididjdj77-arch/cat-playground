@@ -719,9 +719,10 @@
 - Class: GUARD
 - Status: superseded by D-041
 - 무엇:
-  - TTL 정책 SSOT는 D-041이며, D-083은 독립 정책을 정의하지 않는다.
-  - 구현/운영 세부는 D-041(Observation sentinel swap) + D-061(Observation patch row cleanup)을 따른다.
-- See: D-041, D-060, D-061
+  - D-083은 D-041의 구현 세부사항이다.
+  - RPC 로직에서 created_at 기준 7일 비교로 멱등성 유효기간을 판정한다.
+  - TTL 만료 후 cleanup은 D-041 sentinel swap 방식을 따른다.
+- See: D-041 (D-083 구현 세부)
 - 변경: ADR 불필요
 
 ## D-084. 같은 log_date + 다른 idempotency_key = overwrite
@@ -821,4 +822,17 @@
   - 각 RPC는 단일 트랜잭션으로 기존 current 종료 + 신규 row 생성(또는 종료만)을 보장한다.
   - correction은 v1 UX 미확정이므로 RPC만 예비 등록한다.
 - 의미: 이벤트 의미(switch/discontinue/correction)와 API 표면을 고정해 구현자 해석 차이를 줄인다.
+- 변경: ADR 불필요
+
+## D-096. Write RPC 가드 호출 순서 (LOCK)
+- Class: GUARD
+- 무엇:
+  - 번호 배정 근거: 원장에 D-094, D-095가 이미 존재하므로 마지막 번호+1 규칙에 따라 D-096으로 등록한다.
+  - 모든 write RPC는 아래 순서로 가드를 호출한다:
+    1. `guard_terms_agreed()`
+    2. `guard_block(viewer_id, target_user_id)` — 해당 시
+    3. `guard_soft_state(deleted_at, hidden_at)` — 해당 시
+    4. domain-specific guard (`guard_visibility_published` 등) — 해당 시
+  - 순서 근거: 약관 미동의는 최우선 차단, block은 데이터 조회 전 차단, soft_state/domain은 데이터 의존이다.
+- See: D-073, docs/RPC-SPECS.md#공통-guard-패턴
 - 변경: ADR 불필요

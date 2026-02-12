@@ -1,0 +1,47 @@
+name: ci
+
+on:
+  pull_request:
+    paths:
+      - "docs/**"
+      - "scripts/**"
+      - "supabase/**"
+      - ".github/workflows/ci.yml"
+  workflow_dispatch:
+
+jobs:
+  lint:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+
+      - name: Lint DECISIONS
+        run: node scripts/lint-decisions.mjs
+
+      - name: Docs integrity
+        run: bash scripts/check-docs-integrity.sh
+
+  supabase-db-reset-dry-run:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: supabase/setup-cli@v1
+        with:
+          version: latest
+
+      - name: Show Supabase CLI version
+        run: supabase --version
+
+      - name: Supabase db reset dry-run
+        shell: bash
+        run: |
+          if supabase db reset --help | grep -q -- '--dry-run'; then
+            supabase db reset --dry-run --local --no-seed
+          else
+            echo "::warning::Supabase CLI in this runner has no --dry-run for db reset. Dry-run step is skipped."
+          fi

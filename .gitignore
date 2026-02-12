@@ -4,3 +4,4 @@ supabase/.gitignore
 # Local environment secrets
 .env
 .env.*
+!.env.example

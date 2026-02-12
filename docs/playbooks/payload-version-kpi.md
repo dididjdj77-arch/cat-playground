@@ -1,7 +1,7 @@
 # Playbook: Payload Version KPI
 
 > 이 문서는 payload_version 상태 머신, KPI 이벤트/롤업 작업의 실행 가이드입니다.
-> 정책 근거: See DECISIONS D-028, D-042, D-045, ADR-006
+> 정책 근거: See DECISIONS D-028, D-042, D-045, D-089, ADR-006
 
 ## 체크리스트
 
@@ -11,17 +11,17 @@
 - [ ] 상태 머신: `ACTIVE | DEPRECATED | REJECT`.
 - [ ] `REJECT` 버전은 저장을 거부한다.
 - [ ] `ACTIVE/DEPRECATED`는 저장을 허용한다.
+- [ ] unknown payload_version은 D-089에 따라 저장을 허용하고 `payload_version_events`에 `event_type='unknown'`으로 기록한다.
 - [ ] KPI 이벤트는 append-only 로그(`payload_version_events`)로 기록한다 (핫패스 카운터 UPDATE 금지, ADR-006).
-- [ ] 이벤트 타입은 `seen/reject/normalize_fail`을 사용한다.
+- [ ] 이벤트 타입은 `seen/reject/normalize_fail/unknown`을 사용한다.
 - [ ] 롤업(`payload_version_rollups`)은 배치/cron으로 집계한다.
 - [ ] `payload_version_events`는 90일 보관 후 삭제하고(D-045), rollups는 장기 보존한다.
-- [ ] ⚠ Policy pending: unknown payload_version 처리(ACCEPT/REJECT)는 미결정이다. 이 playbook은 semver 검증과 KPI 기록 원칙만 규정한다.
-- [ ] unknown 정책 확정 전에는 placeholder 동작을 production 기본값으로 고정하지 않는다.
+- [ ] unknown payload_version 처리는 D-089를 SSOT로 따른다.
 
 ### Don't
 - [ ] `payload_versions` 단일 row에 `seen_count++` 같은 카운터 UPDATE를 하지 않는다.
 - [ ] `REJECT` 상태 payload를 저장하지 않는다.
-- [ ] unknown payload_version 처리 정책을 임의로 확정하지 않는다.
+- [ ] unknown payload_version을 `rejected_version`으로 강제 처리하지 않는다(D-089).
 - [ ] `payload_version_events` retention을 90일 초과로 운영하지 않는다.
 
 ## 외부 표면 캐시 (Edge/Route/SDK 레이어)
@@ -56,10 +56,9 @@ begin
   where version = p_version;
 
   if v_state is null then
-    -- ⚠ Policy pending:
-    -- unknown version을 ACCEPT할지 REJECT할지 별도 결정 필요.
-    -- 아래는 임시 placeholder이며, 정책 확정 후 교체해야 한다.
-    return jsonb_build_object('error_code', 'unknown_version_policy_pending');
+    insert into public.payload_version_events (version, event_type, ts)
+    values (p_version, 'unknown', now());
+    return jsonb_build_object('state', 'UNKNOWN_ACCEPTED');
   end if;
 
   insert into public.payload_version_events (version, event_type, ts)
@@ -129,12 +128,12 @@ select public.validate_payload_version('abc');
 -- 기대: {"error_code":"invalid_payload_version"}
 
 select public.validate_payload_version('0.5');
--- 기대: {"error_code":"rejected_version"} 또는 {"error_code":"unknown_version_policy_pending"}
--- (정확한 unknown 정책은 별도 결정 필요)
+-- 기대: payload_versions.state='REJECT'이면 {"error_code":"rejected_version"}
+-- 기대: payload_versions 미등록(unknown)이면 {"state":"UNKNOWN_ACCEPTED"}
 ```
 
 ## 근거 링크
-- See: DECISIONS D-028, D-042, D-045
+- See: DECISIONS D-028, D-042, D-045, D-089
 - See: docs/ADR/ADR-006-payload-version-kpi.md
 - See: docs/DATA-MODEL.md#11-payload_versions--kpi
 - See: docs/TESTING-STRATEGY.md
