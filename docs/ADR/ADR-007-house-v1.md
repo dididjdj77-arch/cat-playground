@@ -83,7 +83,7 @@
 - 이후 current 변경 시 처리 정책 → O-019로 관리
 
 ## 후속 작업
-- SCHEMA-MIGRATIONS.md에 house_profiles/house_slots 마이그레이션 추가
-- RPC-SPECS.md에 rpc_get_public_house_slots_summary 명세 추가
-- TESTING-STRATEGY.md에 공개 하우스 화이트리스트 검증 테스트 추가
-- QA-SCENARIOS.md에 하우스 공개 조건/누출 방지 시나리오 추가
+- `docs/playbooks/migrations.md`(Baseline order)에 house_profiles/house_slots 마이그레이션 추가
+- `docs/API.md`에 rpc_get_public_house_slots_summary 명세 추가
+- `docs/VERIFICATION.md`에 공개 하우스 화이트리스트 검증 테스트 추가
+- `docs/VERIFICATION.md`에 하우스 공개 조건/누출 방지 시나리오 추가

@@ -107,3 +107,18 @@
 - 결정에 필요한 질문:
   - payload canonicalization(items 배열 순서 등) 비용은?
   - 실제 mismatch 빈도(서버 로그 기반 판단)?
+
+## O-030 SEO ISR 캐시와 block(뷰어별) 필터 결합 규칙
+- 왜 미결정: SEO 라우트는 ISR/캐시(anon 기준)가 핵심인데, 로그인 뷰어는 block 필터가 뷰어별이다.
+- 결정에 필요한 질문:
+  - SEO 라우트는 anon 기준 렌더로 고정하고(캐시 우선) 로그인 사용자도 동일 결과를 볼지?
+  - 로그인 뷰어는 cache bypass(동적 렌더)로 전환할지?
+  - (혼합) anon은 ISR, auth는 SSR(no-store)로 분리할지?
+- 참고: `docs/playbooks/seo-web.md`, `AUTHZ-MODEL.md` §0-2
+
+## O-031 terms_agreed_at 가드 부트스트랩 예외 최소 집합
+- 왜 미결정: "모든 write RPC는 guard_terms_agreed()"가 원칙이지만, 약관 동의/초기 프로필 설정 자체가 write다.
+- 결정에 필요한 질문:
+  - v1에서 terms 부트스트랩 write RPC를 무엇으로 제한할지(예: agree_terms, set_nickname)?
+  - 해당 RPC는 guard_terms_agreed 예외로 둘지, 또는 별도 pre-terms 가드로 둘지?
+- 참고: `DECISIONS.md` D-066, D-073, `docs/API.md`(write guard)

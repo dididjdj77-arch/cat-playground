@@ -20,6 +20,28 @@
 - [ ] 원본 테이블 direct SELECT를 클라이언트에 열지 않는다.
 - [ ] threads/replies에 visibility 가드를 무분별하게 복제하지 않는다.
 
+## RLS baseline (v1.1)
+
+원칙:
+- 공개/외부/상품성 읽기 경로는 `SECURITY DEFINER` RPC only를 기본으로 한다(원본 테이블 direct SELECT 금지, 특히 anon).
+- SECURITY DEFINER 함수는 RLS를 우회할 수 있으므로, 공개 표면 조건(soft_state + block + (필요 시) visibility/published)을 함수 내부에서 강제해야 한다.
+- 반환 DTO는 화이트리스트로 제한한다(하우스 슬롯 요약 등).
+
+Owner 테이블(기본 owner RLS 허용):
+- cats, inventory_items, observation_groups, observations, observation_inventory_refs, observation_patch_dedup
+- SELECT: owner_id = auth.uid() (+ deleted_at IS NULL 등)
+- write: owner_id = auth.uid()
+
+공개 컨텐츠(직접 SELECT 금지, RPC 경유):
+- posts: soft_state + block + visibility/published
+- threads/replies: soft_state + block (visibility/published 가드 적용 금지)
+- comments: 부모 post 가드 종속(D-063) + 자체 soft_state + block
+
+House(직접 SELECT 제한, RPC 경유):
+- 공개 하우스는 auth-only + 존재 은닉 404(D-035, D-050)
+- 응답 누출 방지(화이트리스트): cats.avatar_key/avatar_url 및 inventory 관련 원장 필드 금지(D-037, D-055)
+
+
 ## 템플릿
 
 ```sql
@@ -92,5 +114,4 @@ select count(*) from public.rpc_list_public_threads(20);
 ## 근거 링크
 - See: DECISIONS D-029
 - See: docs/AUTHZ-MODEL.md#0
-- See: docs/RLS-POLICY.md
 - See: docs/ADR/ADR-005-guard-filters-performance.md

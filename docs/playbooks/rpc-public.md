@@ -15,7 +15,7 @@
 - [ ] cursor pagination은 keyset 방식을 기본으로 한다.
 - [ ] 비즈니스 에러는 JSON return으로 전달한다 (D-065).
 - [ ] 외부 라우트/API는 guard 불만족을 404로 통일한다 (D-050).
-- [ ] 인증/권한 실패 에러 표현은 API-CONTRACTS 표준 에러 체계와 정합되게 유지한다.
+- [ ] 인증/권한 실패 에러 표현은 `docs/API.md` 표준 에러 체계와 정합되게 유지한다.
 - [ ] write RPC는 `guard_terms_agreed()`를 적용한다 (D-073).
 - [ ] write RPC가 섞이는 경우 guard 호출 순서를 고정한다: `guard_terms_agreed` → `guard_block` → `guard_soft_state` → `guard_visibility_published`.
 - [ ] RPC 성격상 불필요한 guard는 `N/A`로 명시한다.
@@ -34,7 +34,7 @@
 
 ### Don't (공통)
 - [ ] `select *`를 사용하지 않는다.
-- [ ] `cats.avatar_url`을 join/노출하지 않는다.
+- [ ] `cats.avatar_key`/`cats.avatar_url`을 join/노출하지 않는다.
 - [ ] `inventory_item_id` 같은 내부 id를 노출하지 않는다.
 - [ ] `raw_text/note/meta`를 공개 DTO에 포함하지 않는다.
 - [ ] D-055 비허용 필드를 DTO 예시/코드/주석 어디에도 넣지 않는다.
@@ -46,40 +46,69 @@
 create or replace function public.rpc_get_public_house_slots_summary(
   p_target_user_id uuid
 )
-returns table (
-  slot_key text,
-  equipped_at timestamptz,
-  type text,
-  standard_name text
-)
+returns jsonb
 language plpgsql
 security definer
 set search_path = public, pg_temp
 as $$
+declare
+  v_viewer_id uuid := auth.uid();
+  v_slots jsonb;
 begin
-  if auth.uid() is null then
+  if v_viewer_id is null then
     raise exception 'auth required';
   end if;
 
-  return query
-  select s.slot_key,
-         s.equipped_at,
-         i.type,
-         c.standard_name
-  from public.house_slots s
-  join public.house_profiles h
-    on h.user_id = s.owner_id
-  left join public.inventory_items i
-    on i.id = s.inventory_item_id
-   and i.is_current = true
-   and i.deleted_at is null
-  left join public.catalog_items c on c.id = i.catalog_item_id
-  where s.owner_id = p_target_user_id
-    and s.deleted_at is null
-    and public.guard_soft_state(h.deleted_at, h.hidden_at)
-    and public.guard_block(auth.uid(), p_target_user_id)
-    and public.guard_visibility_published(h.visibility, h.published_at)
-  order by s.slot_key;
+  with slot_keys as (
+    select unnest(array[
+      'slot_01','slot_02','slot_03','slot_04',
+      'slot_05','slot_06','slot_07','slot_08'
+    ]::text[]) as slot_key
+  ),
+  base as (
+    select
+      sk.slot_key,
+      s.equipped_at,
+      i.type,
+      c.standard_name
+    from slot_keys sk
+    -- slot은 항상 8개를 반환하기 위해 LEFT JOIN
+    left join public.house_slots s
+      on s.owner_id = p_target_user_id
+     and s.room_key = 'living_room'
+     and s.slot_key = sk.slot_key
+     and s.deleted_at is null
+    -- 공개 조건은 house_profiles 기준으로 단일 판정
+    join public.house_profiles h
+      on h.user_id = p_target_user_id
+    left join public.inventory_items i
+      on i.id = s.inventory_item_id
+     and i.is_current = true
+     and i.deleted_at is null
+    left join public.catalog_items c
+      on c.id = i.catalog_item_id
+    where public.guard_soft_state(h.deleted_at, h.hidden_at)
+      and public.guard_block(v_viewer_id, p_target_user_id)
+      and public.guard_visibility_published(h.visibility, h.published_at)
+    order by sk.slot_key
+  )
+  select jsonb_agg(
+           jsonb_build_object(
+             'slot_key', slot_key,
+             'equipped_at', equipped_at,
+             'type', type,
+             'standard_name', standard_name
+           )
+           order by slot_key
+         )
+    into v_slots
+  from base;
+
+  if v_slots is null then
+    return jsonb_build_object('error_code', 'not_found');
+  end if;
+
+  return jsonb_build_object('slots', v_slots);
 end;
 $$;
 
@@ -112,7 +141,7 @@ begin
            p.published_at, p.created_at,
            pr.nickname as author_nickname
     from public.posts p
-    join public.profiles pr on pr.id = p.author_id
+    join public.profiles pr on pr.user_id = p.author_id
     where p.deleted_at is null
       and p.hidden_at is null
       and p.visibility = 'public'
@@ -167,7 +196,7 @@ begin
     select c.id, c.body, c.like_count, c.edited_at, c.created_at,
            pr.nickname as author_nickname
     from public.comments c
-    join public.profiles pr on pr.id = c.author_id
+    join public.profiles pr on pr.user_id = c.author_id
     where c.post_id = p_post_id
       and c.deleted_at is null
       and c.hidden_at is null

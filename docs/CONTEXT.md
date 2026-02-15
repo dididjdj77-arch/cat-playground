@@ -16,7 +16,11 @@
 | INDEX | 경로 목록만 | 규칙/설명 문장 |
 | DECISIONS | 확정(D-###) 원장 | 삭제/번호 재사용 |
 | OPEN | 미정의(O-###) | 확정 결론 |
+| ARCHITECTURE-OVERVIEW | 전체 설계도(1장) | 정책식 복붙 |
 | AUTHZ-MODEL | 정책식 원문(§0) | — |
+| DATA-MODEL | DB 스키마 SSOT | — |
+| API | API 계약 + RPC 시그니처 SSOT | 중복 열거(키/에러/가드) |
+| VERIFICATION | CI/QA/런치 게이트 SSOT | TODO 문서화로 drift 은폐 |
 | ADR/* | 방향 전환 근거 (최대 5개) | 템플릿 미준수 ADR |
 | PROCESS | 프로세스/EP/PR 운영 규칙 | 정책/설계 결정 |
 | CONFIG-BASELINES | 운영 파라미터 기준값(수치/임계치) | 원칙/정책 |

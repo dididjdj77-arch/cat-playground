@@ -181,6 +181,7 @@
   - rate_limits
   - rate_limits_new_account
   - auto_hide
+  - popular_feed
 - 주의:
   - 비밀값(토큰/키/내부 전용 플래그)은 절대 저장 금지.
   - 새로운 key 추가 시: D-056 + RPC whitelist 업데이트가 선행.

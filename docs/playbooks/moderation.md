@@ -41,30 +41,86 @@ set search_path = public, pg_temp
 as $$
 declare
   v_reporter_id uuid := auth.uid();
+  v_target_user_id uuid;
   v_snapshot jsonb;
   v_report_id uuid;
+  v_err jsonb;
 begin
   if v_reporter_id is null then
     raise exception 'auth required';
   end if;
 
+  -- 1) write 공통 가드(LOCK): terms -> block -> soft_state -> domain
+  v_err := public.guard_terms_agreed();
+  if v_err is not null then
+    return v_err;
+  end if;
+
+  -- 2) 대상 존재/가드 검증 + snapshot 구성 (존재 은닉: 실패는 not_found로 통일)
   case p_target_type
     when 'post' then
-      select to_jsonb(p.*) into v_snapshot from public.posts p where p.id = p_target_id;
-    when 'comment' then
-      select to_jsonb(c.*) into v_snapshot from public.comments c where c.id = p_target_id;
+      select p.author_id, to_jsonb(p.*)
+        into v_target_user_id, v_snapshot
+      from public.posts p
+      where p.id = p_target_id
+        and public.guard_soft_state(p.deleted_at, p.hidden_at)
+        and public.guard_block(v_reporter_id, p.author_id)
+        and public.guard_visibility_published(p.visibility, p.published_at);
+
     when 'thread' then
-      select to_jsonb(t.*) into v_snapshot from public.threads t where t.id = p_target_id;
+      select t.author_id, to_jsonb(t.*)
+        into v_target_user_id, v_snapshot
+      from public.threads t
+      where t.id = p_target_id
+        and public.guard_soft_state(t.deleted_at, t.hidden_at)
+        and public.guard_block(v_reporter_id, t.author_id);
+
+    when 'comment' then
+      -- 부모 post 공개 가드 종속(D-063)
+      select p.author_id
+        into v_target_user_id
+      from public.posts p
+      join public.comments c on c.post_id = p.id
+      where c.id = p_target_id
+        and public.guard_soft_state(p.deleted_at, p.hidden_at)
+        and public.guard_block(v_reporter_id, p.author_id)
+        and public.guard_visibility_published(p.visibility, p.published_at);
+
+      if v_target_user_id is not null then
+        select to_jsonb(c.*) into v_snapshot
+        from public.comments c
+        where c.id = p_target_id
+          and public.guard_soft_state(c.deleted_at, c.hidden_at)
+          and public.guard_block(v_reporter_id, c.author_id);
+      end if;
+
     when 'reply' then
-      select to_jsonb(r.*) into v_snapshot from public.replies r where r.id = p_target_id;
+      -- 부모 thread 공개 가드 종속(threads는 visibility/published 가드 없음)
+      select t.author_id
+        into v_target_user_id
+      from public.threads t
+      join public.replies r on r.thread_id = t.id
+      where r.id = p_target_id
+        and public.guard_soft_state(t.deleted_at, t.hidden_at)
+        and public.guard_block(v_reporter_id, t.author_id);
+
+      if v_target_user_id is not null then
+        select to_jsonb(r.*) into v_snapshot
+        from public.replies r
+        where r.id = p_target_id
+          and public.guard_soft_state(r.deleted_at, r.hidden_at)
+          and public.guard_block(v_reporter_id, r.author_id);
+      end if;
+
     else
       return jsonb_build_object('error_code', 'invalid_target_type');
   end case;
 
   if v_snapshot is null then
-    return jsonb_build_object('error_code', 'target_not_found');
+    return jsonb_build_object('error_code', 'not_found');
   end if;
 
+  -- 3) 중복 신고 방지 + 저장
   insert into public.reports (reporter_id, target_type, target_id, reason_code, note, snapshot)
   values (v_reporter_id, p_target_type, p_target_id, p_reason_code, p_note, v_snapshot)
   on conflict (reporter_id, target_type, target_id) where deleted_at is null
@@ -111,7 +167,7 @@ begin
 
   select count(distinct r.reporter_id) into v_count
   from public.reports r
-  join public.profiles pr on pr.id = r.reporter_id
+  join public.profiles pr on pr.user_id = r.reporter_id
   where r.target_type = p_target_type
     and r.target_id = p_target_id
     and r.deleted_at is null

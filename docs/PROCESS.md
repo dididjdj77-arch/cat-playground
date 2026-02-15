@@ -43,12 +43,12 @@
 
 ### 원칙
 - 모든 구현 작업은 Execution Packet(EP) 단위로 진행한다.
-- 각 티켓은 Execution Packet(EP)으로 지시하며, EP는 `docs/PACKET-TEMPLATES.md` 형식을 따른다.
+- 각 티켓은 Execution Packet(EP)으로 지시하며, EP 템플릿은 이 문서 Appendix A를 따른다.
 - 결과 제출은 PR 1개로 하며, PR 본문은 Result Packet 형식을 채운다.
 - PR 생성 시 기본 본문은 `.github/pull_request_template.md`를 따른다.
 - EP에는 최소한 Allowed changes / Validation / DoD / Evidence required를 포함한다.
 - Result Packet에 Evidence(실행한 명령/SQL + 출력)가 없으면 "미검증"으로 간주하고 리뷰를 중단한다(불합격).
-- EP는 작업 유형에 따라 Annex를 첨부한다 (See PACKET-TEMPLATES.md):
+- EP는 작업 유형에 따라 Annex를 첨부한다 (See Appendix A):
   - Annex A (RPC/API): Contract + Security/Data integrity
   - Annex B (Migration): Migration file path + rollback + backfill
   - Annex C (Config/Ops): Config key + seed + access control
@@ -104,10 +104,207 @@ PRECISE는 최소 안전장치(DoD/검증/롤백)를 반드시 포함한다. FAS
 - Public RPC를 추가/확장하는 PR은 DTO whitelist 테스트를 반드시 동반한다.
 - Public Surface Gate(G-1/G-2/G-3/G-4)는 Phase 2 시작 조건이며, 4개 모두 통과해야 한다.
 - G-1/G-2/G-3/G-4 중 하나라도 실패하면 해당 PR은 불합격(머지 불가)이다.
-- 게이트 정의와 시나리오는 `docs/TESTING-STRATEGY.md`, `docs/QA-SCENARIOS.md`를 SSOT로 참조한다.
+- 게이트 정의와 시나리오는 `docs/VERIFICATION.md`를 SSOT로 참조한다.
 
 ## History
 
 ### 해소된 충돌 (DECISIONS에서 이관)
 - 채널 v1 범위: "답글/좋아요/검색까지 포함" 사용자 확정 발언으로 D-013 고정.
 - 닉네임 이동 UX: "바로 페이지 이동 아님, 메뉴로" 사용자 확정 발언으로 D-017 고정.
+
+---
+
+## Appendix A — Execution/Result Packet 템플릿
+
+
+> 작업 지시(Execution)와 결과 보고(Result)를 위한 표준 양식.
+> See: D-047 (Execution/Result Packet 운영 표준), D-048 (EP-ID 식별자)
+
+---
+
+## 사용 방법
+
+1. 공용 코어는 모든 EP에 필수다.
+2. Annex는 작업 유형에 맞는 것만 선택 첨부한다.
+3. Annex가 없는 작업(문서/UI 등)은 코어만 작성한다.
+4. Result Packet은 모든 작업 유형에서 동일 양식을 사용한다.
+
+---
+
+## Execution Packet — 공용 코어 (모든 EP 필수)
+
+```markdown
+# Execution Packet — EP-<EP-ID>: <short title>
+
+## Meta
+- Risk level: PRECISE / FAST (See PROCESS §6)
+- Playbook refs: docs/playbooks/<...>.md (복수 가능)
+- Prerequisites: EP-<선행 EP-ID> (없으면 "none")
+
+## SSOT read first
+- docs/<...>.md
+- docs/DECISIONS.md (D-###, D-###)
+- docs/ADR/ADR-###-....md (if any)
+
+## Goal
+- What to implement:
+  - ...
+- Success criteria (user-visible / API-visible):
+  - ...
+
+## Scope control
+- Allowed changes:
+  - <paths>
+- Forbidden changes:
+  - <paths / "everything else">
+- Non-goals (out of scope, explicit):
+  - ...
+
+## Implementation notes
+- Minimal design constraints (do not over-engineer):
+  - ...
+- Known risks / edge cases:
+  - ...
+
+## Validation (must run)
+- PRECISE: exact commands/sql + expected output (smoke + negative)
+- FAST: exact smoke 1개 이상 + negative는 조건 설명 가능
+- Setup:
+  - <commands>
+- Smoke tests:
+  - <exact commands/sql + expected output>
+- Negative tests:
+  - <exact commands/sql + expected failure>
+
+## DoD
+- Functional DoD:
+  - ...
+- Safety DoD:
+  - no partial writes / no privilege leak / no scope creep
+- Evidence required in PR:
+  - paste output for smoke + negative tests
+  - list changed files
+
+## OPEN questions (if any)
+- ...
+```
+
+---
+
+## Annex A — RPC/API 작업
+
+```markdown
+## [Annex A] Contract
+- Entry point(s): <RPC / route / job>
+- Inputs (required): <fields>
+- Outputs (required): <fields>
+- Error policy (해당 코드만 기재):
+  - 400: ...
+  - 409: ...
+  - (기타 해당 시)
+
+## [Annex A] Security / Data integrity
+- AuthN/AuthZ expectations:
+  - <SECURITY DEFINER? RLS? auth-only?>
+- Transaction boundary:
+  - <single tx?> <rollback on error?>
+- Idempotency:
+  - key: <field>
+  - uniqueness scope: <e.g., (owner_id, idempotency_key)>
+  - replay behavior: 최초 성공과 동일 응답 shape 반환 (status-only 금지)
+- Error return pattern:
+  - DB 함수는 비즈니스 에러를 JSON return으로 전달한다 (raise exception은 hard fail만, D-065)
+  - PostgREST 경유 시 DB 함수가 예외 없이 정상 return하면 HTTP 200이 기본이며, 클라이언트는 body.error_code로 판별한다
+  - 권한/EXECUTE 거부나 hard fail 예외는 4xx/5xx가 될 수 있다
+- Invariants to enforce:
+  - <DB CHECK/UNIQUE constraints>
+  - <state invariants>
+```
+
+---
+
+## Annex B — Migration 작업
+
+```markdown
+## [Annex B] Migration details
+- Migration file path: supabase/migrations/<NNN>_<name>.sql
+- File order dependencies: <선행 migration 번호>
+- Rollback SQL path: supabase/migrations/<NNN>_<name>_down.sql (또는 inline)
+- Backfill plan: <있으면 기술, 없으면 "N/A">
+- RLS 분리: RLS 변경은 별도 migration/단계로 분리 (See playbook: migrations)
+```
+
+---
+
+## Annex C — Config/Ops 작업
+
+```markdown
+## [Annex C] Config details
+- Config key(s): <app_config key 목록>
+- Seed value reference: CONFIG-BASELINES.md#<section>
+- Access control changes: <GRANT/REVOKE 변경 여부>
+- Whitelist update: <rpc_get_app_config whitelist에 key 추가 여부>
+```
+
+---
+
+## Result Packet Template (PR Description)
+
+```markdown
+# Result Packet — EP-<EP-ID>: <short title>
+
+## What changed
+- Files changed:
+  - ...
+- Summary:
+  - ...
+
+## Scope compliance
+- EP Scope control 기준: EP-<EP-ID>
+- Allowed changes only: ✅ / ❌
+- Forbidden paths touched: ✅ none / ❌ yes (explain)
+
+## How to verify
+- Environment:
+  - <local / CI> + <versions if relevant>
+- Commands executed:
+  - <cmd1>
+  - <cmd2>
+
+## Evidence (copy/paste outputs)
+### Smoke
+- <command/sql>
+- Output:
+  - ...
+
+### Negative tests
+- <command/sql>
+- Output:
+  - ...
+
+## Risk notes
+- Rollback plan:
+  - <how to revert safely>
+- Edge cases:
+  - ...
+
+## OPEN questions (if any)
+- ...
+```
+
+---
+
+## Appendix B — 로컬 셋업(초안)
+
+
+전제: Expo 앱 + Next.js 웹 + Supabase 백엔드
+
+1) Node LTS, pnpm, Supabase CLI 설치
+2) supabase start
+3) migrations 적용(supabase/migrations)
+4) env 설정(SUPABASE_URL/KEY)
+5) 앱 실행(expo start), 웹 실행(next dev)
+6) 체크:
+- anon으로 공개 토픽/스레드/공개 글 읽기
+- 로그인 후 작성/댓글/답글/좋아요
+- 차단/숨김이 노출 정책에 반영

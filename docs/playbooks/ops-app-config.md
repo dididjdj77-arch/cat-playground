@@ -8,11 +8,11 @@
 ### Do
 - [ ] `app_config(key text primary key, value jsonb, updated_at, updated_by)` 구조를 사용한다.
 - [ ] 읽기 RPC는 `rpc_get_app_config(p_keys text[]) returns jsonb` 형태를 사용한다.
-- [ ] whitelist key(`rate_limits`, `rate_limits_new_account`, `auto_hide`)만 반환한다.
+- [ ] whitelist key(`rate_limits`, `rate_limits_new_account`, `auto_hide`, `popular_feed`)만 반환한다.
 - [ ] unknown key는 에러 대신 무시한다.
 - [ ] RPC는 `SECURITY DEFINER` + auth-only로 제한한다.
 - [ ] 함수 내부에서 `auth.uid() is null` 호출을 명시적으로 거부한다.
-- [ ] 인증/권한 실패 에러 표현은 API-CONTRACTS 표준 에러 체계와 정합되게 유지한다.
+- [ ] 인증/권한 실패 에러 표현은 `docs/API.md` 표준 에러 체계와 정합되게 유지한다.
 - [ ] 초기 seed는 CONFIG-BASELINES 기준값으로 맞춘다(예시 값은 샘플).
 
 ### Don't
@@ -67,7 +67,7 @@ begin
   allowed as (
     select key
     from requested
-    where key in ('rate_limits', 'rate_limits_new_account', 'auto_hide')
+    where key in ('rate_limits', 'rate_limits_new_account', 'auto_hide', 'popular_feed')
   )
   select coalesce(jsonb_object_agg(c.key, c.value), '{}'::jsonb)
     into v_result
@@ -90,7 +90,8 @@ insert into public.app_config (key, value)
 values
   ('rate_limits', '{"posts":{"per_min":2,"per_day":20}}'::jsonb),
   ('rate_limits_new_account', '{"posts":{"per_min":1,"per_day":5}}'::jsonb),
-  ('auto_hide', '{"threshold_n":5,"window_hours":24}'::jsonb)
+  ('auto_hide', '{"threshold_n":5,"window_hours":24,"trust_days":7}'::jsonb),
+  ('popular_feed', '{"like_weight":1,"reply_weight":2,"window_days":7}'::jsonb)
 on conflict (key) do nothing;
 ```
 
