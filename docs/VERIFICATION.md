@@ -7,7 +7,7 @@
 
 ## 1) Public Surface Gate (필수 자동, Phase 2 시작 조건)
 
-G-1 ~ G-4 전부 CI green이어야 Public RPC 추가/확장 PR 머지 가능.
+G-1 ~ G-4 전부 CI green이어야 Public RPC 또는 공개 웹 라우트 추가/확장 PR 머지 가능.
 
 - [CI 필수][G-1] 차단 0-rows: block 관계에서 공개 피드/조회 RPC 결과가 대상 작성자 기준 0건이어야 한다.
 - [CI 필수][G-2] DTO whitelist 0 누출: 공개 DTO에서 nickname 외 비허용 필드 누출이 0건이어야 한다.

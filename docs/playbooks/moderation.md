@@ -203,7 +203,7 @@ select public.rpc_report_content('post', '<existing-post-uuid>', 'spam', 'test r
 
 ```sql
 select public.rpc_report_content('post', '00000000-0000-0000-0000-000000000000', 'spam');
--- 기대: {"error_code":"target_not_found"}
+-- 기대: {"error_code":"not_found"}
 
 -- 사전조건: 동일 reporter/target으로 이미 신고 1건 존재
 select public.rpc_report_content('post', '<existing-post-uuid>', 'spam');
