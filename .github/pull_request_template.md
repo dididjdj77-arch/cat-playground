@@ -12,6 +12,14 @@
 - Allowed changes only: ✅ / ❌
 - Forbidden paths touched: ✅ none / ❌ yes (explain)
 
+## EP / Gate checks
+- EP-ID: EP-<EP-ID>
+- [ ] 고위험 단독 EP 항목 없음
+- [ ] 고위험 단독 EP 항목 포함, 단독 EP로 분리 완료
+- [ ] Public 표면 영향 없음
+- [ ] Public 표면 영향 있음, G-1/G-2/G-3/G-4 모두 green
+- [ ] (해당 시) Auth Spike Gate(iOS/Android staging) 증거 링크 첨부
+
 ## How to verify
 - Environment:
   - <local / CI> + <versions if relevant>
