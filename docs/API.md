@@ -21,7 +21,6 @@ DB RPC는 항상 JSON return(D-065). 외부 표면(웹 SSR/SDK wrapper)이 `body
 |------------|--------------|----------------|
 | (정상) | 200 | 정상 처리 |
 | not_found | 404 | NotFoundError throw |
-| target_not_found (deprecated) | 404 | NotFoundError throw |
 | version_conflict | 409 | ConflictError throw |
 | invalid_request | 400 | ValidationError throw |
 | invalid_payload_version | 400 | ValidationError throw |
@@ -56,6 +55,8 @@ DB RPC는 항상 JSON return(D-065). 외부 표면(웹 SSR/SDK wrapper)이 `body
 ### guard_terms_agreed() — write RPC 전용 (D-073)
 - profiles.terms_agreed_at IS NOT NULL
 - 미동의 시 `{"error_code":"terms_not_agreed"}` 반환
+- pre-terms 예외(부트스트랩 전용, v1 LOCK): `agree_terms`, `set_initial_nickname`
+- 위 2개를 제외한 모든 write RPC는 `guard_terms_agreed()`를 적용한다.
 - read RPC 제외
 
 ### Write RPC guard 호출 순서 (LOCK, D-096)

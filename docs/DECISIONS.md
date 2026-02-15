@@ -537,7 +537,10 @@
     - auth.users와 1:1 연결은 profiles.user_id(unique)로 고정한다.
   - 가드:
     - 민감/공개 기능(예: 게시/댓글/공개 전환) 실행 전에는 terms_agreed_at IS NOT NULL을 요구한다.
-    - **적용 방식(LOCK)**: guard_terms_agreed()를 공통 guard 함수로 구현하고, **모든 write RPC**(post/comment/reply/thread/like/report/block/house publish·slot bind/inventory switch·discontinue 등)에서 필수 호출한다. read-only RPC에는 적용하지 않는다.
+    - **적용 방식(LOCK)**: guard_terms_agreed()를 공통 guard 함수로 구현하고, write RPC에 적용한다.
+      - pre-terms 예외(부트스트랩 전용): `agree_terms`, `set_initial_nickname`
+      - 위 2개를 제외한 **모든 write RPC**(post/comment/reply/thread/like/report/block/house publish·slot bind/inventory switch·discontinue 등)에서 guard_terms_agreed 호출이 필수다.
+      - 예외 목록 확장은 ADR 없이 허용하지 않는다(예외 creep 금지).
     - See: `docs/API.md` "공통 Guard 패턴"
 - 의미: 한국 중심 소셜 로그인 전환율을 확보하면서, 링크/부트스트랩/약관 동의 타이밍으로 인한 가입 실패와 CS 리스크를 줄인다.
 - 변경: ADR 권장
@@ -642,7 +645,8 @@
 ## D-073. Write RPC 공통 가드: guard_terms_agreed
 - Class: GUARD
 - 무엇:
-  - 모든 write RPC 실행 전 profiles.terms_agreed_at IS NOT NULL 검증
+  - pre-terms 예외(부트스트랩 전용): `agree_terms`, `set_initial_nickname`
+  - 위 2개를 제외한 모든 write RPC 실행 전 profiles.terms_agreed_at IS NOT NULL 검증
   - 미동의 시 `{"error_code":"terms_not_agreed"}` 반환
   - read RPC 제외
 - See: D-066
@@ -828,11 +832,33 @@
 - Class: GUARD
 - 무엇:
   - 번호 배정 근거: 원장에 D-094, D-095가 이미 존재하므로 마지막 번호+1 규칙에 따라 D-096으로 등록한다.
-  - 모든 write RPC는 아래 순서로 가드를 호출한다:
+  - pre-terms 예외 2개(`agree_terms`, `set_initial_nickname`)를 제외한 모든 write RPC는 아래 순서로 가드를 호출한다:
     1. `guard_terms_agreed()`
     2. `guard_block(viewer_id, target_user_id)` — 해당 시
     3. `guard_soft_state(deleted_at, hidden_at)` — 해당 시
     4. domain-specific guard (`guard_visibility_published` 등) — 해당 시
   - 순서 근거: 약관 미동의는 최우선 차단, block은 데이터 조회 전 차단, soft_state/domain은 데이터 의존이다.
-- See: D-073, docs/`docs/API.md`.md#공통-guard-패턴
+- See: D-073, docs/API.md#2-공통-guard-패턴-ssot
 - 변경: ADR 불필요
+
+## D-097. pre-terms write 예외 최소 집합 (부트스트랩 전용)
+- Class: GUARD
+- 무엇:
+  - 약관 동의 전(pre-terms) write 예외는 정확히 2개 RPC로 고정한다: `agree_terms`, `set_initial_nickname`.
+  - `set_initial_nickname`은 온보딩 최초 설정 전용이다(이미 설정된 계정에는 재설정 경로로 사용하지 않는다).
+  - 위 2개를 제외한 write RPC는 모두 terms_agreed_at 선행을 요구한다(D-073).
+  - 예외 목록 확장은 금지하며, 변경 시 ADR 필요.
+- 의미: 온보딩 부트스트랩 deadlock(약관/초기 프로필 write가 스스로 막히는 문제)을 방지하고 예외 creep를 차단한다.
+- See: D-066, D-073, D-096
+- 변경: 예외 목록 변경은 ADR 필요
+
+## D-098. SEO surface v1: anon 기준 고정
+- Class: POLICY
+- 무엇:
+  - v1 SEO surface(`/c*`, `/p*`)는 anon 기준 결과로 고정한다(ISR/캐시 우선).
+  - SEO surface에서 로그인 뷰어별 block/개인화 완전 일관성은 목표로 두지 않는다.
+  - auth 뷰어별 차단/개인화 정합성은 비-SEO 동적 표면(SSR/no-store)의 책임으로 분리한다.
+  - SEO 라우트는 로그인 상태와 무관하게 anon과 동일한 공개 결과를 반환한다.
+- 의미: ISR 캐시와 viewer별 정책 충돌로 인한 노출/비노출 드리프트를 줄이고, SEO 캐시 일관성을 확보한다.
+- See: D-015, D-025, D-050
+- 변경: ADR 권장
