@@ -58,6 +58,17 @@
   - PRECISE: exact smoke + exact negative + expected output
   - FAST: exact smoke 1개 이상 + negative는 조건 설명(output 생략 가능)
 
+### EP 번들링 정책(실행 단위)
+- 설계 원칙으로서 "유저 액션 = EP"는 유지하되, 실행 EP는 화면/플로우 번들링을 허용한다(속도 목적).
+- 단, 아래 항목은 고위험으로 간주하여 **단독 EP**로 고정한다(번들 금지):
+  - 관찰 upsert/patch(멱등/409/version_conflict/부분쓰기)
+  - publish/unpublish 전이(썸네일 라이프사이클 트리거 포함)
+  - 공개 표면 게이트(G-1~G-4)에 직접 영향(공개 DTO/404 통일/부모 가드 종속)
+  - 차단/신고/자동숨김(운영/남용 리스크)
+- 번들 EP도 Scope control(Allowed/Forbidden/Non-goals)을 강하게 작성한다.
+- PR에서 Forbidden 변경이 발생하면 즉시 분리 EP로 쪼개서 재제출한다(범위 슬립 방지).
+- PR 템플릿에는 "고위험 단독 EP 항목 포함 여부/단독 EP 분리 여부" 체크를 필수 기재한다.
+
 ---
 
 ## 5. EP-ID 관리 (from D-048)
@@ -101,9 +112,12 @@ PRECISE는 최소 안전장치(DoD/검증/롤백)를 반드시 포함한다. FAS
 
 ## 8. Public Surface Gate 운영 규칙
 
-- Public RPC 또는 공개 웹 라우트를 추가/확장하는 PR은 DTO whitelist 테스트를 반드시 동반한다.
-- Public Surface Gate(G-1/G-2/G-3/G-4)는 Phase 2 시작 조건이며, 4개 모두 통과해야 한다.
+- Public 표면(공개 RPC/SEO 라우트/공개 DTO/404 통일/부모 가드 종속)에 영향을 주는 PR(추가/확장/버그픽스 포함)은 DTO whitelist 테스트를 반드시 동반한다.
+- Public Surface Gate(G-1/G-2/G-3/G-4)는 Public 표면 영향 PR의 필수 자동 게이트이며, 4개 모두 통과해야 한다.
 - G-1/G-2/G-3/G-4 중 하나라도 실패하면 해당 PR은 불합격(머지 불가)이다.
+- Phase 2(App) 시작 전, Auth Spike Gate는 플랫폼별(최소 iOS 1회 + Android 1회)로 통과해야 한다.
+- Auth Spike 증거는 staging 기준으로 플랫폼별 1세트를 PR에 첨부한다(dev/prod는 체크리스트 관리 중심).
+- Auth Spike DoD/체크리스트는 `docs/VERIFICATION.md`의 "Auth Spike Gate"를 SSOT로 따른다.
 - 게이트 정의와 시나리오는 `docs/VERIFICATION.md`를 SSOT로 참조한다.
 
 ## History

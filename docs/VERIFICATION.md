@@ -5,18 +5,42 @@
 
 ---
 
-## 1) Public Surface Gate (필수 자동, Phase 2 시작 조건)
+## 1) Phase 2 시작 조건 (게이트)
 
-G-1 ~ G-4 전부 CI green이어야 Public RPC 또는 공개 웹 라우트 추가/확장 PR 머지 가능.
+### (A) Public Surface Gate (필수 자동)
+
+G-1 ~ G-4 전부 CI green이어야 Public 표면 영향 PR(추가/확장/버그픽스 포함) 머지 가능.
+
+Public 표면 영향 기준(아래 중 하나라도 변경 시):
+- 공개 RPC
+- SEO 라우트(`/c*`, `/p*`)
+- 공개 DTO 필드/직렬화
+- 조회 실패 404 통일 정책
+- 부모 가드 종속(예: comments/replies의 부모 post 상태 종속)
 
 - [CI 필수][G-1] 차단 0-rows: block 관계에서 공개 피드/조회 RPC 결과가 대상 작성자 기준 0건이어야 한다.
 - [CI 필수][G-2] DTO whitelist 0 누출: 공개 DTO에서 nickname 외 비허용 필드 누출이 0건이어야 한다.
 - [CI 필수][G-3] 부모 가드 종속 404: 부모 공개 가드 실패 시 comments/replies 공개 조회는 0건이 아니라 404를 반환해야 한다.
 - [CI 필수][G-4] 404 통일: 공개 표면의 조회 불가 상태는 모두 404로 통일한다. (D-050)
 
+### (B) Auth Spike Gate (필수 수동/반자동)
+
+Phase 2(App) 시작 전, Auth Spike Gate는 플랫폼별(최소 iOS + Android) 1회 이상 "통과"되어야 한다.
+
+- 증거 기준: 각 플랫폼에서 staging 환경 기준 통과 증거 1세트를 PR에 첨부
+- 운영 기준: dev/prod는 체크리스트로 추적하되 증거 첨부는 staging 중심으로 운영
+
+- [AS-1] (최대 3) 로그인 성공: Apple/Kakao는 필수(D-066), Google은 옵션
+- [AS-2] redirect/deeplink 왕복 성공: 외부 인증 -> 앱 복귀 안정 동작
+- [AS-3] 세션 생성/저장 확인: 앱 재시작 후 session 복구 확인
+- [AS-4] auth-only RPC 1개 호출 성공: 세션 유효성 서버 확인
+- [AS-5] dev/staging/prod 재현 체크리스트: 환경별로 재현 가능(비밀값 대신 "설정 위치"만 기록)
+
+> Note: Auth Spike 목적은 UI/온보딩이 아니라 "인증 리스크 조기 발견"이다.
+
 ---
 
-## 2) CI 필수 테스트 (최소 5종)
+## 2) CI 필수 테스트 (최소 6종)
 
 ### T-1 차단 스냅샷 테스트 (0 rows)
 - 대상 RPC(최소 2개): posts_feed, threads_feed
@@ -42,6 +66,19 @@ G-1 ~ G-4 전부 CI green이어야 Public RPC 또는 공개 웹 라우트 추가
 
 ### T-5 댓글 부모 post 가드 종속 404 (D-063)
 - post unpublish/hidden/deleted/block/미존재 상태에서 comments 조회는 0건이 아니라 not_found(-> 404)
+
+### T-6 revalidate endpoint 보안 네거티브 테스트 (Phase 3 전까지 필수)
+- 대상: `/api/revalidate` (또는 동등 엔드포인트)
+- 요구 불변식:
+  - secret header(`x-revalidate-secret`) missing/empty -> 401
+  - secret header mismatch/invalid -> 403
+  - allowlist 밖 path -> 403
+  - method는 POST만 허용(그 외 405 권장)
+- 최소 시나리오:
+  - secret 없음 -> 401
+  - secret 오답 -> 403
+  - secret 정답 + allowlist 밖 path -> 403
+  - secret 정답 + allowlist path -> 200
 
 ---
 
@@ -87,6 +124,12 @@ G-1 ~ G-4 전부 CI green이어야 Public RPC 또는 공개 웹 라우트 추가
 - 검색 FTS + noindex
 - 차단 후 상호 비노출(피드/검색/프로필/상세)
 
+### 웹 SEO(anon-only) 기대 동작 (D-098)
+- SEO 라우트(`/c*`, `/p*`)는 로그인 여부와 무관하게 anon과 동일한 렌더/데이터를 반환해야 한다.
+- SEO surface에서는 block(뷰어별)/개인화 반영을 기대하지 않는다.
+- 검증(수동): 동일 리소스를 anon과 로그인 상태에서 각각 호출해 HTML/JSON 결과가 동일함을 확인한다.
+- QA 커뮤니케이션 체크: "웹은 anon-only, 차단/개인화는 앱에서 보장"을 릴리즈 노트/체크리스트에 명시한다.
+
 ### 하우스
 - 슬롯 바인딩: is_current=true만 장착 가능
 - public+미발행 -> 타인 접근 404
@@ -104,6 +147,12 @@ G-1 ~ G-4 전부 CI green이어야 Public RPC 또는 공개 웹 라우트 추가
 - post publish -> 썸네일 생성
 - post unpublish/hide/delete -> 썸네일 삭제(직링크 404)
 - 재발행 -> 썸네일 재생성 + ISR revalidate
+
+### revalidate 보안(Phase 3 DoD)
+- secret header 없음/빈값 -> 401
+- secret header 불일치/오류 -> 403
+- allowlist 밖 경로 입력 -> 403
+- POST 외 메서드 호출 -> 405(권장)
 
 ### terms_agreed_at 가드 (D-073)
 - terms NULL + write RPC -> terms_not_agreed
