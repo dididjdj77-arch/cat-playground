@@ -81,7 +81,9 @@ $$;
 
 ```sql
 insert into public.payload_version_rollups (
-  version, bucket_ts, seen_count, reject_count, normalize_fail_count, last_seen_at
+  version, bucket_ts,
+  seen_count, reject_count, normalize_fail_count, unknown_count,
+  last_seen_at
 )
 select
   e.version,
@@ -89,6 +91,7 @@ select
   count(*) filter (where e.event_type = 'seen') as seen_count,
   count(*) filter (where e.event_type = 'reject') as reject_count,
   count(*) filter (where e.event_type = 'normalize_fail') as normalize_fail_count,
+  count(*) filter (where e.event_type = 'unknown') as unknown_count,
   max(e.ts) as last_seen_at
 from public.payload_version_events e
 where e.ts >= now() - interval '2 hours'
@@ -97,6 +100,7 @@ on conflict (version, bucket_ts) do update set
   seen_count = excluded.seen_count,
   reject_count = excluded.reject_count,
   normalize_fail_count = excluded.normalize_fail_count,
+  unknown_count = excluded.unknown_count,
   last_seen_at = greatest(payload_version_rollups.last_seen_at, excluded.last_seen_at);
 ```
 
@@ -136,4 +140,4 @@ select public.validate_payload_version('0.5');
 - See: DECISIONS D-028, D-042, D-045, D-089
 - See: docs/ADR/ADR-006-payload-version-kpi.md
 - See: docs/DATA-MODEL.md#11-payload_versions--kpi
-- See: docs/TESTING-STRATEGY.md
+- See: docs/VERIFICATION.md

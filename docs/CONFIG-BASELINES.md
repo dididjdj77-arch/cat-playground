@@ -37,6 +37,17 @@
 | 시간창 (window) | 24시간 (rolling) |
 | 트리거 동작 | hidden_at = now() (삭제 아님) |
 
+
+### app_config value shape (jsonb) — `auto_hide`
+
+```json
+{
+  "threshold_n": 5,
+  "window_hours": 24,
+  "trust_days": 7
+}
+```
+
 ---
 
 ## 3. app_config key 매핑 (D-056)
@@ -76,6 +87,19 @@
 | 정렬 | score DESC, created_at DESC |
 
 app_config key: `popular_feed`
+
+
+### app_config value shape (jsonb) — `popular_feed`
+
+```json
+{
+  "like_weight": 1,
+  "reply_weight": 2,
+  "window_days": 7
+}
+```
+
+정렬 규칙(LOCK): score DESC, created_at DESC
 
 ---
 

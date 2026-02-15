@@ -28,4 +28,3 @@
 
 ## EP-6. Maximize upside, minimize downside
 Explore broadly. Fail safely.
-

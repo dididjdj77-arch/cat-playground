@@ -71,4 +71,4 @@ See §0-1.
 - 하우스(본인): visibility/private 및 미발행 포함 항상 조회 가능.
 - 하우스(타인): See §0-1 + §0-4 (auth-only, D-035)
 - 타인에게 공개 가능한 인벤토리 정보: "하우스 슬롯 장착 요약(화이트리스트)"만(D-036).
-- 공개 하우스 응답에는 cats.avatar_url 포함 금지(D-037).
+- 공개 하우스 응답에는 cats.avatar_key / cats.avatar_url 포함 금지(D-037).

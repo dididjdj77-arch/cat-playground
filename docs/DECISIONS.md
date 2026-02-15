@@ -399,7 +399,7 @@
 - Class: GUARD
 - 무엇:
   - 운영 중 조정 가능한 파라미터는 DB app_config에 저장한다.
-  - key(v1): rate_limits, rate_limits_new_account, auto_hide
+  - key(v1): See CONFIG-BASELINES §3 (rate_limits, rate_limits_new_account, auto_hide, popular_feed)
 - 원칙/경계: direct SELECT 금지(권장), 읽기=SECURITY DEFINER RPC(whitelist), 쓰기=서버/운영만, 비밀값 금지, 새 key는 D-056+whitelist 선행.
 - 의미: 수치 변경을 코드 배포와 분리하고 공개/비공개 경계를 단일 지점에서 통제한다.
 - See: docs/playbooks/ops-app-config.md
@@ -506,7 +506,7 @@
   - HTTP 상태코드 매핑은 외부 표면(Edge Function/API Route/클라이언트 SDK wrapper)이 담당한다.
   - Supabase PostgREST에서 DB 함수가 예외 없이 정상 return하면 HTTP 200이 기본이며, 클라이언트는 `body.error_code`로 비즈니스 에러를 판별한다.
   - 권한/EXECUTE 거부나 예외(hard fail) 발생은 PostgREST 에러로 4xx/5xx가 될 수 있으며, 이는 비즈니스 에러(JSON return) 범주가 아니다.
-  - 매핑 규칙: `error_code -> HTTP 상태코드` 테이블은 API-CONTRACTS에서 관리한다.
+  - 매핑 규칙: `error_code -> HTTP 상태코드` 테이블은 `docs/API.md`에서 관리한다.
 - 의미: D-050(404 통일)과 동일한 "외부 표면에서 상태코드 결정" 패턴을 비즈니스 에러(409 등)로 확장하고, DB 함수의 책임을 데이터/로직에 한정한다.
 - See: D-050, D-022
 - 변경: ADR 불필요(기존 패턴의 명시화).
@@ -538,7 +538,7 @@
   - 가드:
     - 민감/공개 기능(예: 게시/댓글/공개 전환) 실행 전에는 terms_agreed_at IS NOT NULL을 요구한다.
     - **적용 방식(LOCK)**: guard_terms_agreed()를 공통 guard 함수로 구현하고, **모든 write RPC**(post/comment/reply/thread/like/report/block/house publish·slot bind/inventory switch·discontinue 등)에서 필수 호출한다. read-only RPC에는 적용하지 않는다.
-    - See: RPC-SPECS "공통 Guard 패턴"
+    - See: `docs/API.md` "공통 Guard 패턴"
 - 의미: 한국 중심 소셜 로그인 전환율을 확보하면서, 링크/부트스트랩/약관 동의 타이밍으로 인한 가입 실패와 CS 리스크를 줄인다.
 - 변경: ADR 권장
 
@@ -626,7 +626,7 @@
   - DB RPC는 JSON return(D-065 유지). HTTP 매핑은 두 경로:
     - (A) 앱: 클라이언트 SDK wrapper가 body.error_code 파싱/throw
     - (B) 웹 SSR: Next.js route handler에서 error_code→HTTP 변환
-  - 매핑 테이블 SSOT는 API-CONTRACTS "Transport Adapter" 섹션
+  - 매핑 테이블 SSOT는 `docs/API.md` "Transport Adapter" 섹션
 - See: D-065, D-050
 - 변경: ADR 불필요
 
@@ -834,5 +834,5 @@
     3. `guard_soft_state(deleted_at, hidden_at)` — 해당 시
     4. domain-specific guard (`guard_visibility_published` 등) — 해당 시
   - 순서 근거: 약관 미동의는 최우선 차단, block은 데이터 조회 전 차단, soft_state/domain은 데이터 의존이다.
-- See: D-073, docs/RPC-SPECS.md#공통-guard-패턴
+- See: D-073, docs/`docs/API.md`.md#공통-guard-패턴
 - 변경: ADR 불필요

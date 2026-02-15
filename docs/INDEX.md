@@ -15,18 +15,13 @@
 - docs/OPEN.md
 
 ## 3) 도메인/데이터/권한
-- docs/DOMAIN-MAP.md
 - docs/DATA-MODEL.md
 - docs/AUTHZ-MODEL.md
-- docs/RLS-POLICY.md
 
-## 4) API/IA/QA
-- docs/API-CONTRACTS.md
+## 4) API/IA/검증
+- docs/API.md
 - docs/ROUTES-AND-IA.md
-- docs/QA-SCENARIOS.md
-- docs/SCHEMA-MIGRATIONS.md
-- docs/RPC-SPECS.md
-- docs/TESTING-STRATEGY.md
+- docs/VERIFICATION.md
 
 ## 5) ADR
 - docs/ADR/ADR-000-template.md
@@ -36,9 +31,7 @@
 - docs/ADR/ADR-007-house-v1.md
 
 ## 6) 기타
-- docs/HOWTO/local-setup.md
 - docs/engineering-philosophy-v1.md
-- docs/PACKET-TEMPLATES.md
 
 ## 7) Playbooks
 - docs/playbooks/migrations.md

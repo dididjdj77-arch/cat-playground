@@ -1,7 +1,7 @@
 # Playbook: Migrations
 
 > 이 문서는 스키마 마이그레이션 작업의 실행 가이드입니다.
-> 정책 근거: See DECISIONS D-032, PROCESS, SCHEMA-MIGRATIONS.md
+> 정책 근거: See DECISIONS D-032, PROCESS
 
 ## 체크리스트
 
@@ -120,6 +120,29 @@ drop table if exists public.parent_items;
 commit;
 ```
 
+## Baseline migration file order (v1.1)
+
+- 001_extensions.sql
+- 002_profiles.sql
+- 003_cats.sql
+- 004_catalog.sql
+- 005_inventory.sql
+- 006_observation.sql
+- 007_nyanstagram.sql (posts + comments + comment_revisions)
+- 008_channel.sql (topics + threads + replies + reply_revisions + FTS)
+- 009_likes.sql
+- 010_house.sql
+- 011_moderation.sql (blocks + reports + moderation_actions)
+- 012_ops.sql (ops_metrics + payload_versions + events + rollups)
+- 013_notifications.sql
+- 014_app_config.sql (테이블 + RPC + seed)
+- 015_auth_trigger.sql
+- 016_storage.sql (buckets + policies)
+- 017_length_checks.sql (D-075 CHECK 제약 일괄)
+- 018_guard_functions.sql
+- 019_rls.sql
+
+
 ## 검증
 
 ### 스모크 테스트
@@ -143,5 +166,4 @@ values ('00000000-0000-0000-0000-000000000000', '');
 
 ## 근거 링크
 - See: DECISIONS D-032
-- See: docs/SCHEMA-MIGRATIONS.md
 - See: docs/PROCESS.md#6-고위험-판정-원칙-from-d-032
