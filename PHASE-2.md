@@ -175,6 +175,7 @@
 
 **Interfaces**  
 - Routes: `/house`, `/inventory`, `/u/{nickname}/house`  
+- Entry: 작성자(닉네임/아바타) 탭 액션 메뉴 → 하우스 보기 (D-099)
 - RPC: `rpc_set_house_slot`, `rpc_clear_house_slot`, `rpc_get_public_house_slots_summary`  
 - publish/unpublish RPC: **TBD**
 
@@ -188,7 +189,7 @@
 
 **SSOT refs**  
 - `docs/ROUTES-AND-IA.md`, `docs/DECISIONS.md`, `docs/AUTHZ-MODEL.md`  
-- D-006, D-035, D-037, D-074
+- D-006, D-035, D-037, D-074, D-099
 
 **Prerequisites**: P1-03
 
@@ -291,7 +292,7 @@
 
 **Interfaces**  
 - RPC: `rpc_get_public_threads_feed` + 나머지 **TBD**  
-- UX: 닉네임 탭 액션 메뉴(D-017)
+- UX: 작성자(닉네임/아바타) 탭 액션 메뉴(D-017, D-099)
 
 **Validation placeholders**  
 - 수동: 피드3종 + cursor, 검색(FTS), 답글 1-depth
@@ -302,7 +303,7 @@
 
 **SSOT refs**  
 - `docs/ROUTES-AND-IA.md`, `docs/DECISIONS.md`  
-- D-013, D-017, D-077
+- D-013, D-017, D-077, D-099
 
 **Prerequisites**: P1-05, P2-00
 
