@@ -1,11 +1,6 @@
 # PHASE-0.md
 # Phase 0 — Infra + Spine (DB 스파인 정체성 유지)
 
-## Scope Baseline (PR-1)
-- 계획 경로 표준(placeholder 치환): `apps/expo/**`, `apps/web/**`, `packages/shared/**`, `tests/**`, `supabase/functions/**`, `supabase/**`
-- 공통 Allowed paths(모든 EP): `docs/**`, `.github/**`, `scripts/**`, `supabase/**`
-- Forbidden(모든 EP): Allowed에 적힌 것 외 변경 금지
-
 ## EP P0-01 — 모노레포 스파인 + 공용 경계 + 표준 커맨드 스켈레톤
 **Goal (1~3줄)**  
 - 이후 모든 EP를 “기계적 반복”으로 만들기 위한 레포 구조/경계/스크립트 이름을 고정한다.  
@@ -17,15 +12,15 @@
 3) Evidence-only: exact SQL, expected output, 마이그레이션 번호/파일명 같은 확정값은 SSOT나 실제 코드 근거가 있을 때만 적는다. 근거 없으면 TBD 유지.
 
 **Scope**  
-- Allowed paths:  
+- Allowed paths (대략/TBD 허용):  
   - `docs/**` (필요 시 스켈레톤 문서만)  
-  - `apps/expo/**` (탭 4개 라우팅 스텁만)  
-  - `apps/web/**` (SEO 라우트 스텁만)  
-  - `packages/shared/**` (DTO whitelist/에러코드 enum 타입 스텁)  
-  - `.github/**` (CI가 표준 스크립트만 호출하도록 스텁)  
-  - `scripts/**` (공통 Allowed paths)  
-  - `supabase/**` (공통 Allowed paths)  
-- Forbidden: Allowed에 적힌 것 외 변경 금지  
+  - `TBD: <expo-app-root>/**` (탭 4개 라우팅 스텁만)  
+  - `TBD: <next-web-root>/**` (SEO 라우트 스텁만)  
+  - `TBD: <shared-root>/**` (DTO whitelist/에러코드 enum 타입 스텁)  
+  - `TBD: .github/**` (CI가 표준 스크립트만 호출하도록 스텁)  
+- Forbidden changes:  
+  - DB 스키마/마이그레이션 실제 구현(Phase 0-3에서만)  
+  - 공개 정책/가드 로직/권한 모델 변경(Decision/ADR 없이 금지)  
 - Public surface? **no**  
 - Schema change? **no**  
 - RLS/SECURITY DEFINER? **no**  
@@ -72,10 +67,10 @@
 
 **Scope**  
 - Allowed paths:  
-  - `supabase/**`  
-  - `.github/**`  
+  - `TBD: <supabase-root>/**`  
+  - `TBD: CI config (.github/** 또는 동등)`  
   - `docs/VERIFICATION.md` (필요 시 “스크립트 이름”만 확인/정정)  
-- Forbidden: Allowed에 적힌 것 외 변경 금지  
+- Forbidden changes: 스키마 내용 자체 변경(Phase 0-3로 제한)  
 - Public surface? **no**  
 - Schema change? **no**  
 - RLS/SECURITY DEFINER? **no**  
@@ -119,8 +114,8 @@
 - 대형 마이그 파일 1개 몰아넣기 금지(3~4 EP 분할의 1/4).
 
 **Scope**  
-- Allowed: `supabase/migrations/**`  
-- Forbidden: Allowed에 적힌 것 외 변경 금지  
+- Allowed: `TBD: <supabase-root>/migrations/**`  
+- Forbidden: RLS/SECURITY DEFINER/GRANT/REVOKE, 앱/웹 코드  
 - Public surface? **no** / Schema change? **yes** / RLS·SECURITY DEFINER? **no** / Write? **yes**
 
 **Interfaces**  
@@ -159,8 +154,8 @@
 - FTS/카운터/수정 이력/차단/신고/알림의 최소 저장소를 확정한다.
 
 **Scope**  
-- Allowed: `supabase/migrations/**`  
-- Forbidden: Allowed에 적힌 것 외 변경 금지  
+- Allowed: `TBD: <supabase-root>/migrations/**`  
+- Forbidden: RLS/SECURITY DEFINER/GRANT/REVOKE, 앱/웹 코드  
 - Public surface? **no** / Schema change? **yes** / RLS·SECURITY DEFINER? **no** / Write? **yes**
 
 **Interfaces**  
@@ -198,8 +193,8 @@
 - Auth 부트스트랩(profiles upsert)과 Storage 공개 경계를 v1 기준선으로 깔아 둔다.
 
 **Scope**  
-- Allowed: `supabase/migrations/**`, `docs/CONFIG-BASELINES.md`(링크 보강만)  
-- Forbidden: Allowed에 적힌 것 외 변경 금지  
+- Allowed: `TBD: <supabase-root>/migrations/**`, `docs/CONFIG-BASELINES.md`(링크 보강만)  
+- Forbidden: 도메인별 RPC 본격 구현(Phase 1)  
 - Public surface? **no** / Schema change? **yes** / RLS·SECURITY DEFINER? **yes** / Write? **yes**
 
 **Interfaces**  
@@ -240,8 +235,8 @@
 - “원본 테이블 direct SELECT 금지 + SECURITY DEFINER RPC 단일 경로(D-029)”를 구조로 고정한다.
 
 **Scope**  
-- Allowed: `supabase/migrations/**`  
-- Forbidden: Allowed에 적힌 것 외 변경 금지  
+- Allowed: `TBD: <supabase-root>/migrations/**`  
+- Forbidden: 앱/웹 코드, 도메인별 RPC(Phase 1)  
 - Public surface? **no** / Schema change? **yes** / RLS·SECURITY DEFINER? **yes** / Write? **yes**
 
 **Interfaces**  
@@ -280,8 +275,8 @@
 - Public Surface Gate(G-1~G-4)는 이후 실제 머지 조건으로 전환 가능해야 한다.
 
 **Scope**  
-- Allowed: `tests/**`, `tests/fixtures/**`, `.github/**`  
-- Forbidden: Allowed에 적힌 것 외 변경 금지  
+- Allowed: `TBD: <test-root>/**`, `TBD: <seed-fixtures>/**`, `TBD: CI config`  
+- Forbidden: 도메인 기능 구현  
 - Public surface? **yes** / Schema change? **no** / RLS·SECURITY DEFINER? **no** / Write? **no**
 
 **Interfaces**  
@@ -319,8 +314,8 @@
 - “공개 응답=whitelist”를 타입+테스트로 강제할 공용 경계를 만든다.
 
 **Scope**  
-- Allowed: `packages/shared/**`, `scripts/**`, `.github/**`  
-- Forbidden: Allowed에 적힌 것 외 변경 금지  
+- Allowed: `TBD: <shared-root>/**`, `TBD: scripts/**`, `TBD: CI config`  
+- Forbidden: DB/도메인 로직 변경  
 - Public surface? **no** / Schema change? **no** / RLS·SECURITY DEFINER? **no** / Write? **no**
 
 **Interfaces**  
@@ -356,7 +351,7 @@
 
 **Scope**  
 - Allowed: `docs/playbooks/ops-app-config.md`  
-- Forbidden: Allowed에 적힌 것 외 변경 금지  
+- Forbidden: 코드/스키마 변경  
 - Public surface? **no** / Schema change? **no** / RLS·SECURITY DEFINER? **no** / Write? **no**
 
 **Interfaces**  

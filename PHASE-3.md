@@ -1,11 +1,6 @@
 # PHASE-3.md
 # Phase 3 — Web(Next.js) + 썸네일 + 운영 마무리
 
-## Scope Baseline (PR-1)
-- 계획 경로 표준(placeholder 치환): `apps/expo/**`, `apps/web/**`, `packages/shared/**`, `tests/**`, `supabase/functions/**`, `supabase/**`
-- 공통 Allowed paths(모든 EP): `docs/**`, `.github/**`, `scripts/**`, `supabase/**`
-- Forbidden(모든 EP): Allowed에 적힌 것 외 변경 금지
-
 ## EP P3-00 — Transport Adapter(웹 SSR/ISR) 구현(error_code → HTTP)
 **Goal (1~3줄)**  
 - 웹에서 `error_code`를 HTTP 상태코드로 변환(D-071)해 200+에러바디 노출을 제거한다.  
@@ -17,8 +12,8 @@
 3) Evidence-only: exact SQL, expected output, 마이그레이션 번호/파일명 같은 확정값은 SSOT나 실제 코드 근거가 있을 때만 적는다. 근거 없으면 TBD 유지.
 
 **Scope**  
-- Allowed: `apps/web/**`, `packages/shared/**`  
-- Forbidden: Allowed에 적힌 것 외 변경 금지  
+- Allowed: `TBD: <next-web-root>/**`, `TBD: <shared-root>/**`  
+- Forbidden: DB/RLS/스키마 변경  
 - Public surface? **yes** / Schema change? **no** / RLS·SECURITY DEFINER? **no** / Write? **no**
 
 **Interfaces**  
@@ -55,8 +50,8 @@
 - v1 SEO surface는 anon 기준 결과로 고정(D-098), noindex 정책 준수.
 
 **Scope**  
-- Allowed: `apps/web/**`  
-- Forbidden: Allowed에 적힌 것 외 변경 금지  
+- Allowed: `TBD: <next-web-root>/**`  
+- Forbidden: DB/RLS/스키마 변경  
 - Public surface? **yes** / Schema change? **no** / RLS·SECURITY DEFINER? **no** / Write? **no**
 
 **Interfaces**  
@@ -93,15 +88,14 @@
 - revalidate 보안 불변식을 테스트로 강제(VERIFICATION T-6).
 
 **Scope**  
-- Allowed: `apps/web/**`, `supabase/**`, `supabase/functions/**`  
-- Forbidden: Allowed에 적힌 것 외 변경 금지  
+- Allowed: `TBD: <next-web-root>/**`, `TBD: <supabase-root>/**`, `TBD: <edge-or-worker-root>/**`  
+- Forbidden: unrelated 기능 추가  
 - Public surface? **yes** / Schema change? **yes** / RLS·SECURITY DEFINER? **yes** / Write? **yes**
 
 **Interfaces**  
 - Storage: `assets`(원본 private), `assets-public`(썸네일 public)  
 - Web: `/api/revalidate` + `x-revalidate-secret`  
 - allowlist 기반 path 제한
-- 썸네일 생성/삭제 트리거는 posts publish/unpublish 의미(D-007)와 정합해야 한다.
 
 **Validation placeholders**  
 - VERIFICATION T-6 네거티브 4종(401/403/403/200)  
@@ -117,7 +111,7 @@
 - `docs/playbooks/seo-web.md`, `docs/VERIFICATION.md`, `docs/DECISIONS.md`, `docs/DATA-MODEL.md`  
 - D-067, D-072, D-025
 
-**Prerequisites**: P3-01, P0-03C(storage baseline), P1-04 (posts publish/unpublish 트리거 정합)
+**Prerequisites**: P3-01, P0-03C(storage baseline)
 
 **OPEN**  
 - 트리거 실행체 선택(pg_net/webhook vs Edge Function).
@@ -135,8 +129,8 @@
 - app_config seed/조회 검증 및 레이트리밋 동작 확인을 포함한다.
 
 **Scope**  
-- Allowed: `supabase/**`, `docs/CONFIG-BASELINES.md`, `docs/playbooks/ops-app-config.md`  
-- Forbidden: Allowed에 적힌 것 외 변경 금지  
+- Allowed: `TBD: <supabase-root>/**`, `docs/CONFIG-BASELINES.md`, `docs/playbooks/ops-app-config.md`  
+- Forbidden: 앱/웹 UI  
 - Public surface? **no** / Schema change? **yes** / RLS·SECURITY DEFINER? **yes** / Write? **yes**
 
 **Interfaces**  
@@ -175,7 +169,7 @@
 
 **Scope**  
 - Allowed: `docs/playbooks/ops-app-config.md` (+ 필요시 `docs/VERIFICATION.md` 링크 보강)  
-- Forbidden: Allowed에 적힌 것 외 변경 금지  
+- Forbidden: 기능 구현  
 - Public surface? **no** / Schema change? **no** / RLS·SECURITY DEFINER? **no** / Write? **no**
 
 **Interfaces**  

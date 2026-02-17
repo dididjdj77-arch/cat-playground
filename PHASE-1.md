@@ -1,11 +1,6 @@
 # PHASE-1.md
 # Phase 1 — Core RPC(도메인별) + 회귀 테스트
 
-## Scope Baseline (PR-1)
-- 계획 경로 표준(placeholder 치환): `apps/expo/**`, `apps/web/**`, `packages/shared/**`, `tests/**`, `supabase/functions/**`, `supabase/**`
-- 공통 Allowed paths(모든 EP): `docs/**`, `.github/**`, `scripts/**`, `supabase/**`
-- Forbidden(모든 EP): Allowed에 적힌 것 외 변경 금지
-
 ## EP P1-01 — 인벤토리(owner) RPC: switch/discontinue (+ 불변식 회귀)
 **Goal (1~3줄)**  
 - 인벤 원장 모델(D-057/D-075)을 DB write RPC로 고정한다.  
@@ -17,8 +12,8 @@
 3) Evidence-only: exact SQL, expected output, 마이그레이션 번호/파일명 같은 확정값은 SSOT나 실제 코드 근거가 있을 때만 적는다. 근거 없으면 TBD 유지.
 
 **Scope**  
-- Allowed: `supabase/**`, `tests/**`  
-- Forbidden: Allowed에 적힌 것 외 변경 금지  
+- Allowed: `TBD: <supabase-root>/**`, `TBD: <test-root>/**`  
+- Forbidden: 공개 RPC/SEO/web/app UI  
 - Public surface? **no** / Schema change? **no** / RLS·SECURITY DEFINER? **yes** / Write? **yes**
 
 **Interfaces**  
@@ -57,8 +52,8 @@
 3) Evidence-only: exact SQL, expected output, 마이그레이션 번호/파일명 같은 확정값은 SSOT나 실제 코드 근거가 있을 때만 적는다. 근거 없으면 TBD 유지.
 
 **Scope**  
-- Allowed: `supabase/**`, `tests/**`  
-- Forbidden: Allowed에 적힌 것 외 변경 금지  
+- Allowed: `TBD: <supabase-root>/**`, `TBD: <test-root>/**`  
+- Forbidden: 앱/웹 UI  
 - Public surface? **no** / Schema change? **no** / RLS·SECURITY DEFINER? **yes** / Write? **yes**
 
 **Interfaces**  
@@ -98,8 +93,8 @@
 3) Evidence-only: exact SQL, expected output, 마이그레이션 번호/파일명 같은 확정값은 SSOT나 실제 코드 근거가 있을 때만 적는다. 근거 없으면 TBD 유지.
 
 **Scope**  
-- Allowed: `supabase/**`, `tests/**`  
-- Forbidden: Allowed에 적힌 것 외 변경 금지  
+- Allowed: `TBD: <supabase-root>/**`, `TBD: <test-root>/**`  
+- Forbidden: 앱/웹 UI  
 - Public surface? **yes** / Schema change? **no** / RLS·SECURITY DEFINER? **yes** / Write? **yes**
 
 **Interfaces**  
@@ -137,8 +132,8 @@
 3) Evidence-only: exact SQL, expected output, 마이그레이션 번호/파일명 같은 확정값은 SSOT나 실제 코드 근거가 있을 때만 적는다. 근거 없으면 TBD 유지.
 
 **Scope**  
-- Allowed: `supabase/**`, `tests/**`, `.github/**`  
-- Forbidden: Allowed에 적힌 것 외 변경 금지  
+- Allowed: `TBD: <supabase-root>/**`, `TBD: <test-root>/**`, `TBD: CI config`  
+- Forbidden: 앱/웹 UI  
 - Public surface? **yes** / Schema change? **no** / RLS·SECURITY DEFINER? **yes** / Write? **yes**
 
 **Interfaces**  
@@ -178,8 +173,8 @@
 3) Evidence-only: exact SQL, expected output, 마이그레이션 번호/파일명 같은 확정값은 SSOT나 실제 코드 근거가 있을 때만 적는다. 근거 없으면 TBD 유지.
 
 **Scope**  
-- Allowed: `supabase/**`, `tests/**`  
-- Forbidden: Allowed에 적힌 것 외 변경 금지  
+- Allowed: `TBD: <supabase-root>/**`, `TBD: <test-root>/**`  
+- Forbidden: 앱/웹 UI  
 - Public surface? **yes** / Schema change? **no** / RLS·SECURITY DEFINER? **yes** / Write? **yes**
 
 **Interfaces**  
@@ -217,8 +212,8 @@
 3) Evidence-only: exact SQL, expected output, 마이그레이션 번호/파일명 같은 확정값은 SSOT나 실제 코드 근거가 있을 때만 적는다. 근거 없으면 TBD 유지.
 
 **Scope**  
-- Allowed: `supabase/**`, `tests/**`  
-- Forbidden: Allowed에 적힌 것 외 변경 금지  
+- Allowed: `TBD: <supabase-root>/**`, `TBD: <test-root>/**`  
+- Forbidden: 앱/웹 UI  
 - Public surface? **no** / Schema change? **no** / RLS·SECURITY DEFINER? **yes** / Write? **yes**
 
 **Interfaces**  
