@@ -147,7 +147,76 @@ DB RPC는 항상 JSON return(D-065). 외부 표면(웹 SSR/SDK wrapper)이 `body
 
 ---
 
-## 7) 논리적 REST 계약(참고)
+## 7) 도메인 Write RPC(SSOT)
+
+공통 규약:
+- 모든 write RPC는 `guard_terms_agreed()`를 적용하고, 호출 순서는 D-096(`terms -> block -> soft_state -> domain`)을 준수한다.
+- 에러 전달은 JSON return(D-065)이며, 외부 표면의 HTTP 매핑은 D-071을 따른다.
+
+### 7-1) 냥스타그램 Write RPC
+
+`rpc_create_post(p_body text, p_log_date date, p_visibility text, p_hide_from_profile bool default false, p_meta jsonb default '{}'::jsonb) returns jsonb`
+
+`rpc_update_post(p_post_id uuid, p_body text default null, p_visibility text default null, p_hide_from_profile bool default null, p_meta jsonb default null) returns jsonb`
+
+`rpc_delete_post(p_post_id uuid) returns jsonb` (soft delete)
+
+`rpc_publish_post(p_post_id uuid) returns jsonb`
+
+`rpc_unpublish_post(p_post_id uuid) returns jsonb`
+
+`rpc_create_comment(p_post_id uuid, p_body text) returns jsonb`
+
+`rpc_update_comment(p_comment_id uuid, p_body text) returns jsonb`
+
+`rpc_delete_comment(p_comment_id uuid) returns jsonb`
+
+`rpc_toggle_like(p_target_type text, p_target_id uuid) returns jsonb`
+
+최소 계약:
+- publish/unpublish 전이는 D-007 패턴을 준수한다: `private + published_at` 금지, visibility를 private로 전환 시 `published_at=NULL` 강제.
+
+### 7-2) 채널 Write RPC
+
+`rpc_list_topics() returns jsonb`
+
+`rpc_follow_topic(p_topic_id uuid) returns jsonb`
+
+`rpc_unfollow_topic(p_topic_id uuid) returns jsonb`
+
+`rpc_create_thread(p_topic_id uuid, p_title text, p_body text) returns jsonb`
+
+`rpc_update_thread(p_thread_id uuid, p_title text default null, p_body text default null) returns jsonb`
+
+`rpc_delete_thread(p_thread_id uuid) returns jsonb`
+
+`rpc_create_reply(p_thread_id uuid, p_body text) returns jsonb`
+
+`rpc_update_reply(p_reply_id uuid, p_body text) returns jsonb`
+
+`rpc_delete_reply(p_reply_id uuid) returns jsonb`
+
+`rpc_search_threads(p_q text, p_topic_id uuid default null, p_cursor text default null, p_limit int default 20) returns jsonb`
+
+피드 3종 표면 고정(v1):
+- `rpc_get_public_threads_feed(p_sort text default 'new', p_cursor text default null, p_limit int default 20) returns jsonb`
+- `p_sort`는 `new|popular|following`을 사용하며, cursor/limit 규칙은 D-077(키셋 커서 통일)을 따른다.
+
+### 7-3) 운영 Write RPC
+
+`rpc_report_content(p_target_type text, p_target_id uuid, p_reason_code text, p_note text default null) returns jsonb`
+
+`rpc_block_user(p_blocked_user_id uuid) returns jsonb`
+
+`rpc_unblock_user(p_blocked_user_id uuid) returns jsonb`
+
+최소 계약:
+- 차단은 D-019를 따른다(상호 비노출 + 상호작용 불가). anon viewer에는 block 필터를 적용하지 않는다(AUTHZ-MODEL §0-2).
+- report는 신고 시점 snapshot 저장(D-052)을 보장하고, 중복 신고는 `duplicate_report`(409)로 처리한다(D-056/`docs/playbooks/moderation.md` 정합).
+
+---
+
+## 8) 논리적 REST 계약(참고)
 > 실제 구현은 RPC로 대체될 수 있다.
 
 ### 냥스타그램
