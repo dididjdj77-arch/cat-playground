@@ -69,6 +69,13 @@
 - PR에서 Forbidden 변경이 발생하면 즉시 분리 EP로 쪼개서 재제출한다(범위 슬립 방지).
 - PR 템플릿에는 "고위험 단독 EP 항목 포함 여부/단독 EP 분리 여부" 체크를 필수 기재한다.
 
+### Schema freeze 규칙 (Phase 0 -> Phase 1 경계)
+- P0-03A~D 완료 시점을 schema baseline으로 간주한다.
+- Phase 1 기능 EP는 원칙적으로 schema 변경을 금지한다(기존 EP 표기 유지).
+- Phase 1 중 schema 변경이 필요하면 기존 기능 EP에 섞지 않고 별도 Migration EP(Annex B)로 분리한다.
+- Migration EP는 rollback 경로와 `db:reset` 기반 검증 Evidence를 필수로 포함한다.
+- 기능 EP에 schema 변경을 끼워 넣는 경우 scope slip으로 간주하고 PR reject 대상이다.
+
 ---
 
 ## 5. EP-ID 관리 (from D-048)

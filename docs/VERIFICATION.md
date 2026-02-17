@@ -38,6 +38,11 @@ Phase 2(App) 시작 전, Auth Spike Gate는 플랫폼별(최소 iOS + Android) 1
 
 > Note: Auth Spike 목적은 UI/온보딩이 아니라 "인증 리스크 조기 발견"이다.
 
+### Placeholder -> Exact 전환 원칙 (Phase 0)
+- placeholder 검증 항목은 Phase 0(P0-04)에서 최소 G-1~G-4, DCI-1~DCI-2 범위까지 exact로 전환한다.
+- exact 커맨드 표면은 SSOT 스크립트 이름(`ci:public-gate`, `ci:drift`, `ci:verify`)을 기준으로 고정한다.
+- 실제 구현 커맨드는 레포 스크립트/테스트 루트가 확정된 뒤에만 문서에 명시한다.
+
 ---
 
 ## 2) CI 필수 테스트 (최소 6종)
