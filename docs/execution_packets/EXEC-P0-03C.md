@@ -10,7 +10,7 @@
 - Assign EP-ID (controller fills): `EP-YYYYMMDD-<slug>`
 - Risk level: **PRECISE**
 - Impact flags (from Phase skeleton):
-  - Public surface: **no**
+  - Public surface: **yes**  (assets-public bucket + rpc_get_app_config endpoint)
   - Schema change: **yes**
   - RLS·SECURITY DEFINER: **yes**
   - Write: **yes**
@@ -22,7 +22,7 @@
 - Prerequisites: P0-03B
 
 ## Hardening safety rules (MUST)
-1) Reality check: 레포에 실제로 존재하는 파일/경로/심볼/테이블/RPC 이름만 사용한다. 확실치 않으면 만들지 말고 OPEN으로 남긴다.
+1) Reality check: 레포에 존재하는 경로/규칙을 따른다. 신규 DB 오브젝트는 SSOT(API/DATA-MODEL/DECISIONS/Playbook)에 명시된 이름만 생성한다. SSOT에 없는 신규 이름/표면은 만들지 말고 OPEN.
 2) Conservative risk: Public surface / Schema / RLS·SECURITY DEFINER / Write 여부가 애매하면 yes로 보수적으로 판정하고 필요한 게이트/검증을 포함한다.
 3) Evidence-only: exact SQL, expected output, 마이그레이션 번호/파일명 같은 확정값은 SSOT나 실제 코드 근거가 있을 때만 적는다. 근거 없으면 TBD 유지.
 
@@ -40,24 +40,26 @@
 
 ## Blockers / SSOT gaps (stop-the-line)
 > 아래 항목이 해결되지 않으면 **구현을 진행하지 않는다**. (추측 구현 금지)
-- - Auth bootstrap 오브젝트 이름: **TBD(레포 근거 필요)**
+- - Auth bootstrap 오브젝트 이름: **controller fills** (선택한 함수/트리거 이름을 Result Packet에 기록)
 
 ## Targets (이 EP에서 만지는 주요 표면)
 - RPC:
-  - `rpc_get_app_config`
-- Tables / Entities (참고):
+  - `rpc_get_app_config` (read-only)
+- Tables:
   - `app_config`
-  - `assets`
   - `ops_metrics`
+  - `payload_versions`
   - `payload_version_events`
   - `payload_version_rollups`
-  - `payload_versions`
+- Storage buckets:
+  - `assets` (private)
+  - `assets-public` (public, anon read only — auth write 금지, service_role만 write)
 
 ## Baseline spec (from Phase file)
 ```markdown
 ## EP P0-03C — Ops/app_config + payload KPI + auth bootstrap + storage baseline
 **Hardening safety rules (EP마다 반드시 포함)**  
-1) Reality check: 레포에 실제로 존재하는 파일/경로/심볼/테이블/RPC 이름만 사용한다. 확실치 않으면 만들지 말고 OPEN으로 남긴다.  
+1) Reality check: 레포에 존재하는 경로/규칙을 따른다. 신규 DB 오브젝트는 SSOT(API/DATA-MODEL/DECISIONS/Playbook)에 명시된 이름만 생성한다. SSOT에 없는 신규 이름/표면은 만들지 말고 OPEN.  
 2) Conservative risk: Public surface / Schema / RLS·SECURITY DEFINER / Write 여부가 애매하면 yes로 보수적으로 판정하고 필요한 게이트/검증을 포함한다.  
 3) Evidence-only: exact SQL, expected output, 마이그레이션 번호/파일명 같은 확정값은 SSOT나 실제 코드 근거가 있을 때만 적는다. 근거 없으면 TBD 유지.
 
@@ -68,13 +70,13 @@
 **Scope**  
 - Allowed: `supabase/migrations/**`, `docs/CONFIG-BASELINES.md`(링크 보강만)  
 - Forbidden: Allowed에 적힌 것 외 변경 금지  
-- Public surface? **no** / Schema change? **yes** / RLS·SECURITY DEFINER? **yes** / Write? **yes**
+- Public surface? **yes** (assets-public + RPC) / Schema change? **yes** / RLS·SECURITY DEFINER? **yes** / Write? **yes**
 
 **Interfaces**  
 - Tables: `app_config`, `ops_metrics`, `payload_versions`, `payload_version_events`, `payload_version_rollups`  
 - RPC: `rpc_get_app_config(p_keys text[]) returns jsonb`  
 - Storage buckets: `assets`(private), `assets-public`(public)  
-- Auth bootstrap 오브젝트 이름: **TBD(레포 근거 필요)**
+- Auth bootstrap 오브젝트 이름: **controller fills** (선택한 함수/트리거 이름을 Result Packet에 기록)
 
 **Validation placeholders**  
 - `db:reset` + `db:smoke`  
@@ -109,7 +111,7 @@
 - [ ] 새 migration 파일(들) 생성: 파일 번호/이름은 레포 규칙을 따르고, **큰 파일 1개에 몰아넣지 않는다**.
 - [ ] `begin; ... commit;` + `lock_timeout/statement_timeout` 설정(플레이북 migrations 준수).
 - [ ] 제약/인덱스/FTS(해당 시) 추가는 DATA-MODEL/DECISIONS 근거와 1:1로 대응되게 작성.
-- [ ] RLS 정책 변경은 **스키마 변경과 분리**(Phase 0에서는 P0-03D).
+- [ ] RLS/권한/SECURITY DEFINER 변경은 **스키마 변경과 파일 분리**한다(ops/app_config/auth_trigger/storage 각각 별 migration). (migrations playbook)
 - [ ] 롤백 경로 명시: `_down.sql` 또는 revert 커밋 전략 중 하나를 확정.
 
 ### 2) Security/RLS/권한
@@ -119,12 +121,10 @@
 - [ ] anon/authenticated에서의 접근(성공/거부/404 통일)을 **smoke + negative**로 확인.
 
 ### 3) RPC/Contract 구현
-- [ ] write RPC는 트랜잭션 경계 명시(부분쓰기 방지) + idempotency/expected_version(해당 시) 구현.
-- [ ] 비즈니스 에러는 JSON return(`error_code`, 추가 필드)로 전달(raise exception은 hard fail만).
-- [ ] `guard_terms_agreed()` 적용(D-073) + guard 호출 순서(D-096) 고정.
-- [ ] replay는 최초 성공과 동일 shape를 반환(status-only 금지, D-061).
-- [ ] GRANT/REVOKE: anon/authenticated 권한을 SSOT에 맞게 최소로 설정.
-- [ ] 테스트/스냅샷(VERIFICATION, drift)으로 계약/가드/누출 방지를 회귀로 고정.
+> 이 EP에서 다루는 RPC는 `rpc_get_app_config`(read-only)만 해당한다. 그 외 write RPC 규칙은 해당 도메인 EP에서 다룬다.
+- [ ] `rpc_get_app_config(p_keys text[]) returns jsonb` 구현 (SECURITY DEFINER, `set search_path` 고정).
+- [ ] GRANT/REVOKE: `rpc_get_app_config`에 대해 authenticated EXECUTE만 부여, anon 거부.
+- [ ] 테스트/스냅샷(VERIFICATION, drift)으로 계약/누출 방지를 회귀로 고정.
 
 ## Validation (must run)
 - Risk level: **PRECISE**
@@ -162,7 +162,7 @@
 - [ ] 앱/웹: 기능 플래그/리버트 커밋 절차.
 
 ## OPEN (from Phase)
-- auth bootstrap의 정확한 DB 오브젝트 이름/경로.
+- auth bootstrap 함수/트리거 이름은 controller fills로 결정 후 Result Packet에 기록.
 
 ## Result Packet (PR 본문에 채워 넣기)
 
