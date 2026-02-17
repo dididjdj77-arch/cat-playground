@@ -32,12 +32,22 @@
 
 ## Blockers / SSOT gaps (stop-the-line)
 > 아래 항목이 해결되지 않으면 **구현을 진행하지 않는다**. (추측 구현 금지)
-- - RPC: `rpc_get_public_threads_feed` + 나머지 **TBD**
-- OPEN: 채널 RPC 이름이 SSOT(API)에 누락 → Phase 1에서 선행 보강 필요.
+- (해소됨) 채널 RPC는 API.md §7-2, §8에 확정: `rpc_list_topics`, `rpc_follow_topic`, `rpc_unfollow_topic`, `rpc_create_thread`, `rpc_update_thread`, `rpc_delete_thread`, `rpc_create_reply`, `rpc_update_reply`, `rpc_delete_reply`, `rpc_search_threads`, `rpc_get_public_threads_feed`, `rpc_get_public_thread_detail`
 
 ## Targets (이 EP에서 만지는 주요 표면)
 - RPC:
+  - `rpc_list_topics`
+  - `rpc_follow_topic`
+  - `rpc_unfollow_topic`
+  - `rpc_create_thread`
+  - `rpc_update_thread`
+  - `rpc_delete_thread`
+  - `rpc_create_reply`
+  - `rpc_update_reply`
+  - `rpc_delete_reply`
+  - `rpc_search_threads`
   - `rpc_get_public_threads_feed`
+  - `rpc_get_public_thread_detail`
 
 ## Baseline spec (from Phase file)
 ```markdown
@@ -58,7 +68,8 @@
 - Public surface? **no** / Schema change? **no** / RLS·SECURITY DEFINER? **no** / Write? **no**
 
 **Interfaces**  
-- RPC: `rpc_get_public_threads_feed` + 나머지 **TBD**  
+- RPC(API.md §7-2): `rpc_get_public_threads_feed`, `rpc_list_topics`, `rpc_follow_topic`, `rpc_unfollow_topic`, `rpc_create_thread`, `rpc_update_thread`, `rpc_delete_thread`, `rpc_create_reply`, `rpc_update_reply`, `rpc_delete_reply`, `rpc_search_threads`
+- Detail RPC(API.md §8): `rpc_get_public_thread_detail`
 - UX: 작성자(닉네임/아바타) 탭 액션 메뉴(D-017, D-099)
 
 **Validation placeholders**  
@@ -75,7 +86,7 @@
 **Prerequisites**: P1-05, P2-00
 
 **OPEN**  
-- 채널 RPC 이름이 SSOT(API)에 누락 → Phase 1에서 선행 보강 필요.
+- (해소됨) 채널 RPC 이름은 API.md §7-2, §8에 확정됨.
 
 ---
 ```
@@ -129,7 +140,7 @@
 - [ ] 앱/웹: 기능 플래그/리버트 커밋 절차.
 
 ## OPEN (from Phase)
-- 채널 RPC 이름이 SSOT(API)에 누락 → Phase 1에서 선행 보강 필요.
+- (해소됨) 채널 RPC는 API.md §7-2, §8에 확정됨.
 
 ## Result Packet (PR 본문에 채워 넣기)
 

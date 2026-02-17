@@ -32,13 +32,13 @@
 
 ## Blockers / SSOT gaps (stop-the-line)
 > 아래 항목이 해결되지 않으면 **구현을 진행하지 않는다**. (추측 구현 금지)
-- - 관찰 “조회 RPC” 필요 여부(SSOT 보강 가능).
-- OPEN: 관찰 “조회 RPC” 필요 여부(SSOT 보강 가능).
+- (해소됨) 관찰 조회 RPC → API.md §8 확정: `rpc_get_my_observation_group(p_log_date date) returns jsonb`
 
 ## Targets (이 EP에서 만지는 주요 표면)
 - RPC:
   - `rpc_patch_observation_items`
   - `rpc_upsert_observation_group_with_items`
+  - `rpc_get_my_observation_group`
 - Tables / Entities (참고):
   - `invalid_payload_version`
   - `rejected_version`
@@ -62,7 +62,7 @@
 - Public surface? **no** / Schema change? **no** / RLS·SECURITY DEFINER? **no** / Write? **no**
 
 **Interfaces**  
-- RPC: `rpc_upsert_observation_group_with_items`, `rpc_patch_observation_items`  
+- RPC: `rpc_upsert_observation_group_with_items`, `rpc_patch_observation_items`, `rpc_get_my_observation_group`  
 - error_code: `version_conflict`, `invalid_payload_version`, `rejected_version`
 
 **Validation placeholders**  
@@ -79,7 +79,7 @@
 **Prerequisites**: P1-02, P2-00
 
 **OPEN**  
-- 관찰 “조회 RPC” 필요 여부(SSOT 보강 가능).
+- (해소됨) 관찰 조회 RPC는 API.md §8 `rpc_get_my_observation_group`로 확정됨.
 
 ---
 ```
@@ -134,7 +134,7 @@
 - [ ] 앱/웹: 기능 플래그/리버트 커밋 절차.
 
 ## OPEN (from Phase)
-- 관찰 “조회 RPC” 필요 여부(SSOT 보강 가능).
+- (해소됨) 관찰 조회 RPC → API.md §8 확정: `rpc_get_my_observation_group`.
 
 ## Result Packet (PR 본문에 채워 넣기)
 

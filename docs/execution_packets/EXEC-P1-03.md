@@ -36,9 +36,8 @@
 
 ## Blockers / SSOT gaps (stop-the-line)
 > 아래 항목이 해결되지 않으면 **구현을 진행하지 않는다**. (추측 구현 금지)
-- - [ ] publish/unpublish RPC 이름/시그니처는 SSOT 근거 생기기 전엔 TBD 유지
-- - 공개 하우스 by_nickname 변형 RPC 필요 여부/이름(SSOT 보강 필요).
-- OPEN: 공개 하우스 by_nickname 변형 RPC 필요 여부/이름(SSOT 보강 필요).
+- (해소됨) publish/unpublish RPC → API.md §7-4 확정: `rpc_publish_house()`, `rpc_unpublish_house()`
+- (해소됨) by_nickname 변형 RPC는 별도 도입하지 않고, `/u/{nickname}/house` 경로에서 nickname -> target_user_id 해석 후 `rpc_get_public_house_slots_summary(p_target_user_id uuid)`를 호출한다(API.md §5).
 
 ## Targets (이 EP에서 만지는 주요 표면)
 - RPC:
@@ -78,7 +77,7 @@
 - Negative(placeholder): non-current 장착 거부, anon DB 호출 거부(외부는 404)
 
 **Hardening hints**  
-- [ ] publish/unpublish RPC 이름/시그니처는 SSOT 근거 생기기 전엔 TBD 유지  
+- [ ] publish/unpublish RPC(확정, API.md §7-4): `rpc_publish_house`, `rpc_unpublish_house`
 - [ ] 404 통일(D-050) 적용 누락 방지
 
 **SSOT refs**  
@@ -88,7 +87,7 @@
 **Prerequisites**: P0-03B~D
 
 **OPEN**  
-- 공개 하우스 by_nickname 변형 RPC 필요 여부/이름(SSOT 보강 필요).
+- (해소됨) by_nickname 변형 RPC는 별도 도입하지 않고, `/u/{nickname}/house` 경로에서 nickname -> target_user_id 해석 후 `rpc_get_public_house_slots_summary(p_target_user_id uuid)`를 호출한다(API.md §5).
 
 ---
 ```
@@ -158,7 +157,7 @@
 - [ ] 앱/웹: 기능 플래그/리버트 커밋 절차.
 
 ## OPEN (from Phase)
-- 공개 하우스 by_nickname 변형 RPC 필요 여부/이름(SSOT 보강 필요).
+- (해소됨) by_nickname 변형 RPC는 별도 도입하지 않고, `/u/{nickname}/house` 경로에서 nickname -> target_user_id 해석 후 `rpc_get_public_house_slots_summary(p_target_user_id uuid)`를 호출한다(API.md §5).
 
 ## Result Packet (PR 본문에 채워 넣기)
 

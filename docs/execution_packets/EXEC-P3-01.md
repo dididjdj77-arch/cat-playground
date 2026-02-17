@@ -34,13 +34,15 @@
 
 ## Blockers / SSOT gaps (stop-the-line)
 > 아래 항목이 해결되지 않으면 **구현을 진행하지 않는다**. (추측 구현 금지)
-- - 상세 조회 public RPC 함수명 SSOT 보강 필요.
-- OPEN: 상세 조회 public RPC 함수명 SSOT 보강 필요.
+- (해소됨) 상세 조회 public RPC → API.md §8 확정: `rpc_get_public_post_detail(p_post_id uuid)`, `rpc_get_public_thread_detail(p_thread_id uuid)`
 
 ## Targets (이 EP에서 만지는 주요 표면)
 - RPC:
   - `rpc_get_public_posts_feed`
   - `rpc_get_public_threads_feed`
+  - `rpc_get_public_post_detail`
+  - `rpc_get_public_thread_detail`
+  - `rpc_get_public_post_comments`
 
 ## Baseline spec (from Phase file)
 ```markdown
@@ -61,7 +63,7 @@
 
 **Interfaces**  
 - Routes: `/c`, `/c/{topicSlug}`, `/c/{topicSlug}/{threadId}`, `/p`, `/p/{postId}`, `/search`(noindex), `/u/{nickname}`(noindex)  
-- Public RPC: `rpc_get_public_threads_feed`, `rpc_get_public_posts_feed` (+ 상세/댓글 RPC는 SSOT 근거 있을 때만)
+- Public RPC: `rpc_get_public_threads_feed`, `rpc_get_public_posts_feed`, `rpc_get_public_post_detail`, `rpc_get_public_thread_detail`, `rpc_get_public_post_comments`
 
 **Validation placeholders**  
 - 스모크: index 라우트 200, hidden/deleted 404(D-050)  
@@ -78,7 +80,7 @@
 **Prerequisites**: P3-00
 
 **OPEN**  
-- 상세 조회 public RPC 함수명 SSOT 보강 필요.
+- (해소됨) 상세 조회 public RPC 함수명은 API.md §8에 확정됨.
 
 ---
 ```
@@ -138,7 +140,7 @@
 - [ ] 앱/웹: 기능 플래그/리버트 커밋 절차.
 
 ## OPEN (from Phase)
-- 상세 조회 public RPC 함수명 SSOT 보강 필요.
+- (해소됨) 상세 조회 public RPC → API.md §8 확정.
 
 ## Result Packet (PR 본문에 채워 넣기)
 
