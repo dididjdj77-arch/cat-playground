@@ -10,6 +10,8 @@
 - docs/ARCHITECTURE-OVERVIEW.md
 - docs/PROCESS.md
 - docs/CONFIG-BASELINES.md
+- docs/EXECUTION-PACKETS-INDEX.md
+
 
 ## 2) 진행 상태
 - docs/OPEN.md
