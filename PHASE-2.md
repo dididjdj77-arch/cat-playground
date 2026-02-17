@@ -1,11 +1,6 @@
 # PHASE-2.md
 # Phase 2 — App (Expo) (번들 EP, 고위험만 분리)
 
-## Scope Baseline (PR-1)
-- 계획 경로 표준(placeholder 치환): `apps/expo/**`, `apps/web/**`, `packages/shared/**`, `tests/**`, `supabase/functions/**`, `supabase/**`
-- 공통 Allowed paths(모든 EP): `docs/**`, `.github/**`, `scripts/**`, `supabase/**`
-- Forbidden(모든 EP): Allowed에 적힌 것 외 변경 금지
-
 ## EP P2-00 — Transport Adapter(앱) 구현(선행 고정)
 **Goal (1~3줄)**  
 - DB RPC의 `error_code`를 앱에서 typed error/UX로 변환한다(D-071).  
@@ -17,8 +12,8 @@
 3) Evidence-only: exact SQL, expected output, 마이그레이션 번호/파일명 같은 확정값은 SSOT나 실제 코드 근거가 있을 때만 적는다. 근거 없으면 TBD 유지.
 
 **Scope**  
-- Allowed: `apps/expo/**`, `packages/shared/**`  
-- Forbidden: Allowed에 적힌 것 외 변경 금지  
+- Allowed: `TBD: <expo-app-root>/**`, `TBD: <shared-root>/**`  
+- Forbidden: DB/RLS/스키마 변경  
 - Public surface? **no** / Schema change? **no** / RLS·SECURITY DEFINER? **no** / Write? **no**
 
 **Interfaces**  
@@ -55,8 +50,8 @@
 3) Evidence-only: exact SQL, expected output, 마이그레이션 번호/파일명 같은 확정값은 SSOT나 실제 코드 근거가 있을 때만 적는다. 근거 없으면 TBD 유지.
 
 **Scope**  
-- Allowed: `apps/expo/**`  
-- Forbidden: Allowed에 적힌 것 외 변경 금지  
+- Allowed: `TBD: <expo-app-root>/**`  
+- Forbidden: DB/RLS/스키마  
 - Public surface? **no** / Schema change? **no** / RLS·SECURITY DEFINER? **no** / Write? **no**
 
 **Interfaces**  
@@ -93,8 +88,8 @@
 - 만료/갱신/취소/네트워크 오류를 “일관된 UX + 복구 가능” 상태로 만든다.
 
 **Scope**  
-- Allowed: `apps/expo/**`  
-- Forbidden: Allowed에 적힌 것 외 변경 금지  
+- Allowed: `TBD: <expo-app-root>/**`  
+- Forbidden: DB/RLS/스키마  
 - Public surface? **no** / Schema change? **no** / RLS·SECURITY DEFINER? **no** / Write? **no**
 
 **Interfaces**  
@@ -129,8 +124,8 @@
 - 미동의 write는 403(terms_not_agreed) UX로 처리한다.
 
 **Scope**  
-- Allowed: `apps/expo/**`  
-- Forbidden: Allowed에 적힌 것 외 변경 금지  
+- Allowed: `TBD: <expo-app-root>/**`  
+- Forbidden: DB/RLS/스키마 변경  
 - Public surface? **no** / Schema change? **no** / RLS·SECURITY DEFINER? **no** / Write? **no**
 
 **Interfaces**  
@@ -169,13 +164,12 @@
 - 공개 하우스 보기는 auth-only 정책을 UI에서 강제.
 
 **Scope**  
-- Allowed: `apps/expo/**`  
-- Forbidden: Allowed에 적힌 것 외 변경 금지  
+- Allowed: `TBD: <expo-app-root>/**`  
+- Forbidden: DB/RLS/스키마 변경  
 - Public surface? **no** / Schema change? **no** / RLS·SECURITY DEFINER? **no** / Write? **no**
 
 **Interfaces**  
 - Routes: `/house`, `/inventory`, `/u/{nickname}/house`  
-- Entry: 작성자(닉네임/아바타) 탭 액션 메뉴 → 하우스 보기 (D-099)
 - RPC: `rpc_set_house_slot`, `rpc_clear_house_slot`, `rpc_get_public_house_slots_summary`  
 - publish/unpublish RPC: **TBD**
 
@@ -189,7 +183,7 @@
 
 **SSOT refs**  
 - `docs/ROUTES-AND-IA.md`, `docs/DECISIONS.md`, `docs/AUTHZ-MODEL.md`  
-- D-006, D-035, D-037, D-074, D-099
+- D-006, D-035, D-037, D-074
 
 **Prerequisites**: P1-03
 
@@ -209,8 +203,8 @@
 - 로컬 드래프트(D-004) + CTA(D-082) 포함.
 
 **Scope**  
-- Allowed: `apps/expo/**`  
-- Forbidden: Allowed에 적힌 것 외 변경 금지  
+- Allowed: `TBD: <expo-app-root>/**`  
+- Forbidden: DB/RLS/스키마 변경  
 - Public surface? **no** / Schema change? **no** / RLS·SECURITY DEFINER? **no** / Write? **no**
 
 **Interfaces**  
@@ -246,8 +240,8 @@
 - 업로드는 원본 private + meta(images) 저장(D-067/D-088).
 
 **Scope**  
-- Allowed: `apps/expo/**`  
-- Forbidden: Allowed에 적힌 것 외 변경 금지  
+- Allowed: `TBD: <expo-app-root>/**`  
+- Forbidden: DB/RLS/스키마 변경  
 - Public surface? **no** / Schema change? **no** / RLS·SECURITY DEFINER? **no** / Write? **no**
 
 **Interfaces**  
@@ -286,13 +280,13 @@
 - 채널 사용 흐름(탐색→팔로우→작성/상호작용→검색) 완결.
 
 **Scope**  
-- Allowed: `apps/expo/**`  
-- Forbidden: Allowed에 적힌 것 외 변경 금지  
+- Allowed: `TBD: <expo-app-root>/**`  
+- Forbidden: DB/RLS/스키마 변경  
 - Public surface? **no** / Schema change? **no** / RLS·SECURITY DEFINER? **no** / Write? **no**
 
 **Interfaces**  
 - RPC: `rpc_get_public_threads_feed` + 나머지 **TBD**  
-- UX: 작성자(닉네임/아바타) 탭 액션 메뉴(D-017, D-099)
+- UX: 닉네임 탭 액션 메뉴(D-017)
 
 **Validation placeholders**  
 - 수동: 피드3종 + cursor, 검색(FTS), 답글 1-depth
@@ -303,7 +297,7 @@
 
 **SSOT refs**  
 - `docs/ROUTES-AND-IA.md`, `docs/DECISIONS.md`  
-- D-013, D-017, D-077, D-099
+- D-013, D-017, D-077
 
 **Prerequisites**: P1-05, P2-00
 
@@ -323,8 +317,8 @@
 - 닉네임 변경은 v1 미지원(D-051)임을 UX에서 명확히 한다.
 
 **Scope**  
-- Allowed: `apps/expo/**`  
-- Forbidden: Allowed에 적힌 것 외 변경 금지  
+- Allowed: `TBD: <expo-app-root>/**`  
+- Forbidden: DB/RLS/스키마 변경  
 - Public surface? **no** / Schema change? **no** / RLS·SECURITY DEFINER? **no** / Write? **no**
 
 **Interfaces**  
@@ -351,8 +345,5 @@
 
 ## Phase 2 요약
 - EP 개수: 7 (+ 2-01A/B/C 포함 시 9)  
-- 단독 권장(선행/횡단 의존): P2-00, P2-01C  
-- 단독 권장(범위 큰 UI 번들): P2-03, P2-04, P2-06  
-- 이유(선행/횡단 의존): P2-00은 전 도메인 에러 매핑의 공통 선행 어댑터이고, P2-01C는 write unlock 가드/온보딩 경계를 가로지른다.  
-- 이유(범위 큰 UI 번들): P2-03/04/06은 각 도메인의 핵심 화면/상호작용을 묶어 변경량과 회귀 면적이 크다.  
+- 단독 권장(고위험): P2-03, P2-04, P2-06  
 - 번들 후보(가벼운 것끼리): P2-01A+P2-01B, P2-02+P2-05

@@ -1,11 +1,6 @@
 # PHASE-0.9.md
 # Phase 0.9 — Auth 스파이크(Phase 0 ↔ Phase 1 브릿지)
 
-## Scope Baseline (PR-1)
-- 계획 경로 표준(placeholder 치환): `apps/expo/**`, `apps/web/**`, `packages/shared/**`, `tests/**`, `supabase/functions/**`, `supabase/**`
-- 공통 Allowed paths(모든 EP): `docs/**`, `.github/**`, `scripts/**`, `supabase/**`
-- Forbidden(모든 EP): Allowed에 적힌 것 외 변경 금지
-
 ## EP P0.9-01 — Expo 최소 앱: 로그인 → 세션 확인 → auth-only RPC 1회 호출
 **Goal (1~3줄)**  
 - OAuth/딥링크/세션 저장 리스크를 UI 최소로 조기 발견한다.  
@@ -17,8 +12,8 @@
 3) Evidence-only: exact SQL, expected output, 마이그레이션 번호/파일명 같은 확정값은 SSOT나 실제 코드 근거가 있을 때만 적는다. 근거 없으면 TBD 유지.
 
 **Scope**  
-- Allowed paths: `apps/expo/**` + (필요 시) `docs/playbooks/ops-app-config.md`  
-- Forbidden: Allowed에 적힌 것 외 변경 금지  
+- Allowed paths: `TBD: <expo-app-root>/**` + (필요 시) `docs/playbooks/ops-app-config.md`  
+- Forbidden changes: DB 스키마/도메인 기능 구현  
 - Public surface? **no** / Schema change? **no** / RLS·SECURITY DEFINER? **no** / Write? **no**
 
 **Interfaces**  
@@ -57,8 +52,8 @@
 3) Evidence-only: exact SQL, expected output, 마이그레이션 번호/파일명 같은 확정값은 SSOT나 실제 코드 근거가 있을 때만 적는다. 근거 없으면 TBD 유지.
 
 **Scope**  
-- Allowed paths: `docs/playbooks/ops-app-config.md` + `.env.example`  
-- Forbidden: Allowed에 적힌 것 외 변경 금지  
+- Allowed paths: `docs/playbooks/ops-app-config.md` + `TBD: env 관리 파일(레포 근거 필요)`  
+- Forbidden changes: 앱 기능 확장/DB 변경  
 - Public surface? **no** / Schema change? **no** / RLS·SECURITY DEFINER? **no** / Write? **no**
 
 **Interfaces**  

@@ -1,11 +1,6 @@
 # PHASE-4.md
 # Phase 4 — QA + 런치(Release-Train)
 
-## Scope Baseline (PR-1)
-- 계획 경로 표준(placeholder 치환): `apps/expo/**`, `apps/web/**`, `packages/shared/**`, `tests/**`, `supabase/functions/**`, `supabase/**`
-- 공통 Allowed paths(모든 EP): `docs/**`, `.github/**`, `scripts/**`, `supabase/**`
-- Forbidden(모든 EP): Allowed에 적힌 것 외 변경 금지
-
 ## EP P4-01 — 자동 QA(회귀 풀스위트 + 누락 보강 + CI 최종 green)
 **Goal (1~3줄)**  
 - 회귀 테스트 풀스위트를 돌리고 누락을 보강한다.  
@@ -17,8 +12,8 @@
 3) Evidence-only: exact SQL, expected output, 마이그레이션 번호/파일명 같은 확정값은 SSOT나 실제 코드 근거가 있을 때만 적는다. 근거 없으면 TBD 유지.
 
 **Scope**  
-- Allowed: `tests/**`, `.github/**`  
-- Forbidden: Allowed에 적힌 것 외 변경 금지  
+- Allowed: `TBD: <test-root>/**`, `TBD: CI config`  
+- Forbidden: 기능 추가(버그픽스/테스트 보강만)  
 - Public surface? **no** / Schema change? **no** / RLS·SECURITY DEFINER? **no** / Write? **no**
 
 **Interfaces**  
@@ -52,7 +47,7 @@
 
 **Scope**  
 - Allowed: runbook/체크리스트 문서(필요 시)  
-- Forbidden: Allowed에 적힌 것 외 변경 금지  
+- Forbidden: 기능 추가(발견 결함은 별도 EP)  
 - Public surface? **no** / Schema change? **no** / RLS·SECURITY DEFINER? **no** / Write? **no**
 
 **Interfaces**  
@@ -88,7 +83,7 @@
 
 **Scope**  
 - Allowed: 배포 스크립트/문서/런치 체크리스트(레포 근거 필요)  
-- Forbidden: Allowed에 적힌 것 외 변경 금지  
+- Forbidden: 배포 중 기능 변경(긴급 패치 외)  
 - Public surface? **yes** / Schema change? **yes** / RLS·SECURITY DEFINER? **yes** / Write? **yes**
 
 **Interfaces**  
