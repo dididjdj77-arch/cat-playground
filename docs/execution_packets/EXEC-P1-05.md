@@ -34,9 +34,7 @@
 
 ## Blockers / SSOT gaps (stop-the-line)
 > 아래 항목이 해결되지 않으면 **구현을 진행하지 않는다**. (추측 구현 금지)
-- - 나머지 RPC 이름: **TBD(SSOT 보강 필요)**
-- - search/feed 3종 포함 RPC들의 정확 함수명/파라미터 SSOT 보강 필요.
-- OPEN: search/feed 3종 포함 RPC들의 정확 함수명/파라미터 SSOT 보강 필요.
+- (해소됨) 채널 RPC 이름 → API.md §7-2 확정: `rpc_list_topics`, `rpc_follow_topic`, `rpc_unfollow_topic`, `rpc_create_thread`, `rpc_update_thread`, `rpc_delete_thread`, `rpc_create_reply`, `rpc_update_reply`, `rpc_delete_reply`, `rpc_search_threads`, `rpc_get_public_threads_feed`(p_sort: new|popular|following)
 
 ## Targets (이 EP에서 만지는 주요 표면)
 - RPC:
@@ -67,8 +65,8 @@
 - Public surface? **yes** / Schema change? **no** / RLS·SECURITY DEFINER? **yes** / Write? **yes**
 
 **Interfaces**  
-- Public read RPC(확정): `rpc_get_public_threads_feed`  
-- 나머지 RPC 이름: **TBD(SSOT 보강 필요)**  
+- Public read RPC(확정): `rpc_get_public_threads_feed`(p_sort: new|popular|following), `rpc_get_public_thread_detail`
+- Write RPC(확정, API.md §7-2): `rpc_list_topics`, `rpc_follow_topic`, `rpc_unfollow_topic`, `rpc_create_thread`, `rpc_update_thread`, `rpc_delete_thread`, `rpc_create_reply`, `rpc_update_reply`, `rpc_delete_reply`, `rpc_search_threads`
 - Tables: `topics`, `topic_follows`, `threads`, `replies`, `likes`
 
 **Validation placeholders**  
@@ -85,8 +83,8 @@
 
 **Prerequisites**: P1-04
 
-**OPEN**  
-- search/feed 3종 포함 RPC들의 정확 함수명/파라미터 SSOT 보강 필요.
+**OPEN**
+- (해소됨) 채널 RPC 함수명 → API.md §7-2 확정.
 
 ---
 ```
@@ -155,7 +153,7 @@
 - [ ] 앱/웹: 기능 플래그/리버트 커밋 절차.
 
 ## OPEN (from Phase)
-- search/feed 3종 포함 RPC들의 정확 함수명/파라미터 SSOT 보강 필요.
+- (해소됨) search/feed 포함 채널 RPC 함수명/파라미터는 API.md §7-2, §8에 확정됨.
 
 ## Result Packet (PR 본문에 채워 넣기)
 

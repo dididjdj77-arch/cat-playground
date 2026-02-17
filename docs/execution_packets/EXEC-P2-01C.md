@@ -31,12 +31,13 @@
 
 ## Blockers / SSOT gaps (stop-the-line)
 > 아래 항목이 해결되지 않으면 **구현을 진행하지 않는다**. (추측 구현 금지)
-- OPEN: 프로필 조회 경로(SSOT 근거 필요).
+- (해소됨) 프로필 조회 경로 → API.md §8 확정: `rpc_get_my_profile() returns jsonb`
 
 ## Targets (이 EP에서 만지는 주요 표면)
 - RPC:
-  - `agree_terms`
-  - `set_initial_nickname`
+  - `rpc_agree_terms`
+  - `rpc_set_initial_nickname`
+  - `rpc_get_my_profile`
 - Tables / Entities (참고):
   - `terms_not_agreed`
 
@@ -58,7 +59,7 @@
 - Public surface? **no** / Schema change? **no** / RLS·SECURITY DEFINER? **no** / Write? **no**
 
 **Interfaces**  
-- RPC(확정): `agree_terms`, `set_initial_nickname`  
+- RPC(확정): `rpc_agree_terms`, `rpc_set_initial_nickname`, `rpc_get_my_profile`  
 - 오류: `terms_not_agreed`
 
 **Validation placeholders**  
@@ -66,7 +67,7 @@
 - Positive: 온보딩 완료 후 write 가능
 
 **Hardening hints**  
-- [ ] 온보딩 상태 판정(프로필 읽기 경로) SSOT 근거 필요  
+- [ ] 온보딩 상태 판정은 `rpc_get_my_profile` 기준으로 통일  
 - [ ] 예외 목록 확대 금지(D-097) UI에서도 명시
 
 **SSOT refs**  
@@ -76,7 +77,7 @@
 **Prerequisites**: P2-01A, P2-00
 
 **OPEN**  
-- 프로필 조회 경로(SSOT 근거 필요).
+- (해소됨) 프로필 조회 경로는 API.md §8 `rpc_get_my_profile`로 확정됨.
 
 ---
 ```
@@ -132,7 +133,7 @@
 - [ ] 앱/웹: 기능 플래그/리버트 커밋 절차.
 
 ## OPEN (from Phase)
-- 프로필 조회 경로(SSOT 근거 필요).
+- (해소됨) 프로필 조회 경로 → API.md §8 확정: `rpc_get_my_profile`.
 
 ## Result Packet (PR 본문에 채워 넣기)
 

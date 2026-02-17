@@ -33,15 +33,15 @@
 
 ## Blockers / SSOT gaps (stop-the-line)
 > 아래 항목이 해결되지 않으면 **구현을 진행하지 않는다**. (추측 구현 금지)
-- - publish/unpublish RPC: **TBD**
-- - house publish/unpublish RPC 함수명/계약(SSOT 보강 필요).
-- OPEN: house publish/unpublish RPC 함수명/계약(SSOT 보강 필요).
+- (해소됨) house publish/unpublish RPC → API.md §7-4 확정: `rpc_publish_house()`, `rpc_unpublish_house()`
 
 ## Targets (이 EP에서 만지는 주요 표면)
 - RPC:
   - `rpc_clear_house_slot`
   - `rpc_get_public_house_slots_summary`
+  - `rpc_publish_house`
   - `rpc_set_house_slot`
+  - `rpc_unpublish_house`
 
 ## Baseline spec (from Phase file)
 ```markdown
@@ -65,8 +65,7 @@
 **Interfaces**  
 - Routes: `/house`, `/inventory`, `/u/{nickname}/house`  
 - Entry: 작성자(닉네임/아바타) 탭 액션 메뉴 → 하우스 보기 (D-099)
-- RPC: `rpc_set_house_slot`, `rpc_clear_house_slot`, `rpc_get_public_house_slots_summary`  
-- publish/unpublish RPC: **TBD**
+- RPC: `rpc_set_house_slot`, `rpc_clear_house_slot`, `rpc_get_public_house_slots_summary`, `rpc_publish_house`, `rpc_unpublish_house`
 
 **Validation placeholders**  
 - 수동: is_current=false 장착 시도 → 실패 UX  
@@ -83,7 +82,7 @@
 **Prerequisites**: P1-03
 
 **OPEN**  
-- house publish/unpublish RPC 함수명/계약(SSOT 보강 필요).
+- (해소됨) house publish/unpublish RPC 함수명/계약은 API.md §7-4에 확정됨.
 
 ---
 ```
@@ -139,7 +138,7 @@
 - [ ] 앱/웹: 기능 플래그/리버트 커밋 절차.
 
 ## OPEN (from Phase)
-- house publish/unpublish RPC 함수명/계약(SSOT 보강 필요).
+- (해소됨) house publish/unpublish RPC → API.md §7-4 확정.
 
 ## Result Packet (PR 본문에 채워 넣기)
 

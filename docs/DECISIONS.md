@@ -675,7 +675,7 @@
 - 무엇:
   - score = like_count + reply_count × 2, window = 7d, ORDER BY score DESC, created_at DESC
   - app_config 키 `popular_feed`로 런타임 조정
-- 수치: See CONFIG-BASELINES §5
+- 수치: See CONFIG-BASELINES §4a
 - 변경: 수치는 CONFIG-BASELINES. 공식 구조 변경은 ADR 권장
 
 ## D-077. 채널 검색 UX v1 (O-005 해소)

@@ -36,7 +36,7 @@
 - `docs/CONFIG-BASELINES.md`
 - `docs/playbooks/ops-app-config.md`
 - `docs/playbooks/payload-version-kpi.md`
-- `docs/DECISIONS.md` (관련 Decision: D-056, D-066, D-067, D-089)
+- `docs/DECISIONS.md` (관련 Decision: D-045, D-056, D-066, D-067, D-072, D-089, D-094)
 
 ## Blockers / SSOT gaps (stop-the-line)
 > 아래 항목이 해결되지 않으면 **구현을 진행하지 않는다**. (추측 구현 금지)

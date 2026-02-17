@@ -123,7 +123,10 @@ DB RPC는 항상 JSON return(D-065). 외부 표면(웹 SSR/SDK wrapper)이 `body
 - 반환: jsonb
 
 ### rpc_get_public_house_slots_summary
+`rpc_get_public_house_slots_summary(p_target_user_id uuid) returns jsonb`
+
 - 접근: **auth-only** (anon EXECUTE 비허용). 외부 표면 미인증 응답은 404로 매핑(존재 은닉).
+- 입력: p_target_user_id uuid (route가 `/u/{nickname}/house`인 경우, adapter/route layer에서 nickname -> user_id 해석 후 전달)
 - 반환: jsonb, **고정 shape** 권장:
   - 성공: `{ "slots": [ {slot_key, equipped_at, type, standard_name}, ... ] }`
   - 실패: `{ "error_code": "not_found" }`
@@ -214,10 +217,101 @@ DB RPC는 항상 JSON return(D-065). 외부 표면(웹 SSR/SDK wrapper)이 `body
 - 차단은 D-019를 따른다(상호 비노출 + 상호작용 불가). anon viewer에는 block 필터를 적용하지 않는다(AUTHZ-MODEL §0-2).
 - report는 신고 시점 snapshot 저장(D-052)을 보장하고, 중복 신고는 `duplicate_report`(409)로 처리한다(D-056/`docs/playbooks/moderation.md` 정합).
 
+### 7-4) 하우스 Write RPC
+
+`rpc_set_house_slot(p_room_key text, p_slot_key text, p_inventory_item_id uuid) returns jsonb`
+
+`rpc_clear_house_slot(p_room_key text, p_slot_key text) returns jsonb`
+
+`rpc_publish_house() returns jsonb`
+
+`rpc_unpublish_house() returns jsonb`
+
+최소 계약:
+- 슬롯 API는 slot_key 기반 통일(D-074). house_slots.id(PK)는 API 표면 미노출.
+- 슬롯 저장 시 is_current=true만 장착 가능(D-043).
+- house_profiles는 lazy create(D-085): 하우스 탭 최초 접근 또는 슬롯 바인딩 시 upsert.
+- publish: visibility='public' + published_at=now() 원샷. unpublish: published_at=NULL(visibility 유지). See D-062.
+- private + published_at 금지 불변식(AUTHZ-MODEL §0-3) 준수.
+
+### 7-5) 인벤토리 Write RPC
+
+`rpc_inventory_switch(p_type text, p_raw_text text, p_catalog_item_id uuid default null, p_changed_at timestamptz default now(), p_reason_note text default null) returns jsonb`
+
+`rpc_inventory_discontinue(p_type text, p_reason_note text default null) returns jsonb`
+
+최소 계약:
+- 이벤트 모델 D-057 준수: switch는 기존 current 종료 + 신규 row(reason_code='switch'). discontinue는 기존 current 종료만.
+- reason_code는 row 생성 원인(불변, D-075). 종료 시 기존 row의 reason_code 변경 안 함.
+- 불변식: (ended_at IS NULL) == (is_current = true).
+- correction은 v1 UX 미확정이므로 RPC 예비 등록만(D-095).
+
+### 7-6) 프로필/온보딩 Write RPC
+
+`rpc_agree_terms() returns jsonb`
+
+`rpc_set_initial_nickname(p_nickname text) returns jsonb`
+
+`rpc_update_profile(p_nickname text default null, p_bio text default null, p_avatar_key text default null) returns jsonb`
+
+최소 계약:
+- agree_terms, set_initial_nickname은 pre-terms 예외(D-097). guard_terms_agreed 적용하지 않는다.
+- set_initial_nickname은 온보딩 최초 설정 전용. 이미 설정된 계정에는 사용 불가.
+- rpc_update_profile은 guard_terms_agreed 필수. 닉네임 변경은 v1 미구현(D-051).
+- 닉네임 길이: 2~20자(D-087). bio 길이: 0~200자(D-087).
+
+### 7-7) 알림 RPC
+
+`rpc_get_notifications(p_cursor text default null, p_limit int default 20) returns jsonb`
+
+`rpc_mark_notification_read(p_notification_id uuid) returns jsonb`
+
+`rpc_mark_all_notifications_read() returns jsonb`
+
+최소 계약:
+- v1 범위: in-app inbox 조회/읽음 처리만(D-070). 푸시 제외.
+- 이벤트 타입: comment / reply / like. type-target 매핑은 D-070 LOCK을 따른다.
+- read RPC이므로 guard_terms_agreed 미적용.
+- mark_notification_read, mark_all_notifications_read는 write RPC이므로 guard_terms_agreed 필수.
+
 ---
 
-## 8) 논리적 REST 계약(참고)
-> 실제 구현은 RPC로 대체될 수 있다.
+## 8) 개별 상세 조회 RPC
+
+### rpc_get_public_post_detail
+- 접근: anon 가능
+- 입력: p_post_id uuid
+- 필터: guard_soft_state + guard_block + guard_visibility_published
+- 반환: jsonb (post 본문 + author_nickname + like_count + comment_count + meta)
+- 실패: `{"error_code":"not_found"}` (D-050)
+
+### rpc_get_public_thread_detail
+- 접근: anon 가능
+- 입력: p_thread_id uuid
+- 필터: guard_soft_state + guard_block
+- 반환: jsonb (thread 본문 + author_nickname + like_count + reply_count + topic info)
+- 실패: `{"error_code":"not_found"}` (D-050)
+
+### rpc_get_my_profile
+- 접근: auth-only (owner)
+- 반환: jsonb (nickname, bio, avatar_key, terms_agreed_at, created_at)
+- read RPC이므로 guard_terms_agreed 미적용.
+
+### rpc_get_my_house
+- 접근: auth-only (owner)
+- 반환: jsonb (house_profile 상태 + 슬롯 목록 + 바인딩된 인벤 정보)
+- house_profiles가 없으면 lazy create(D-085)하지 않고 기본 상태 반환.
+
+### rpc_get_my_observation_group
+- 접근: auth-only (owner)
+- 입력: p_log_date date
+- 반환: jsonb (group + items + inventory_refs). 없으면 null/빈 객체.
+- owner_id = auth.uid()로 고정.
+
+---
+
+## 9) 논리적 REST 계약(참고)
+> 실제 구현은 RPC로 대체될 수 있다. 실제 RPC 시그니처는 §4~§8 참조.
 
 ### 냥스타그램
 - POST /posts

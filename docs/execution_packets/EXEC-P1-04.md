@@ -35,8 +35,7 @@
 
 ## Blockers / SSOT gaps (stop-the-line)
 > 아래 항목이 해결되지 않으면 **구현을 진행하지 않는다**. (추측 구현 금지)
-- - Write RPC 이름: **TBD(SSOT 보강 필요)**
-- OPEN: posts CRUD/publish/unpublish/comment CRUD RPC의 정확 함수명(SSOT/API에 명시 필요).
+- (해소됨) Write RPC 이름 → API.md §7-1 확정: `rpc_create_post`, `rpc_update_post`, `rpc_delete_post`, `rpc_publish_post`, `rpc_unpublish_post`, `rpc_create_comment`, `rpc_update_comment`, `rpc_delete_comment`
 
 ## Targets (이 EP에서 만지는 주요 표면)
 - RPC:
@@ -69,7 +68,7 @@
 **Interfaces**  
 - Public RPC: `rpc_get_public_posts_feed`, `rpc_get_public_post_comments`  
 - Like RPC: `rpc_toggle_like`  
-- Write RPC 이름: **TBD(SSOT 보강 필요)**  
+- Write RPC(확정, API.md §7-1): `rpc_create_post`, `rpc_update_post`, `rpc_delete_post`, `rpc_publish_post`, `rpc_unpublish_post`, `rpc_create_comment`, `rpc_update_comment`, `rpc_delete_comment`
 - Tables: `posts`, `comments`, `likes`, `notifications`(옵션)
 
 **Validation placeholders**  
@@ -87,8 +86,8 @@
 
 **Prerequisites**: P0-04, P0-03B~D
 
-**OPEN**  
-- posts CRUD/publish/unpublish/comment CRUD RPC의 정확 함수명(SSOT/API에 명시 필요).
+**OPEN**
+- (해소됨) posts CRUD/publish/unpublish/comment CRUD RPC 함수명 → API.md §7-1 확정.
 
 ---
 ```
@@ -158,7 +157,7 @@
 - [ ] 앱/웹: 기능 플래그/리버트 커밋 절차.
 
 ## OPEN (from Phase)
-- posts CRUD/publish/unpublish/comment CRUD RPC의 정확 함수명(SSOT/API에 명시 필요).
+- (해소됨) posts CRUD/publish/unpublish/comment CRUD RPC 함수명은 API.md §7-1에 확정됨.
 
 ## Result Packet (PR 본문에 채워 넣기)
 

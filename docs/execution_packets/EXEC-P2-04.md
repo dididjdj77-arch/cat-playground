@@ -33,12 +33,20 @@
 
 ## Blockers / SSOT gaps (stop-the-line)
 > 아래 항목이 해결되지 않으면 **구현을 진행하지 않는다**. (추측 구현 금지)
-- - write RPC: **TBD**
-- - post detail 조회 RPC 함수명/shape SSOT 보강 필요.
-- OPEN: post detail 조회 RPC 함수명/shape SSOT 보강 필요.
+- (해소됨) write RPC → API.md §7-1 확정: `rpc_create_post`, `rpc_update_post`, `rpc_delete_post`, `rpc_publish_post`, `rpc_unpublish_post`, `rpc_create_comment`, `rpc_update_comment`, `rpc_delete_comment`
+- (해소됨) post detail 조회 RPC → API.md §8 확정: `rpc_get_public_post_detail(p_post_id uuid) returns jsonb`
 
 ## Targets (이 EP에서 만지는 주요 표면)
 - RPC:
+  - `rpc_create_post`
+  - `rpc_update_post`
+  - `rpc_delete_post`
+  - `rpc_publish_post`
+  - `rpc_unpublish_post`
+  - `rpc_create_comment`
+  - `rpc_update_comment`
+  - `rpc_delete_comment`
+  - `rpc_get_public_post_detail`
   - `rpc_get_public_post_comments`
   - `rpc_get_public_posts_feed`
   - `rpc_toggle_like`
@@ -64,8 +72,9 @@
 
 **Interfaces**  
 - Public RPC: `rpc_get_public_posts_feed`, `rpc_get_public_post_comments`  
-- Like RPC: `rpc_toggle_like`  
-- write RPC: **TBD**  
+- Like RPC: `rpc_toggle_like`
+- Write RPC(API.md §7-1): `rpc_create_post`, `rpc_update_post`, `rpc_delete_post`, `rpc_publish_post`, `rpc_unpublish_post`, `rpc_create_comment`, `rpc_update_comment`, `rpc_delete_comment`
+- Detail RPC(API.md §8): `rpc_get_public_post_detail`
 - Storage: `assets`(원본 private), 썸네일은 Phase 3(`assets-public`)
 
 **Validation placeholders**  
@@ -82,7 +91,7 @@
 **Prerequisites**: P1-04, P2-00
 
 **OPEN**  
-- post detail 조회 RPC 함수명/shape SSOT 보강 필요.
+- (해소됨) post detail 조회 RPC 함수명/shape는 API.md §8 `rpc_get_public_post_detail`로 확정됨.
 
 ---
 ```
@@ -137,7 +146,7 @@
 - [ ] 앱/웹: 기능 플래그/리버트 커밋 절차.
 
 ## OPEN (from Phase)
-- post detail 조회 RPC 함수명/shape SSOT 보강 필요.
+- (해소됨) post detail 조회 RPC → API.md §8 확정.
 
 ## Result Packet (PR 본문에 채워 넣기)
 

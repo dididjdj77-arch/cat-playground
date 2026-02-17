@@ -36,7 +36,8 @@
 - `docs/playbooks/rls-and-guards.md`
 - `docs/playbooks/rpc-owner.md`
 - `docs/playbooks/rpc-public.md`
-- `docs/DECISIONS.md` (관련 Decision: D-029, D-050, D-073, D-096)
+- `docs/DECISIONS.md` (관련 Decision: D-029, D-050, D-073, D-094, D-096)
+- `docs/AUTHZ-MODEL.md` (§0 정책식 원문 — guard 함수 설계 필수 참조)
 - ADR refs: ADR-005
 
 ## Baseline spec (from Phase file)

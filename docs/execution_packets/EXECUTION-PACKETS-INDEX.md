@@ -9,16 +9,24 @@
 - SSOT/API 명세가 `TBD`인 항목은 **추측 구현 금지**. 선행 SSOT 보강 EP를 먼저 만든다.
 
 ## Stop-the-line: SSOT 보강이 필요한 EP들
-> 아래 EP는 Phase 스켈레톤 자체가 `SSOT 보강 필요` 또는 함수명 `TBD`를 포함한다.  
+> 아래 EP는 Phase 스켈레톤 자체가 `SSOT 보강 필요` 또는 함수명 `TBD`를 포함한다.
 > 컨트롤러는 **선행 문서 EP(예: API.md 업데이트)** 를 발행하거나, 해당 EP의 Scope에 docs 변경을 허용하도록 Phase/PROCESS를 조정해야 한다.
-- P1-03 (PHASE-1.md): **하우스 RPC: 슬롯 bind/clear + house_profile lazy create + 공개 슬롯 요약(auth-only)** → `EXEC-P1-03.md`
-- P1-04 (PHASE-1.md): **냥스타 RPC + Public Surface Gate 활성화(머지 조건 전환)** → `EXEC-P1-04.md`
-- P1-05 (PHASE-1.md): **채널 RPC: 토픽/스레드/답글/팔로우/검색(FTS) + 피드 3종** → `EXEC-P1-05.md`
-- P1-06 (PHASE-1.md): **운영 RPC: 신고/차단/자동숨김/감사로그/알림 생성(트랜잭션 내부)** → `EXEC-P1-06.md`
-- P2-02 (PHASE-2.md): **하우스 플로우 번들** → `EXEC-P2-02.md`
-- P2-03 (PHASE-2.md): **다이어리 플로우 번들(관찰 upsert/patch + 409 처리 + 드래프트 복원)** → `EXEC-P2-03.md`
-- P2-04 (PHASE-2.md): **냥스타 플로우 번들(피드/상세/작성/발행/댓글/좋아요/업로드)** → `EXEC-P2-04.md`
-- P3-01 (PHASE-3.md): **SEO 웹(anon-only): `/c*`, `/p*`, `/search(noindex)`, robots/sitemap/metadata** → `EXEC-P3-01.md`
+
+### 해소됨 (API.md §7-4~§8 보강으로 SSOT 확정)
+- ~~P1-03~~ → publish/unpublish RPC 확정 (API.md §7-4: `rpc_publish_house`, `rpc_unpublish_house`)
+- ~~P1-04~~ → write RPC 확정 (API.md §7-1)
+- ~~P1-05~~ → 채널 RPC 확정 (API.md §7-2)
+- ~~P1-06~~ → block RPC 확정 (API.md §7-3: `rpc_block_user`, `rpc_unblock_user`)
+- ~~P2-02~~ → house publish/unpublish 확정 (API.md §7-4)
+- ~~P2-04~~ → post detail RPC 확정 (API.md §8: `rpc_get_public_post_detail`)
+- ~~P2-05~~ → 채널 RPC 확정 (API.md §7-2)
+- ~~P2-06~~ → block/notification/profile RPC 확정 (API.md §7-3, §7-6, §7-7)
+- ~~P2-01C~~ → 프로필 조회 경로 확정 (API.md §8: `rpc_get_my_profile`)
+- ~~P2-03~~ → 관찰 조회 RPC 확정 (API.md §8: `rpc_get_my_observation_group`)
+- ~~P3-01~~ → 상세 조회 public RPC 확정 (API.md §8: `rpc_get_public_post_detail`, `rpc_get_public_thread_detail`)
+
+### 미해소
+- (현재 없음 — 본 목록의 API/RPC 함수명 TBD 기준)
 
 ## EP 파일 목록(Phase 순서)
 ### PHASE-0
@@ -74,5 +82,5 @@
 - Phase 4: 단독 권장 P4-03 / 번들 후보 P4-01+P4-02.
 
 ## 치명적 결함 가능성(문서 수정 제안)
-- **API/RPC 함수명 TBD**: Phase 1/2/3 일부 EP가 실제 RPC 이름을 SSOT(API.md)에 명시하지 않아 구현이 갈라질 위험이 있다. → `docs/API.md`에 함수명/파라미터/리턴 shape를 확정하고, Phase EP Scope에 docs 수정 허용 또는 별도 문서 EP를 추가하는 것을 권장.
+- ~~**API/RPC 함수명 TBD**~~: (해소됨) API.md §7-4~§8 보강으로 모든 EP의 RPC 함수명/시그니처가 SSOT에 확정됨.
 - **Env Matrix 미완**: P0-01/02/0.9-01에서 레포 경로/딥링크 스킴 등이 OPEN이다. → `ENV-MATRIX`(P0-06/0.9-02)에서 값/설정 위치를 확정해 재현성을 올리는 것을 권장.

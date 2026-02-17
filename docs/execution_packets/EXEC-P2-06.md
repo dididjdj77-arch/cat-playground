@@ -34,12 +34,19 @@
 
 ## Blockers / SSOT gaps (stop-the-line)
 > 아래 항목이 해결되지 않으면 **구현을 진행하지 않는다**. (추측 구현 금지)
-- - RPC: `rpc_report_content` + block RPC(**TBD**) + notifications 조회/읽음 RPC(**TBD**) + profile update RPC(**TBD**)
-- OPEN: notifications 읽기/읽음 처리 RPC 함수명/계약 SSOT 필요.
+- (해소됨) block RPC → API.md §7-3 확정: `rpc_block_user(p_blocked_user_id uuid)`, `rpc_unblock_user(p_blocked_user_id uuid)`
+- (해소됨) notifications RPC → API.md §7-7 확정: `rpc_get_notifications`, `rpc_mark_notification_read`, `rpc_mark_all_notifications_read`
+- (해소됨) profile update RPC → API.md §7-6 확정: `rpc_update_profile(p_nickname, p_bio, p_avatar_key)`
 
 ## Targets (이 EP에서 만지는 주요 표면)
 - RPC:
   - `rpc_report_content`
+  - `rpc_block_user`
+  - `rpc_unblock_user`
+  - `rpc_get_notifications`
+  - `rpc_mark_notification_read`
+  - `rpc_mark_all_notifications_read`
+  - `rpc_update_profile`
 
 ## Baseline spec (from Phase file)
 ```markdown
@@ -60,7 +67,7 @@
 
 **Interfaces**  
 - Route: `/notifications`  
-- RPC: `rpc_report_content` + block RPC(**TBD**) + notifications 조회/읽음 RPC(**TBD**) + profile update RPC(**TBD**)
+- RPC: `rpc_report_content`, `rpc_block_user`, `rpc_unblock_user`(API.md §7-3), `rpc_get_notifications`, `rpc_mark_notification_read`, `rpc_mark_all_notifications_read`(API.md §7-7), `rpc_update_profile`(API.md §7-6)
 
 **Validation placeholders**  
 - 수동: 중복 신고(duplicate_report), 차단 후 상호작용 불가, 알림 읽음 처리
@@ -76,7 +83,7 @@
 **Prerequisites**: P1-06, P2-00
 
 **OPEN**  
-- notifications 읽기/읽음 처리 RPC 함수명/계약 SSOT 필요.
+- (해소됨) notifications 읽기/읽음 처리 RPC 함수명/계약은 API.md §7-7에 확정됨.
 
 ---
 
@@ -139,7 +146,7 @@
 - [ ] 앱/웹: 기능 플래그/리버트 커밋 절차.
 
 ## OPEN (from Phase)
-- notifications 읽기/읽음 처리 RPC 함수명/계약 SSOT 필요.
+- (해소됨) block/notification/profile RPC → API.md §7-3, §7-6, §7-7 확정.
 
 ## Result Packet (PR 본문에 채워 넣기)
 

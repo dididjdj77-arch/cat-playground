@@ -30,7 +30,7 @@
 - `docs/DATA-MODEL.md`
 - `docs/VERIFICATION.md`
 - `docs/playbooks/migrations.md`
-- `docs/DECISIONS.md` (관련 Decision: D-007, D-009, D-035, D-091, D-092)
+- `docs/DECISIONS.md` (관련 Decision: D-007, D-009, D-035, D-070, D-087, D-091, D-092, D-094)
 
 ## Baseline spec (from Phase file)
 ```markdown

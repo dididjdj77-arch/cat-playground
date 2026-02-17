@@ -30,7 +30,7 @@
 - `docs/DATA-MODEL.md`
 - `docs/VERIFICATION.md`
 - `docs/playbooks/migrations.md`
-- `docs/DECISIONS.md` (관련 Decision: D-041, D-060, D-061, D-075, D-087)
+- `docs/DECISIONS.md` (관련 Decision: D-041, D-057, D-058, D-060, D-061, D-064, D-075, D-087, D-094)
 
 ## Blockers / SSOT gaps (stop-the-line)
 > 아래 항목이 해결되지 않으면 **구현을 진행하지 않는다**. (추측 구현 금지)

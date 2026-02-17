@@ -35,9 +35,7 @@
 
 ## Blockers / SSOT gaps (stop-the-line)
 > 아래 항목이 해결되지 않으면 **구현을 진행하지 않는다**. (추측 구현 금지)
-- - Block RPC 이름: **TBD**
-- - block create/delete RPC 명칭/시그니처 SSOT 보강 필요.
-- OPEN: block create/delete RPC 명칭/시그니처 SSOT 보강 필요.
+- (해소됨) Block RPC 이름 → API.md §7-3 확정: `rpc_block_user(p_blocked_user_id uuid)`, `rpc_unblock_user(p_blocked_user_id uuid)`
 
 ## Targets (이 EP에서 만지는 주요 표면)
 - RPC:
@@ -69,7 +67,7 @@
 
 **Interfaces**  
 - RPC(확정): `rpc_report_content` (+ 내부 `check_auto_hide`)  
-- Block RPC 이름: **TBD**  
+- Block RPC(확정, API.md §7-3): `rpc_block_user`, `rpc_unblock_user`
 - Tables: `reports`, `blocks`, `moderation_actions`, `app_config`, `notifications`(옵션)
 
 **Validation placeholders**  
@@ -87,8 +85,8 @@
 
 **Prerequisites**: P0-03C, P0-03D, P0-04
 
-**OPEN**  
-- block create/delete RPC 명칭/시그니처 SSOT 보강 필요.
+**OPEN**
+- (해소됨) block RPC 명칭 → API.md §7-3 확정.
 
 ---
 
@@ -158,7 +156,7 @@
 - [ ] 앱/웹: 기능 플래그/리버트 커밋 절차.
 
 ## OPEN (from Phase)
-- block create/delete RPC 명칭/시그니처 SSOT 보강 필요.
+- (해소됨) block create/delete RPC 명칭/시그니처는 API.md §7-3에 확정됨.
 
 ## Result Packet (PR 본문에 채워 넣기)
 
