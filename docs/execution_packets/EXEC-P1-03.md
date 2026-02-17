@@ -41,9 +41,11 @@
 
 ## Targets (이 EP에서 만지는 주요 표면)
 - RPC:
-  - `rpc_clear_house_slot`
-  - `rpc_get_public_house_slots_summary`
   - `rpc_set_house_slot`
+  - `rpc_clear_house_slot`
+  - `rpc_publish_house`
+  - `rpc_unpublish_house`
+  - `rpc_get_public_house_slots_summary`
 - Tables / Entities (참고):
   - `catalog_items`
   - `house_profiles`

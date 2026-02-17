@@ -88,31 +88,14 @@
 - [ ] `TBD`/SSOT 갭이 남아있으면 **추측 구현 금지**. OPEN에 기록하고 컨트롤러에게 SSOT 보강 요청.
 - [ ] Validation 스크립트(`repo:*`, `db:*`, `ci:*`)가 실제 레포에서 무엇을 실행하는지 확인(필요 시 P0-01/02에서 매핑).
 
-### 1) DB/Migration 구현
-- [ ] 새 migration 파일(들) 생성: 파일 번호/이름은 레포 규칙을 따르고, **큰 파일 1개에 몰아넣지 않는다**.
-- [ ] `begin; ... commit;` + `lock_timeout/statement_timeout` 설정(플레이북 migrations 준수).
-- [ ] 제약/인덱스/FTS(해당 시) 추가는 DATA-MODEL/DECISIONS 근거와 1:1로 대응되게 작성.
-- [ ] RLS 정책 변경은 **스키마 변경과 분리**(Phase 0에서는 P0-03D).
-- [ ] 롤백 경로 명시: `_down.sql` 또는 revert 커밋 전략 중 하나를 확정.
+### 1) 프로덕션 마이그레이션 적용 (기존 migration을 적용, 새로 생성하지 않음)
+> 새 migration/RPC/RLS가 필요하면 별도 EP/PR로 먼저 머지한다. 이 EP는 "적용/배포/검증" 런북이다.
+- [ ] 프로덕션 DB에 기존 migration 파일들을 순서대로 적용.
+- [ ] 적용 전 PITR 백업 확인.
+- [ ] 적용 후 스키마 drift 검증 (`ci:drift` 또는 동등 확인).
+- [ ] 롤백 경로 명시: revert migration 또는 PITR 복구 절차.
 
-### 2) Security/RLS/권한
-- [ ] `SECURITY DEFINER` 함수는 `set search_path` 고정(ADR-005) + `auth.uid()` 기반 viewer 도출.
-- [ ] guard 함수 적용 순서/정책을 준수(플레이북 rls-and-guards, rpc-owner/public).
-- [ ] 원본 테이블 direct SELECT 노출 금지(특히 anon). 필요한 경우 EXECUTE 최소 권한만 부여.
-- [ ] anon/authenticated에서의 접근(성공/거부/404 통일)을 **smoke + negative**로 확인.
-
-### 3) RPC/Contract 구현
-- [ ] write RPC는 트랜잭션 경계 명시(부분쓰기 방지) + idempotency/expected_version(해당 시) 구현.
-- [ ] 비즈니스 에러는 JSON return(`error_code`, 추가 필드)로 전달(raise exception은 hard fail만).
-- [ ] `guard_terms_agreed()` 적용(D-073) + guard 호출 순서(D-096) 고정.
-- [ ] replay는 최초 성공과 동일 shape를 반환(status-only 금지, D-061).
-- [ ] 공개 읽기 RPC는 `SECURITY DEFINER` + guard_soft_state + guard_block (+ 필요 시 guard_visibility_published) 적용.
-- [ ] 반환 컬럼은 **명시적 화이트리스트**(select * 금지).
-- [ ] 공개 표면에서 조회 불가 상태는 404로 통일(D-050).
-- [ ] GRANT/REVOKE: anon/authenticated 권한을 SSOT에 맞게 최소로 설정.
-- [ ] 테스트/스냅샷(VERIFICATION, drift)으로 계약/가드/누출 방지를 회귀로 고정.
-
-### 1) 문서/운영 작업
+### 2) 문서/운영 작업
 - [ ] 문서 변경은 SSOT 원칙(이유는 DECISIONS/ADR, 수치는 CONFIG-BASELINES)에 맞게 최소 변경.
 - [ ] 비밀값은 쓰지 않고, **설정 위치/절차**만 기록.
 - [ ] 체크리스트는 실행 가능 형태(누가/언제/어디서/어떤 근거로)로 작성.
