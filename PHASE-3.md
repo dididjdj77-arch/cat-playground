@@ -13,7 +13,7 @@
 
 **Scope**  
 - Allowed: `TBD: <next-web-root>/**`, `TBD: <shared-root>/**`  
-- Forbidden: DB/RLS/스키마 변경  
+- Forbidden: Allowed에 적힌 것 외 변경 금지  
 - Public surface? **yes** / Schema change? **no** / RLS·SECURITY DEFINER? **no** / Write? **no**
 
 **Interfaces**  
@@ -51,7 +51,7 @@
 
 **Scope**  
 - Allowed: `TBD: <next-web-root>/**`  
-- Forbidden: DB/RLS/스키마 변경  
+- Forbidden: Allowed에 적힌 것 외 변경 금지  
 - Public surface? **yes** / Schema change? **no** / RLS·SECURITY DEFINER? **no** / Write? **no**
 
 **Interfaces**  
@@ -89,7 +89,7 @@
 
 **Scope**  
 - Allowed: `TBD: <next-web-root>/**`, `TBD: <supabase-root>/**`, `TBD: <edge-or-worker-root>/**`  
-- Forbidden: unrelated 기능 추가  
+- Forbidden: Allowed에 적힌 것 외 변경 금지  
 - Public surface? **yes** / Schema change? **yes** / RLS·SECURITY DEFINER? **yes** / Write? **yes**
 
 **Interfaces**  
@@ -130,7 +130,7 @@
 
 **Scope**  
 - Allowed: `TBD: <supabase-root>/**`, `docs/CONFIG-BASELINES.md`, `docs/playbooks/ops-app-config.md`  
-- Forbidden: 앱/웹 UI  
+- Forbidden: Allowed에 적힌 것 외 변경 금지  
 - Public surface? **no** / Schema change? **yes** / RLS·SECURITY DEFINER? **yes** / Write? **yes**
 
 **Interfaces**  
@@ -169,7 +169,7 @@
 
 **Scope**  
 - Allowed: `docs/playbooks/ops-app-config.md` (+ 필요시 `docs/VERIFICATION.md` 링크 보강)  
-- Forbidden: 기능 구현  
+- Forbidden: Allowed에 적힌 것 외 변경 금지  
 - Public surface? **no** / Schema change? **no** / RLS·SECURITY DEFINER? **no** / Write? **no**
 
 **Interfaces**  

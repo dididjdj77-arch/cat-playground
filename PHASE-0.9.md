@@ -13,7 +13,7 @@
 
 **Scope**  
 - Allowed paths: `TBD: <expo-app-root>/**` + (필요 시) `docs/playbooks/ops-app-config.md`  
-- Forbidden changes: DB 스키마/도메인 기능 구현  
+- Forbidden: Allowed에 적힌 것 외 변경 금지  
 - Public surface? **no** / Schema change? **no** / RLS·SECURITY DEFINER? **no** / Write? **no**
 
 **Interfaces**  
@@ -53,7 +53,7 @@
 
 **Scope**  
 - Allowed paths: `docs/playbooks/ops-app-config.md` + `TBD: env 관리 파일(레포 근거 필요)`  
-- Forbidden changes: 앱 기능 확장/DB 변경  
+- Forbidden: Allowed에 적힌 것 외 변경 금지  
 - Public surface? **no** / Schema change? **no** / RLS·SECURITY DEFINER? **no** / Write? **no**
 
 **Interfaces**  

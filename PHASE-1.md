@@ -13,7 +13,7 @@
 
 **Scope**  
 - Allowed: `TBD: <supabase-root>/**`, `TBD: <test-root>/**`  
-- Forbidden: 공개 RPC/SEO/web/app UI  
+- Forbidden: Allowed에 적힌 것 외 변경 금지  
 - Public surface? **no** / Schema change? **no** / RLS·SECURITY DEFINER? **yes** / Write? **yes**
 
 **Interfaces**  
@@ -53,7 +53,7 @@
 
 **Scope**  
 - Allowed: `TBD: <supabase-root>/**`, `TBD: <test-root>/**`  
-- Forbidden: 앱/웹 UI  
+- Forbidden: Allowed에 적힌 것 외 변경 금지  
 - Public surface? **no** / Schema change? **no** / RLS·SECURITY DEFINER? **yes** / Write? **yes**
 
 **Interfaces**  
@@ -94,7 +94,7 @@
 
 **Scope**  
 - Allowed: `TBD: <supabase-root>/**`, `TBD: <test-root>/**`  
-- Forbidden: 앱/웹 UI  
+- Forbidden: Allowed에 적힌 것 외 변경 금지  
 - Public surface? **yes** / Schema change? **no** / RLS·SECURITY DEFINER? **yes** / Write? **yes**
 
 **Interfaces**  
@@ -133,7 +133,7 @@
 
 **Scope**  
 - Allowed: `TBD: <supabase-root>/**`, `TBD: <test-root>/**`, `TBD: CI config`  
-- Forbidden: 앱/웹 UI  
+- Forbidden: Allowed에 적힌 것 외 변경 금지  
 - Public surface? **yes** / Schema change? **no** / RLS·SECURITY DEFINER? **yes** / Write? **yes**
 
 **Interfaces**  
@@ -174,7 +174,7 @@
 
 **Scope**  
 - Allowed: `TBD: <supabase-root>/**`, `TBD: <test-root>/**`  
-- Forbidden: 앱/웹 UI  
+- Forbidden: Allowed에 적힌 것 외 변경 금지  
 - Public surface? **yes** / Schema change? **no** / RLS·SECURITY DEFINER? **yes** / Write? **yes**
 
 **Interfaces**  
@@ -213,7 +213,7 @@
 
 **Scope**  
 - Allowed: `TBD: <supabase-root>/**`, `TBD: <test-root>/**`  
-- Forbidden: 앱/웹 UI  
+- Forbidden: Allowed에 적힌 것 외 변경 금지  
 - Public surface? **no** / Schema change? **no** / RLS·SECURITY DEFINER? **yes** / Write? **yes**
 
 **Interfaces**  
