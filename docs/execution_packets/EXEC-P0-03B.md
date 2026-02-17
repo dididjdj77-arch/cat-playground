@@ -52,7 +52,7 @@
 - Public surface? **no** / Schema change? **yes** / RLS·SECURITY DEFINER? **no** / Write? **yes**
 
 **Interfaces**  
-- Tables: `posts`, `comments`, `comment_revisions`, `topics`, `threads`, `replies`, `reply_revisions`, `likes`, `house_profiles`, `house_slots`, `blocks`, `reports`, `moderation_actions`, `notifications`  
+- Tables: `posts`, `comments`, `comment_revisions`, `topics`, `topic_follows`, `threads`, `replies`, `reply_revisions`, `likes`, `house_profiles`, `house_slots`, `blocks`, `reports`, `moderation_actions`, `notifications`  
 - FTS: `threads.fts_vector` + GIN (D-092)
 
 **Validation placeholders**  
@@ -90,13 +90,9 @@
 - [ ] RLS 정책 변경은 **스키마 변경과 분리**(Phase 0에서는 P0-03D).
 - [ ] 롤백 경로 명시: `_down.sql` 또는 revert 커밋 전략 중 하나를 확정.
 
-### 3) RPC/Contract 구현
-- [ ] write RPC는 트랜잭션 경계 명시(부분쓰기 방지) + idempotency/expected_version(해당 시) 구현.
-- [ ] 비즈니스 에러는 JSON return(`error_code`, 추가 필드)로 전달(raise exception은 hard fail만).
-- [ ] `guard_terms_agreed()` 적용(D-073) + guard 호출 순서(D-096) 고정.
-- [ ] replay는 최초 성공과 동일 shape를 반환(status-only 금지, D-061).
-- [ ] GRANT/REVOKE: anon/authenticated 권한을 SSOT에 맞게 최소로 설정.
-- [ ] 테스트/스냅샷(VERIFICATION, drift)으로 계약/가드/누출 방지를 회귀로 고정.
+## Non-goals (명시)
+- 이 EP는 RPC/함수/GRANT/REVOKE/RLS를 다루지 않는다.
+- 필요 시 별도 EP로 분리한다(RLS/guards는 P0-03D, 도메인 RPC는 Phase 1의 해당 EP).
 
 ## Validation (must run)
 - Risk level: **PRECISE**
@@ -124,6 +120,7 @@
 - [ ] Forbidden path 변경 없음(범위 슬립 0).
 - [ ] 부분쓰기/권한누출/공개 DTO 누출/404 통일 위반 없음.
 - [ ] 마이그레이션 롤백 경로(다운 SQL 또는 revert 커밋) 명시.
+- [ ] Functions/RPC/GRANT/REVOKE 변경 없음(0).
 ### Evidence required in PR
 - [ ] 실행한 커맨드/SQL + 출력(또는 스크린샷) 첨부.
 - [ ] 변경 파일 목록(자동/수동) 첨부.
