@@ -29,6 +29,19 @@ if (dockerProbe.status !== 0) {
   process.exit(1);
 }
 
+const startArgs = ["start"];
+
+console.log(`[db:reset] supabase ${startArgs.join(" ")}`);
+
+const startResult = spawnSync("supabase", startArgs, {
+  stdio: "inherit",
+  shell: process.platform === "win32"
+});
+
+if (startResult.status !== 0) {
+  process.exit(startResult.status ?? 1);
+}
+
 console.log(`[db:reset] supabase ${args.join(" ")}`);
 
 const result = spawnSync("supabase", args, {
