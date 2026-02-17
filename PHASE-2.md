@@ -13,7 +13,7 @@
 
 **Scope**  
 - Allowed: `TBD: <expo-app-root>/**`, `TBD: <shared-root>/**`  
-- Forbidden: DB/RLS/스키마 변경  
+- Forbidden: Allowed에 적힌 것 외 변경 금지  
 - Public surface? **no** / Schema change? **no** / RLS·SECURITY DEFINER? **no** / Write? **no**
 
 **Interfaces**  
@@ -51,7 +51,7 @@
 
 **Scope**  
 - Allowed: `TBD: <expo-app-root>/**`  
-- Forbidden: DB/RLS/스키마  
+- Forbidden: Allowed에 적힌 것 외 변경 금지  
 - Public surface? **no** / Schema change? **no** / RLS·SECURITY DEFINER? **no** / Write? **no**
 
 **Interfaces**  
@@ -89,7 +89,7 @@
 
 **Scope**  
 - Allowed: `TBD: <expo-app-root>/**`  
-- Forbidden: DB/RLS/스키마  
+- Forbidden: Allowed에 적힌 것 외 변경 금지  
 - Public surface? **no** / Schema change? **no** / RLS·SECURITY DEFINER? **no** / Write? **no**
 
 **Interfaces**  
@@ -125,7 +125,7 @@
 
 **Scope**  
 - Allowed: `TBD: <expo-app-root>/**`  
-- Forbidden: DB/RLS/스키마 변경  
+- Forbidden: Allowed에 적힌 것 외 변경 금지  
 - Public surface? **no** / Schema change? **no** / RLS·SECURITY DEFINER? **no** / Write? **no**
 
 **Interfaces**  
@@ -165,7 +165,7 @@
 
 **Scope**  
 - Allowed: `TBD: <expo-app-root>/**`  
-- Forbidden: DB/RLS/스키마 변경  
+- Forbidden: Allowed에 적힌 것 외 변경 금지  
 - Public surface? **no** / Schema change? **no** / RLS·SECURITY DEFINER? **no** / Write? **no**
 
 **Interfaces**  
@@ -204,7 +204,7 @@
 
 **Scope**  
 - Allowed: `TBD: <expo-app-root>/**`  
-- Forbidden: DB/RLS/스키마 변경  
+- Forbidden: Allowed에 적힌 것 외 변경 금지  
 - Public surface? **no** / Schema change? **no** / RLS·SECURITY DEFINER? **no** / Write? **no**
 
 **Interfaces**  
@@ -241,7 +241,7 @@
 
 **Scope**  
 - Allowed: `TBD: <expo-app-root>/**`  
-- Forbidden: DB/RLS/스키마 변경  
+- Forbidden: Allowed에 적힌 것 외 변경 금지  
 - Public surface? **no** / Schema change? **no** / RLS·SECURITY DEFINER? **no** / Write? **no**
 
 **Interfaces**  
@@ -281,7 +281,7 @@
 
 **Scope**  
 - Allowed: `TBD: <expo-app-root>/**`  
-- Forbidden: DB/RLS/스키마 변경  
+- Forbidden: Allowed에 적힌 것 외 변경 금지  
 - Public surface? **no** / Schema change? **no** / RLS·SECURITY DEFINER? **no** / Write? **no**
 
 **Interfaces**  
@@ -318,7 +318,7 @@
 
 **Scope**  
 - Allowed: `TBD: <expo-app-root>/**`  
-- Forbidden: DB/RLS/스키마 변경  
+- Forbidden: Allowed에 적힌 것 외 변경 금지  
 - Public surface? **no** / Schema change? **no** / RLS·SECURITY DEFINER? **no** / Write? **no**
 
 **Interfaces**  

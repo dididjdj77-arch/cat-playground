@@ -13,7 +13,7 @@
 
 **Scope**  
 - Allowed: `TBD: <test-root>/**`, `TBD: CI config`  
-- Forbidden: 기능 추가(버그픽스/테스트 보강만)  
+- Forbidden: Allowed에 적힌 것 외 변경 금지  
 - Public surface? **no** / Schema change? **no** / RLS·SECURITY DEFINER? **no** / Write? **no**
 
 **Interfaces**  
@@ -47,7 +47,7 @@
 
 **Scope**  
 - Allowed: runbook/체크리스트 문서(필요 시)  
-- Forbidden: 기능 추가(발견 결함은 별도 EP)  
+- Forbidden: Allowed에 적힌 것 외 변경 금지  
 - Public surface? **no** / Schema change? **no** / RLS·SECURITY DEFINER? **no** / Write? **no**
 
 **Interfaces**  
@@ -83,7 +83,7 @@
 
 **Scope**  
 - Allowed: 배포 스크립트/문서/런치 체크리스트(레포 근거 필요)  
-- Forbidden: 배포 중 기능 변경(긴급 패치 외)  
+- Forbidden: Allowed에 적힌 것 외 변경 금지  
 - Public surface? **yes** / Schema change? **yes** / RLS·SECURITY DEFINER? **yes** / Write? **yes**
 
 **Interfaces**  

@@ -18,9 +18,7 @@
   - `TBD: <next-web-root>/**` (SEO 라우트 스텁만)  
   - `TBD: <shared-root>/**` (DTO whitelist/에러코드 enum 타입 스텁)  
   - `TBD: .github/**` (CI가 표준 스크립트만 호출하도록 스텁)  
-- Forbidden changes:  
-  - DB 스키마/마이그레이션 실제 구현(Phase 0-3에서만)  
-  - 공개 정책/가드 로직/권한 모델 변경(Decision/ADR 없이 금지)  
+- Forbidden: Allowed에 적힌 것 외 변경 금지  
 - Public surface? **no**  
 - Schema change? **no**  
 - RLS/SECURITY DEFINER? **no**  
@@ -70,7 +68,7 @@
   - `TBD: <supabase-root>/**`  
   - `TBD: CI config (.github/** 또는 동등)`  
   - `docs/VERIFICATION.md` (필요 시 “스크립트 이름”만 확인/정정)  
-- Forbidden changes: 스키마 내용 자체 변경(Phase 0-3로 제한)  
+- Forbidden: Allowed에 적힌 것 외 변경 금지  
 - Public surface? **no**  
 - Schema change? **no**  
 - RLS/SECURITY DEFINER? **no**  
@@ -115,7 +113,7 @@
 
 **Scope**  
 - Allowed: `TBD: <supabase-root>/migrations/**`  
-- Forbidden: RLS/SECURITY DEFINER/GRANT/REVOKE, 앱/웹 코드  
+- Forbidden: Allowed에 적힌 것 외 변경 금지  
 - Public surface? **no** / Schema change? **yes** / RLS·SECURITY DEFINER? **no** / Write? **yes**
 
 **Interfaces**  
@@ -155,7 +153,7 @@
 
 **Scope**  
 - Allowed: `TBD: <supabase-root>/migrations/**`  
-- Forbidden: RLS/SECURITY DEFINER/GRANT/REVOKE, 앱/웹 코드  
+- Forbidden: Allowed에 적힌 것 외 변경 금지  
 - Public surface? **no** / Schema change? **yes** / RLS·SECURITY DEFINER? **no** / Write? **yes**
 
 **Interfaces**  
@@ -194,7 +192,7 @@
 
 **Scope**  
 - Allowed: `TBD: <supabase-root>/migrations/**`, `docs/CONFIG-BASELINES.md`(링크 보강만)  
-- Forbidden: 도메인별 RPC 본격 구현(Phase 1)  
+- Forbidden: Allowed에 적힌 것 외 변경 금지  
 - Public surface? **no** / Schema change? **yes** / RLS·SECURITY DEFINER? **yes** / Write? **yes**
 
 **Interfaces**  
@@ -236,7 +234,7 @@
 
 **Scope**  
 - Allowed: `TBD: <supabase-root>/migrations/**`  
-- Forbidden: 앱/웹 코드, 도메인별 RPC(Phase 1)  
+- Forbidden: Allowed에 적힌 것 외 변경 금지  
 - Public surface? **no** / Schema change? **yes** / RLS·SECURITY DEFINER? **yes** / Write? **yes**
 
 **Interfaces**  
@@ -276,7 +274,7 @@
 
 **Scope**  
 - Allowed: `TBD: <test-root>/**`, `TBD: <seed-fixtures>/**`, `TBD: CI config`  
-- Forbidden: 도메인 기능 구현  
+- Forbidden: Allowed에 적힌 것 외 변경 금지  
 - Public surface? **yes** / Schema change? **no** / RLS·SECURITY DEFINER? **no** / Write? **no**
 
 **Interfaces**  
@@ -315,7 +313,7 @@
 
 **Scope**  
 - Allowed: `TBD: <shared-root>/**`, `TBD: scripts/**`, `TBD: CI config`  
-- Forbidden: DB/도메인 로직 변경  
+- Forbidden: Allowed에 적힌 것 외 변경 금지  
 - Public surface? **no** / Schema change? **no** / RLS·SECURITY DEFINER? **no** / Write? **no**
 
 **Interfaces**  
@@ -351,7 +349,7 @@
 
 **Scope**  
 - Allowed: `docs/playbooks/ops-app-config.md`  
-- Forbidden: 코드/스키마 변경  
+- Forbidden: Allowed에 적힌 것 외 변경 금지  
 - Public surface? **no** / Schema change? **no** / RLS·SECURITY DEFINER? **no** / Write? **no**
 
 **Interfaces**  
