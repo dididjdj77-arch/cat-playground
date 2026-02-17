@@ -256,6 +256,25 @@ create unique index if not exists idx_reports_reporter_target_uniq
   on public.reports (reporter_id, target_type, target_id)
   where deleted_at is null;
 
+create table if not exists public.notifications (
+  id uuid primary key default gen_random_uuid(),
+  user_id uuid not null references public.profiles(id) on delete cascade,
+  type text not null check (type in ('comment','reply','like')),
+  target_type text not null check (target_type in ('post','comment','thread','reply')),
+  target_id uuid not null,
+  actor_id uuid not null references public.profiles(id) on delete cascade,
+  is_read boolean not null default false,
+  read_at timestamptz,
+  meta jsonb not null default '{}'::jsonb,
+  created_at timestamptz not null default now()
+);
+
+create index if not exists idx_notifications_user_created
+  on public.notifications (user_id, created_at desc);
+create index if not exists idx_notifications_user_unread
+  on public.notifications (user_id, is_read)
+  where is_read = false;
+
 create table if not exists public.app_config (
   key text primary key,
   value jsonb not null,

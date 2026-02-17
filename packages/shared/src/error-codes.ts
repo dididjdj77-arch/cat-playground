@@ -5,7 +5,9 @@ export const ERROR_CODES = [
   "invalid_payload_version",
   "rejected_version",
   "duplicate_report",
-  "invalid_request"
+  "invalid_request",
+  "invalid_target_type",
+  "invalid_inventory_item",
 ] as const;
 
 export type ErrorCode = (typeof ERROR_CODES)[number];
