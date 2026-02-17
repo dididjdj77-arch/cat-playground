@@ -1,0 +1,20 @@
+{
+  "name": "cat-playground",
+  "private": true,
+  "version": "0.0.0",
+  "workspaces": [
+    "apps/*",
+    "packages/*"
+  ],
+  "scripts": {
+    "repo:lint": "node scripts/repo-lint.mjs",
+    "repo:spine-check": "npm run repo:lint",
+    "repo:typecheck": "node scripts/repo-typecheck.mjs",
+    "repo:test": "node scripts/repo-test.mjs",
+    "db:reset": "node scripts/db-reset.mjs",
+    "db:smoke": "node scripts/db-smoke.mjs",
+    "ci:verify": "npm run repo:lint && npm run repo:typecheck && npm run repo:test && node scripts/lint-decisions.mjs && bash scripts/check-docs-integrity.sh",
+    "ci:public-gate": "node scripts/ci-public-gate.mjs",
+    "ci:drift": "node scripts/ci-drift.mjs"
+  }
+}

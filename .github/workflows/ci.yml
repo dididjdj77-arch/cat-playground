@@ -3,6 +3,9 @@ name: ci
 on:
   pull_request:
     paths:
+      - "package.json"
+      - "apps/**"
+      - "packages/**"
       - "docs/**"
       - "scripts/**"
       - "supabase/**"
@@ -19,11 +22,8 @@ jobs:
         with:
           node-version: "20"
 
-      - name: Lint DECISIONS
-        run: node scripts/lint-decisions.mjs
-
-      - name: Docs integrity
-        run: bash scripts/check-docs-integrity.sh
+      - name: Canonical verify
+        run: npm run ci:verify
 
   supabase-db-reset-dry-run:
     runs-on: ubuntu-latest
