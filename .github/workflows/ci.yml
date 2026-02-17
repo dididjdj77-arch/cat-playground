@@ -22,26 +22,9 @@ jobs:
         with:
           node-version: "20"
 
-      - name: Canonical verify
-        run: npm run ci:verify
-
-  supabase-db-reset-dry-run:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-
       - uses: supabase/setup-cli@v1
         with:
           version: latest
 
-      - name: Show Supabase CLI version
-        run: supabase --version
-
-      - name: Supabase db reset dry-run
-        shell: bash
-        run: |
-          if supabase db reset --help | grep -q -- '--dry-run'; then
-            supabase db reset --dry-run --local --no-seed
-          else
-            echo "::warning::Supabase CLI in this runner has no --dry-run for db reset. Dry-run step is skipped."
-          fi
+      - name: Canonical verify
+        run: npm run ci:verify
