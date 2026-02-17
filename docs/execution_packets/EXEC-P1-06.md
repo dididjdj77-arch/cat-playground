@@ -39,8 +39,10 @@
 
 ## Targets (이 EP에서 만지는 주요 표면)
 - RPC:
-  - `check_auto_hide`
   - `rpc_report_content`
+  - `rpc_block_user`
+  - `rpc_unblock_user`
+  - `check_auto_hide` (internal)
 - Tables / Entities (참고):
   - `app_config`
   - `blocks`
@@ -91,9 +93,10 @@
 ---
 
 ## Phase 1 요약
-- EP 개수: 6  
-- 단독 권장(고위험): P1-01~P1-06 전부  
+- EP 개수: 7
+- 단독 권장(고위험): P1-01~P1-07 전부
 - 번들 후보(가벼운 것끼리): 없음(권장하지 않음)
+- P1-07: 프로필/온보딩(§7-6) + 알림(§7-7) RPC — 로드맵 커버리지 갭 해소
 ```
 
 ### 0) Pre-flight (작업 전)

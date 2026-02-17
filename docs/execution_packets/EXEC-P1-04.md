@@ -39,9 +39,18 @@
 
 ## Targets (이 EP에서 만지는 주요 표면)
 - RPC:
-  - `rpc_get_public_post_comments`
-  - `rpc_get_public_posts_feed`
+  - `rpc_create_post`
+  - `rpc_update_post`
+  - `rpc_delete_post`
+  - `rpc_publish_post`
+  - `rpc_unpublish_post`
+  - `rpc_create_comment`
+  - `rpc_update_comment`
+  - `rpc_delete_comment`
   - `rpc_toggle_like`
+  - `rpc_get_public_posts_feed`
+  - `rpc_get_public_post_detail`
+  - `rpc_get_public_post_comments`
 - Tables / Entities (참고):
   - `comments`
   - `likes`

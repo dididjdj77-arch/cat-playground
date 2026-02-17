@@ -51,6 +51,7 @@
 - `P1-04` — 냥스타 RPC + Public Surface Gate 활성화(머지 조건 전환) → `EXEC-P1-04.md`
 - `P1-05` — 채널 RPC: 토픽/스레드/답글/팔로우/검색(FTS) + 피드 3종 → `EXEC-P1-05.md`
 - `P1-06` — 운영 RPC: 신고/차단/자동숨김/감사로그/알림 생성(트랜잭션 내부) → `EXEC-P1-06.md`
+- `P1-07` — 프로필/온보딩 Write RPC + 알림 RPC (API.md §7-6, §7-7 커버리지 갭 해소) → `EXEC-P1-07.md`
 
 ### PHASE-2
 - `P2-00` — Transport Adapter(앱) 구현(선행 고정) → `EXEC-P2-00.md`
