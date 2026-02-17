@@ -52,10 +52,25 @@
 ---
 
 ## Current Status (Session Restore)
-- Phase: Implementation (docs/process refactor)
-- Last merged PR: unknown
+- Phase: Implementation — P0 스키마 마이그레이션 완료, P1 RPC 구현 준비 단계
+- Last merged PR: #100 (2026-02-18)
 - Work starts: User-provided Execution Packet only (no task list doc)
 - Tracking key: EP-ID + PR (no T-XXX)
+
+### Completed EPs
+| EP | PR | 내용 |
+|----|-----|------|
+| P0-01 | — | CI 파이프라인 구축 |
+| P0-02 | #95 | CI verify green |
+| P0-03A | #96 | 코어 스키마 마이그레이션 (profiles, topics, auth) |
+| P0-03B | #100 | 커뮤니티/운영 스키마 (topic_follows, reply_revisions, comment_revisions, moderation_actions + FK/CHECK/인덱스 보강) |
+| P0-03C doc | #98 | EP 문서 결함 수정 (6항목) |
+| EP bulk fix | #99 | 전체 EP 문서 일괄 패치 — 스코프 충돌 제거, P1 타겟 RPC 보강, P1-07 신설 |
+
+### Next EPs (ready)
+- **P0-03C**: Storage 버킷 + rpc_get_app_config (선행: P0-03A)
+- **P0-03D**: RLS 정책 마이그레이션 (선행: P0-03C)
+- **P1-01 ~ P1-07**: RPC 구현 (선행: P0-03D)
 
 ---
 
