@@ -1342,7 +1342,32 @@ export type Database = {
         Args: { p_published_at: string; p_visibility: string }
         Returns: boolean
       }
+      rpc_create_comment: {
+        Args: { p_body: string; p_post_id: string }
+        Returns: Json
+      }
+      rpc_create_post: {
+        Args: {
+          p_body: string
+          p_hide_from_profile?: boolean
+          p_log_date: string
+          p_meta?: Json
+          p_visibility: string
+        }
+        Returns: Json
+      }
+      rpc_delete_comment: { Args: { p_comment_id: string }; Returns: Json }
+      rpc_delete_post: { Args: { p_post_id: string }; Returns: Json }
       rpc_get_app_config: { Args: { p_keys: string[] }; Returns: Json }
+      rpc_get_public_post_comments: {
+        Args: { p_cursor?: string; p_limit?: number; p_post_id: string }
+        Returns: Json
+      }
+      rpc_get_public_post_detail: { Args: { p_post_id: string }; Returns: Json }
+      rpc_get_public_posts_feed: {
+        Args: { p_cursor?: string; p_limit?: number }
+        Returns: Json
+      }
       rpc_inventory_correction: {
         Args: {
           p_catalog_item_id?: string
@@ -1364,6 +1389,26 @@ export type Database = {
           p_raw_text: string
           p_reason_note?: string
           p_type: string
+        }
+        Returns: Json
+      }
+      rpc_publish_post: { Args: { p_post_id: string }; Returns: Json }
+      rpc_toggle_like: {
+        Args: { p_target_id: string; p_target_type: string }
+        Returns: Json
+      }
+      rpc_unpublish_post: { Args: { p_post_id: string }; Returns: Json }
+      rpc_update_comment: {
+        Args: { p_body: string; p_comment_id: string }
+        Returns: Json
+      }
+      rpc_update_post: {
+        Args: {
+          p_body?: string
+          p_hide_from_profile?: boolean
+          p_meta?: Json
+          p_post_id: string
+          p_visibility?: string
         }
         Returns: Json
       }

@@ -3,62 +3,77 @@
     {
       "id": "G-1",
       "title": "block 0-rows",
-      "status": "skip",
-      "mode": "skeleton",
-      "reason": "Phase 0 skeleton before first public RPC"
+      "status": "pass",
+      "mode": "exact",
+      "reason": "P1-04 exact conversion"
     },
     {
       "id": "G-2",
       "title": "DTO whitelist no leak",
-      "status": "skip",
-      "mode": "skeleton",
-      "reason": "Phase 0 skeleton before first public RPC"
+      "status": "pass",
+      "mode": "exact",
+      "reason": "P1-04 exact conversion"
     },
     {
       "id": "G-3",
       "title": "parent guard dependent 404",
-      "status": "skip",
-      "mode": "skeleton",
-      "reason": "Phase 0 skeleton before first public RPC"
+      "status": "pass",
+      "mode": "exact",
+      "reason": "P1-04 exact conversion"
     },
     {
       "id": "G-4",
       "title": "not found unification",
-      "status": "skip",
-      "mode": "skeleton",
-      "reason": "Phase 0 skeleton before first public RPC"
+      "status": "pass",
+      "mode": "exact",
+      "reason": "P1-04 exact conversion"
     }
   ],
   "phase1_placeholders": [
     {
       "id": "T-1",
       "title": "block snapshot test",
-      "mode": "placeholder"
+      "mode": "exact",
+      "status": "pass",
+      "reason": "P1-04 exact conversion"
     },
     {
       "id": "T-2",
       "title": "payload version normalize snapshot",
-      "mode": "placeholder"
+      "mode": "placeholder",
+      "reason": "Phase 1 follow-up"
     },
     {
       "id": "T-3",
       "title": "version conflict 409 scenario",
-      "mode": "placeholder"
+      "mode": "placeholder",
+      "reason": "Phase 1 follow-up"
     },
     {
       "id": "T-4",
       "title": "public house dto leak prevention",
-      "mode": "placeholder"
+      "mode": "placeholder",
+      "reason": "Phase 1 follow-up"
     },
     {
       "id": "T-5",
       "title": "comments parent post guard 404",
-      "mode": "placeholder"
+      "mode": "exact",
+      "status": "pass",
+      "reason": "P1-04 exact conversion"
     },
     {
       "id": "T-6",
       "title": "revalidate endpoint security negative",
-      "mode": "placeholder"
+      "mode": "placeholder",
+      "reason": "Phase 3 follow-up"
+    },
+    {
+      "id": "DCI-4",
+      "title": "public DTO forbidden field expansion",
+      "mode": "exact",
+      "status": "pass",
+      "reason": "P1-04 exact conversion"
     }
   ]
 }

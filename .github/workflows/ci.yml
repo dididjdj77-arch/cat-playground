@@ -31,7 +31,7 @@ jobs:
         run: npm run ci:verify
 
       - name: Public surface gate
-        run: npm run ci:public-gate
+        run: npm run ci:public-gate -- --require-exact
 
       - name: Drift gate
         run: npm run ci:drift
