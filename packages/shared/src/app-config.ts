@@ -22,7 +22,7 @@ export interface RateLimitEntry {
 /** §1 일반 계정 / 신규 계정 rate limits */
 export interface RateLimitsValue {
   posts: RateLimitEntry;
-  comments_replies: RateLimitEntry;
+  "comments/replies": RateLimitEntry;
   likes: RateLimitEntry;
   reports: RateLimitEntry;
 }

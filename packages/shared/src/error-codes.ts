@@ -1,6 +1,7 @@
 export const ERROR_CODES = [
   "not_found",
   "terms_not_agreed",
+  "forbidden",
   "version_conflict",
   "invalid_payload_version",
   "rejected_version",

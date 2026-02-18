@@ -26,6 +26,7 @@ DB RPC는 항상 JSON return(D-065). 외부 표면(웹 SSR/SDK wrapper)이 `body
 | invalid_payload_version | 400 | ValidationError throw |
 | rejected_version | 400 | ValidationError throw |
 | terms_not_agreed | 403 | TermsError throw |
+| forbidden | 403 | ForbiddenError throw |
 | duplicate_report | 409 | ConflictError throw |
 | invalid_target_type | 400 | ValidationError throw |
 | invalid_inventory_item | 400 | ValidationError throw |
