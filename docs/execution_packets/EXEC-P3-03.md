@@ -98,13 +98,12 @@
 - [ ] 원본 테이블 direct SELECT 노출 금지(특히 anon). 필요한 경우 EXECUTE 최소 권한만 부여.
 - [ ] anon/authenticated에서의 접근(성공/거부/404 통일)을 **smoke + negative**로 확인.
 
-### 3) RPC/Contract 구현
-- [ ] write RPC는 트랜잭션 경계 명시(부분쓰기 방지) + idempotency/expected_version(해당 시) 구현.
-- [ ] 비즈니스 에러는 JSON return(`error_code`, 추가 필드)로 전달(raise exception은 hard fail만).
-- [ ] `guard_terms_agreed()` 적용(D-073) + guard 호출 순서(D-096) 고정.
-- [ ] replay는 최초 성공과 동일 shape를 반환(status-only 금지, D-061).
-- [ ] GRANT/REVOKE: anon/authenticated 권한을 SSOT에 맞게 최소로 설정.
-- [ ] 테스트/스냅샷(VERIFICATION, drift)으로 계약/가드/누출 방지를 회귀로 고정.
+### 3) Cron/내부 함수 구현
+- [ ] cron 실행 함수는 `SECURITY DEFINER` + `set search_path` 고정(ADR-005).
+- [ ] cron 표현식은 UTC 기준, cadence는 CONFIG-BASELINES 근거.
+- [ ] 실패 시 멱등 재실행 가능하도록 구현(부분 처리 안전).
+- [ ] GRANT/REVOKE: cron 함수는 service_role 전용, anon/authenticated EXECUTE 금지.
+- [ ] 테스트/스냅샷(VERIFICATION, drift)으로 잡 등록/실행 결과를 회귀로 고정.
 
 ## Validation (must run)
 - Risk level: **PRECISE**

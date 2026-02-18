@@ -71,19 +71,14 @@
 - [ ] `TBD`/SSOT 갭이 남아있으면 **추측 구현 금지**. OPEN에 기록하고 컨트롤러에게 SSOT 보강 요청.
 - [ ] Validation 스크립트(`repo:*`, `db:*`, `ci:*`)가 실제 레포에서 무엇을 실행하는지 확인(필요 시 P0-01/02에서 매핑).
 
-### 3) RPC/Contract 구현
-- [ ] GRANT/REVOKE: anon/authenticated 권한을 SSOT에 맞게 최소로 설정.
-- [ ] 테스트/스냅샷(VERIFICATION, drift)으로 계약/가드/누출 방지를 회귀로 고정.
+### Non-goals (이 EP에서 하지 않는 것)
+- DB schema/RPC/RLS/GRANT/REVOKE 변경 — Impact flags 전부 no. 이 EP는 테스트/CI 회귀 보강만 다룬다.
+- 문서/SSOT 변경 — `docs/**`는 Scope 외.
 
 ### 6) 테스트/게이트
 - [ ] tests/fixtures 기반으로 재현 가능한 데이터 세팅(User A/B/C, block 관계, 샘플 콘텐츠).
 - [ ] VERIFICATION의 해당 테스트(T-1~T-6, DCI-1~4)를 스냅샷/네거티브까지 포함해 구현.
 - [ ] CI 스크립트(`ci:verify`, `ci:public-gate`, `ci:drift`)에서 실행되도록 연결.
-
-### 1) 문서/운영 작업
-- [ ] 문서 변경은 SSOT 원칙(이유는 DECISIONS/ADR, 수치는 CONFIG-BASELINES)에 맞게 최소 변경.
-- [ ] 비밀값은 쓰지 않고, **설정 위치/절차**만 기록.
-- [ ] 체크리스트는 실행 가능 형태(누가/언제/어디서/어떤 근거로)로 작성.
 
 ## Validation (must run)
 - Risk level: **PRECISE**
