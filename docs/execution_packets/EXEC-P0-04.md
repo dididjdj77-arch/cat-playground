@@ -9,8 +9,8 @@
 - Phase EP: `P0-04`
 - Assign EP-ID (controller fills): `EP-YYYYMMDD-<slug>`
 - Risk level: **PRECISE**
-- Impact flags (from Phase skeleton):
-  - Public surface: **yes**
+- Impact flags (수정됨 — 스켈레톤 단계에서 공개 엔드포인트 변경 없음):
+  - Public surface: **no** (Gate 스켈레톤만 생성, 실제 public endpoint 추가 없음. Phase 1 전환 시 재평가)
   - Schema change: **no**
   - RLS·SECURITY DEFINER: **no**
   - Write: **no**
@@ -45,7 +45,7 @@
 **Scope**  
 - Allowed: `tests/**`, `tests/fixtures/**`, `.github/**`  
 - Forbidden: Allowed에 적힌 것 외 변경 금지  
-- Public surface? **yes** / Schema change? **no** / RLS·SECURITY DEFINER? **no** / Write? **no**
+- Public surface? **no** (스켈레톤만, Phase 1 전환 시 재평가) / Schema change? **no** / RLS·SECURITY DEFINER? **no** / Write? **no**
 
 **Interfaces**  
 - Gates: G-1~G-4, DCI-1~DCI-4  
@@ -79,22 +79,16 @@
 - [ ] `TBD`/SSOT 갭이 남아있으면 **추측 구현 금지**. OPEN에 기록하고 컨트롤러에게 SSOT 보강 요청.
 - [ ] Validation 스크립트(`repo:*`, `db:*`, `ci:*`)가 실제 레포에서 무엇을 실행하는지 확인(필요 시 P0-01/02에서 매핑).
 
-### 3) RPC/Contract 구현
-- [ ] 공개 읽기 RPC는 `SECURITY DEFINER` + guard_soft_state + guard_block (+ 필요 시 guard_visibility_published) 적용.
-- [ ] 반환 컬럼은 **명시적 화이트리스트**(select * 금지).
-- [ ] 공개 표면에서 조회 불가 상태는 404로 통일(D-050).
-- [ ] GRANT/REVOKE: anon/authenticated 권한을 SSOT에 맞게 최소로 설정.
-- [ ] 테스트/스냅샷(VERIFICATION, drift)으로 계약/가드/누출 방지를 회귀로 고정.
+### Non-goals (이 EP에서 하지 않는 것)
+- DB 함수/RLS/GRANT/REVOKE/마이그레이션 변경 — P0-03D 또는 별도 EP 영역.
+- SECURITY DEFINER RPC 생성 — Scope(`tests/**`, `.github/**`)에 해당하지 않음.
+- 도메인 RPC 구현 — Phase 1 이후 EP에서 수행.
 
 ### 6) 테스트/게이트
 - [ ] tests/fixtures 기반으로 재현 가능한 데이터 세팅(User A/B/C, block 관계, 샘플 콘텐츠).
-- [ ] VERIFICATION의 해당 테스트(T-1~T-6, DCI-1~4)를 스냅샷/네거티브까지 포함해 구현.
+- [ ] Phase 0 최소 세트: **G-1~G-4 스켈레톤(skip 가능하되 존재 필수)** + **DCI-1~DCI-2 기반 검증**만 exact 구현.
+- [ ] T-1~T-6, DCI-3~4는 **placeholder/skeleton**으로 두고 Phase 1 이후 EP에서 exact 전환.
 - [ ] CI 스크립트(`ci:verify`, `ci:public-gate`, `ci:drift`)에서 실행되도록 연결.
-
-### 1) 문서/운영 작업
-- [ ] 문서 변경은 SSOT 원칙(이유는 DECISIONS/ADR, 수치는 CONFIG-BASELINES)에 맞게 최소 변경.
-- [ ] 비밀값은 쓰지 않고, **설정 위치/절차**만 기록.
-- [ ] 체크리스트는 실행 가능 형태(누가/언제/어디서/어떤 근거로)로 작성.
 
 ## Validation (must run)
 - Risk level: **PRECISE**
@@ -120,7 +114,7 @@
 ### Safety DoD
 - [ ] Forbidden path 변경 없음(범위 슬립 0).
 - [ ] 부분쓰기/권한누출/공개 DTO 누출/404 통일 위반 없음.
-- [ ] Public Surface Gate(G-1~G-4) 영향이 있으면 `ci:public-gate` green 증거 첨부.
+- [ ] Public Surface Gate(G-1~G-4) 스켈레톤이 존재하고 `ci:public-gate` skip 또는 green 증거 첨부.
 ### Evidence required in PR
 - [ ] 실행한 커맨드/SQL + 출력(또는 스크린샷) 첨부.
 - [ ] 변경 파일 목록(자동/수동) 첨부.
@@ -131,6 +125,8 @@
 
 ## OPEN (from Phase)
 - 테스트 프레임워크/루트 경로(레포 근거 필요).
+- P0-03D 완료 후 guard 함수 검증 대상 목록 확정 필요(어떤 guard를 테스트에서 검증할지).
+- Phase 0 최소 테스트 세트(G-1~G-4 + DCI-1~2) 외 나머지를 Phase 1 어느 EP에서 exact 전환할지.
 
 ## Result Packet (PR 본문에 채워 넣기)
 

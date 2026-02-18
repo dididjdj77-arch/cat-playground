@@ -22,7 +22,7 @@
 - Prerequisites: P0-03C
 
 ## Hardening safety rules (MUST)
-1) Reality check: 레포에 실제로 존재하는 파일/경로/심볼/테이블/RPC 이름만 사용한다. 확실치 않으면 만들지 말고 OPEN으로 남긴다.
+1) Reality check: 참조(스크립트/경로/심볼)는 레포에 실제로 존재하는 것만 사용한다. 신규 DB 오브젝트(함수/정책/권한)는 SSOT에 명시된 이름만 생성한다. SSOT에 없으면 OPEN으로 남긴다.
 2) Conservative risk: Public surface / Schema / RLS·SECURITY DEFINER / Write 여부가 애매하면 yes로 보수적으로 판정하고 필요한 게이트/검증을 포함한다.
 3) Evidence-only: exact SQL, expected output, 마이그레이션 번호/파일명 같은 확정값은 SSOT나 실제 코드 근거가 있을 때만 적는다. 근거 없으면 TBD 유지.
 
@@ -36,7 +36,7 @@
 - `docs/playbooks/rls-and-guards.md`
 - `docs/playbooks/rpc-owner.md`
 - `docs/playbooks/rpc-public.md`
-- `docs/DECISIONS.md` (관련 Decision: D-029, D-050, D-073, D-094, D-096)
+- `docs/DECISIONS.md` (관련 Decision: D-029, D-050, D-061, D-073, D-094, D-096)
 - `docs/AUTHZ-MODEL.md` (§0 정책식 원문 — guard 함수 설계 필수 참조)
 - ADR refs: ADR-005
 
@@ -44,7 +44,7 @@
 ```markdown
 ## EP P0-03D — DB 하드닝: Guard 함수 + RLS 베이스라인 + GRANT/REVOKE
 **Hardening safety rules (EP마다 반드시 포함)**  
-1) Reality check: 레포에 실제로 존재하는 파일/경로/심볼/테이블/RPC 이름만 사용한다. 확실치 않으면 만들지 말고 OPEN으로 남긴다.  
+1) Reality check: 참조(스크립트/경로/심볼)는 레포에 실제로 존재하는 것만 사용한다. 신규 DB 오브젝트(함수/정책/권한)는 SSOT에 명시된 이름만 생성한다. SSOT에 없으면 OPEN으로 남긴다.
 2) Conservative risk: Public surface / Schema / RLS·SECURITY DEFINER / Write 여부가 애매하면 yes로 보수적으로 판정하고 필요한 게이트/검증을 포함한다.  
 3) Evidence-only: exact SQL, expected output, 마이그레이션 번호/파일명 같은 확정값은 SSOT나 실제 코드 근거가 있을 때만 적는다. 근거 없으면 TBD 유지.
 
@@ -72,7 +72,7 @@
 
 **SSOT refs**  
 - `docs/AUTHZ-MODEL.md`, `docs/API.md`, `docs/playbooks/rls-and-guards.md`, `docs/playbooks/rpc-public.md`, `docs/playbooks/rpc-owner.md`  
-- D-029, D-050, D-073, D-096  
+- D-029, D-050, D-061, D-073, D-096
 - ADR-005
 
 **Prerequisites**: P0-03C
@@ -103,13 +103,17 @@
 - [ ] 원본 테이블 direct SELECT 노출 금지(특히 anon). 필요한 경우 EXECUTE 최소 권한만 부여.
 - [ ] anon/authenticated에서의 접근(성공/거부/404 통일)을 **smoke + negative**로 확인.
 
-### 3) RPC/Contract 구현
-- [ ] write RPC는 트랜잭션 경계 명시(부분쓰기 방지) + idempotency/expected_version(해당 시) 구현.
-- [ ] 비즈니스 에러는 JSON return(`error_code`, 추가 필드)로 전달(raise exception은 hard fail만).
-- [ ] `guard_terms_agreed()` 적용(D-073) + guard 호출 순서(D-096) 고정.
-- [ ] replay는 최초 성공과 동일 shape를 반환(status-only 금지, D-061).
+### 3) Guard 함수 정의 + GRANT/REVOKE
+- [ ] SSOT(`AUTHZ-MODEL.md` §0)에 명시된 guard 함수만 생성: `guard_soft_state()`, `guard_block()`, `guard_visibility_published()`, `guard_terms_agreed()` 등.
+- [ ] guard 함수 호출 순서를 D-096에 맞게 고정.
+- [ ] `guard_terms_agreed()` 적용(D-073).
 - [ ] GRANT/REVOKE: anon/authenticated 권한을 SSOT에 맞게 최소로 설정.
-- [ ] 테스트/스냅샷(VERIFICATION, drift)으로 계약/가드/누출 방지를 회귀로 고정.
+- [ ] 테스트/스냅샷(VERIFICATION, drift)으로 가드/누출 방지를 회귀로 고정.
+
+### Non-goals (이 EP에서 하지 않는 것)
+- 도메인 write RPC 구현(트랜잭션 경계, idempotency, replay shape 등) — 별도 EP에서 수행.
+- public RPC endpoint 추가 — 이 EP는 guard 함수/RLS/GRANT/REVOKE 인프라만 다룬다.
+- AUTHZ-MODEL §0에 없는 guard 함수 신규 생성.
 
 ## Validation (must run)
 - Risk level: **PRECISE**
