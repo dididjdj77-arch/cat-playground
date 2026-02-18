@@ -6,6 +6,7 @@
     "start": "expo start --clear"
   },
   "dependencies": {
+    "@cat-playground/shared": "*",
     "@react-native-async-storage/async-storage": "*",
     "@supabase/supabase-js": "*",
     "expo": "*",

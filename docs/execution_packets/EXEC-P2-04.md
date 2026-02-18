@@ -80,9 +80,14 @@
 **Validation placeholders**  
 - 수동: private/public+미발행/발행 전이 UX, 댓글 수정 표기(D-009), hide_from_profile(D-020)
 
-**Hardening hints**  
-- [ ] 업로드 포맷/크기 제한(D-067) 사전 검증  
+**Hardening hints**
+- [ ] 업로드 포맷/크기 제한(D-067) 사전 검증
 - [ ] 에러 매핑: not_found/terms_not_agreed/invalid_request
+- [ ] 이미지 업로드 2-step 순서 (D-067/D-088):
+  1. `rpc_create_post`로 post_id 생성 (이미지 없이)
+  2. storage에 `posts/{user_id}/{post_id}/{uuid}.webp` 업로드
+  3. `rpc_update_post(p_meta.images=[...keys])` 로 이미지 키 연결
+- [ ] 다이어리 탭 "내 글" 패널: owner-only이므로 RLS 기반 direct read로 구현 (공개 표면 아님, 별도 RPC 불필요)
 
 **SSOT refs**  
 - `docs/DECISIONS.md`, `docs/AUTHZ-MODEL.md`, `docs/DATA-MODEL.md`  

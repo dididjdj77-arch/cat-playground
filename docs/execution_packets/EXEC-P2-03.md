@@ -68,13 +68,17 @@
 **Validation placeholders**  
 - 수동: 409 UX, 미래 날짜 방어(D-010), 드래프트 복원
 
-**Hardening hints**  
-- [ ] idempotency_key 생성/보관 전략(재시도 동일 키 유지)  
+**Hardening hints**
+- [ ] idempotency_key 생성/보관 전략(재시도 동일 키 유지)
 - [ ] 충돌 시 최신 스냅샷 표시 여부(서버 제공 시에만)
+- [ ] `inventory_refs` 전송 규칙 (D-064):
+  - 기본: `inventory_refs = null` (기존 refs 유지 — 대부분의 저장 케이스)
+  - 클리어 UX가 있는 경우에만: `inventory_refs = {}` (기존 refs 전부 삭제)
+  - 부분 업데이트: 특정 타입 키만 포함 시 해당 타입만 upsert, 나머지 유지
 
 **SSOT refs**  
 - `docs/ROUTES-AND-IA.md`, `docs/DECISIONS.md`, `docs/API.md`  
-- D-003, D-004, D-010, D-082
+- D-003, D-004, D-010, D-064, D-082
 
 **Prerequisites**: P1-02, P2-00
 
