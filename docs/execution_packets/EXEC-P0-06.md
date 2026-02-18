@@ -8,7 +8,7 @@
 ## Meta
 - Phase EP: `P0-06`
 - Assign EP-ID (controller fills): `EP-YYYYMMDD-<slug>`
-- Risk level: **PRECISE**
+- Risk level: **FAST** (문서 단일 파일 변경, DB/코드 영향 없음)
 - Impact flags (from Phase skeleton):
   - Public surface: **no**
   - Schema change: **no**
@@ -19,7 +19,7 @@
 - Prerequisites: none
 
 ## Hardening safety rules (MUST)
-1) Reality check: 레포에 실제로 존재하는 파일/경로/심볼/테이블/RPC 이름만 사용한다. 확실치 않으면 만들지 말고 OPEN으로 남긴다.
+1) Reality check: 레포에 실제로 존재하는 파일/경로/심볼/테이블/RPC 이름만 사용한다. 확실치 않으면 만들지 말고 OPEN으로 남긴다. (문서 EP 보정: 새 필드명 생성은 가능하되, 실제 env var/설정 키는 레포 근거 없으면 TBD로 둔다.)
 2) Conservative risk: Public surface / Schema / RLS·SECURITY DEFINER / Write 여부가 애매하면 yes로 보수적으로 판정하고 필요한 게이트/검증을 포함한다.
 3) Evidence-only: exact SQL, expected output, 마이그레이션 번호/파일명 같은 확정값은 SSOT나 실제 코드 근거가 있을 때만 적는다. 근거 없으면 TBD 유지.
 
@@ -30,7 +30,7 @@
 
 ## Blockers / SSOT gaps (stop-the-line)
 > 아래 항목이 해결되지 않으면 **구현을 진행하지 않는다**. (추측 구현 금지)
-- - dev/staging/prod 환경 “필드”를 고정해 재현 가능한 운영 기반을 만든다(값은 TBD).
+- 없음. 이 EP는 필드 목록(스키마)만 확정하고 값은 Phase 0.9에서 채운다.
 
 ## Baseline spec (from Phase file)
 ```markdown
@@ -66,11 +66,6 @@
 **OPEN**: none
 
 ---
-
-## Phase 0 요약
-- EP 개수: 9  
-- 단독 권장(고위험): P0-03A, P0-03B, P0-03C, P0-03D  
-- 번들 후보(가벼운 것끼리): P0-01+P0-02, P0-05+P0-06
 ```
 
 ### 0) Pre-flight (작업 전)
@@ -86,13 +81,13 @@
 - [ ] 체크리스트는 실행 가능 형태(누가/언제/어디서/어떤 근거로)로 작성.
 
 ## Validation (must run)
-- Risk level: **PRECISE**
+- Risk level: **FAST** (문서 EP)
 - Setup:
-  - `repo:lint` / `repo:typecheck` (가능한 경우)
+  - 문서 링크/형식 체크(레포에 `check-docs-integrity` 등이 있으면 실행)
 - Smoke tests (at least 1):
-  - Phase 파일의 Validation placeholders 중 1개 이상을 **실제 실행**하고 출력/스크린샷을 남긴다.
+  - 변경된 `ops-app-config.md`의 Environment Matrix 필드 목록이 존재하고 형식이 올바른지 확인.
 - Negative tests:
-  - Phase 파일의 negative placeholder(또는 VERIFICATION 항목)를 **정확히 1개 이상** 재현하고 기대 결과를 증거로 남긴다.
+  - 최소 1개는 조건/설명으로라도 명시(가능하면 재현/증거). 예: "비밀값이 문서에 포함되지 않았는지" 확인.
 
 ### Phase placeholder excerpt
 ```text
@@ -105,15 +100,13 @@
 - dev/staging/prod 환경 “필드”를 고정해 재현 가능한 운영 기반을 만든다(값은 TBD).
 ```
 ### Safety DoD
-- [ ] Forbidden path 변경 없음(범위 슬립 0).
-- [ ] 부분쓰기/권한누출/공개 DTO 누출/404 통일 위반 없음.
+- [ ] Forbidden path 변경 없음(범위 슬립 0) — `docs/playbooks/ops-app-config.md` 외 변경 없어야 함.
+- [ ] 비밀값(토큰/키/비밀번호)이 문서에 포함되지 않음.
 ### Evidence required in PR
-- [ ] 실행한 커맨드/SQL + 출력(또는 스크린샷) 첨부.
-- [ ] 변경 파일 목록(자동/수동) 첨부.
+- [ ] 변경 파일 목록 첨부.
 - [ ] OPEN 질문/추가 EP 필요 사항을 명시(있다면).
 ### Rollback
-- [ ] DB: 롤백 SQL 또는 revert 커밋 절차.
-- [ ] 앱/웹: 기능 플래그/리버트 커밋 절차.
+- [ ] revert 커밋으로 복원.
 
 ## OPEN (from Phase)
 none
