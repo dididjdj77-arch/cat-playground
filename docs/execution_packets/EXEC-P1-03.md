@@ -17,7 +17,7 @@
 - Playbook refs:
   - `docs/playbooks/rls-and-guards.md`
   - `docs/playbooks/rpc-public.md`
-- Prerequisites: P0-03B~D
+- Prerequisites: P1-01, P0-03B~D
 
 ## Hardening safety rules (MUST)
 1) Reality check: 레포에 실제로 존재하는 파일/경로/심볼/테이블/RPC 이름만 사용한다. 확실치 않으면 만들지 말고 OPEN으로 남긴다.
@@ -86,7 +86,7 @@
 - `docs/API.md`, `docs/AUTHZ-MODEL.md`, `docs/DATA-MODEL.md`, `docs/VERIFICATION.md`, `docs/playbooks/rpc-public.md`  
 - D-035, D-037, D-043, D-050, D-055, D-074
 
-**Prerequisites**: P0-03B~D
+**Prerequisites**: P1-01, P0-03B~D
 
 **OPEN**  
 - (해소됨) by_nickname 변형 RPC는 별도 도입하지 않고, `/u/{nickname}/house` 경로에서 nickname -> target_user_id 해석 후 `rpc_get_public_house_slots_summary(p_target_user_id uuid)`를 호출한다(API.md §5).

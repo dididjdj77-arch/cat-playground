@@ -42,7 +42,8 @@
   - `rpc_report_content`
   - `rpc_block_user`
   - `rpc_unblock_user`
-  - `check_auto_hide` (internal)
+  - `rpc_unhide_content` (admin-only, D-081)
+  - `check_auto_hide` (internal, REVOKE ALL — 외부 EXECUTE 금지)
 - Tables / Entities (참고):
   - `app_config`
   - `blocks`
@@ -70,15 +71,16 @@
 **Interfaces**  
 - RPC(확정): `rpc_report_content` (+ 내부 `check_auto_hide`)  
 - Block RPC(확정, API.md §7-3): `rpc_block_user`, `rpc_unblock_user`
-- Tables: `reports`, `blocks`, `moderation_actions`, `app_config`, `notifications`(옵션)
+- Tables: `reports`, `blocks`, `moderation_actions`, `app_config`
 
 **Validation placeholders**  
 - moderation 플레이북 smoke/negative 케이스  
 - Drift: DCI-2(app_config whitelist 스냅샷)
 
 **Hardening hints**  
-- [ ] duplicate_report(409) / invalid_target_type(400) / blocked 불가 정책 준수  
-- [ ] unhide(D-081) 포함 여부 결정(미포함 시 후속 EP로 고정)  
+- [ ] duplicate_report(409) / invalid_target_type(400) / blocked 불가 정책 준수
+- [x] ~~unhide(D-081) 포함 여부 결정~~ → **포함 확정**. `rpc_unhide_content`를 이 EP에서 구현한다(D-081: 기존 reports soft delete + 감사로그)
+- [ ] `check_auto_hide`는 internal helper — **REVOKE ALL** 필수(guard 함수 패턴 준수, 외부 EXECUTE 금지)
 - [ ] 롤백: RPC/권한 revert + seed revert
 
 **SSOT refs**  
@@ -154,6 +156,8 @@
 
 ## OPEN (from Phase)
 - (해소됨) block create/delete RPC 명칭/시그니처는 API.md §7-3에 확정됨.
+- ~~unhide(D-081) 포함 여부 결정(미포함 시 후속 EP로 고정).~~
+  - **해소**: P1-06에 포함. auto_hide 구현 시 unhide 없으면 운영에서 복구 수단이 없으므로 같은 EP에서 처리한다.
 
 ## Result Packet (PR 본문에 채워 넣기)
 

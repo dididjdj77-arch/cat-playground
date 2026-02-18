@@ -76,9 +76,10 @@
 - Negative(placeholder): 미래 log_date 거부(D-010), invalid/rejected payload_version
 
 **Hardening hints**  
-- [ ] replay는 “최초 성공과 동일 shape” 반환(D-061)  
-- [ ] 충돌 응답 `current_version`(+ snapshot 옵션)  
+- [ ] replay는 "최초 성공과 동일 shape" 반환(D-061)
+- [ ] 충돌 응답 `current_version`만 반환(snapshot 미포함, v1)
 - [ ] TTL cleanup/센티넬 swap은 Phase 3 잡과 결합
+- [ ] DCI-3 placeholder → exact 전환(payload_version_rollups unknown_count 검증)
 
 **SSOT refs**  
 - `docs/API.md`, `docs/DATA-MODEL.md`, `docs/VERIFICATION.md`, `docs/playbooks/rpc-owner.md`, `docs/playbooks/payload-version-kpi.md`  
@@ -86,8 +87,12 @@
 
 **Prerequisites**: P0-03A~D
 
-**OPEN**  
-- conflict 응답에 snapshot 포함 여부(비용/크기 고려).
+**OPEN**
+- ~~conflict 응답에 snapshot 포함 여부(비용/크기 고려).~~
+  - (해소) v1: snapshot 미포함. `{error_code, current_version}`만 반환.
+
+**추가 책임 (P1 리뷰)**
+- DCI-3 (payload rollup snapshot) placeholder → exact 전환은 이 EP에서 담당한다.
 
 ---
 ```
@@ -153,7 +158,8 @@
 - [ ] 앱/웹: 기능 플래그/리버트 커밋 절차.
 
 ## OPEN (from Phase)
-- conflict 응답에 snapshot 포함 여부(비용/크기 고려).
+- ~~conflict 응답에 snapshot 포함 여부(비용/크기 고려).~~
+  - **해소**: v1은 snapshot 미포함. conflict 응답은 `{"error_code":"version_conflict","current_version":<n>}`만 반환한다. v1.1+에서 opt-in 파라미터로 snapshot 추가 가능.
 
 ## Result Packet (PR 본문에 채워 넣기)
 
