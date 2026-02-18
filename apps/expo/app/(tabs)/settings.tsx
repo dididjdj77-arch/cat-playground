@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useMemo, useRef, useState } from "react";
 import { Button, ScrollView, StyleSheet, Text, View } from "react-native";
 import {
   APP_CONFIG_KEYS,
@@ -14,15 +14,62 @@ import {
   type AuthEvent,
   type AuthProvider,
 } from "../../src/auth";
+import {
+  SESSION_EDGE_RETRY_POLICY,
+  appendSessionEdgeLogEntry,
+  buildSessionTimeoutResult,
+  createInitialSessionEdgeState,
+  createSessionEdgeLogEntry,
+  deriveSessionEdgeStateFromResult,
+  formatSessionEdgeLogEntry,
+  getSessionRecoveryActionLabel,
+  refreshSessionState,
+  runSessionActionWithPolicy,
+  type SessionEdgeAction,
+  type SessionEdgeLogEntry,
+  type SessionEdgeState,
+} from "../../src/session";
 
 export const EXPO_ROUTE_STUB = "/settings";
 
 const REQUIRED_OAUTH_PROVIDERS: AuthProvider[] = ["apple", "kakao"];
 const OPTIONAL_OAUTH_PROVIDERS: AuthProvider[] = ["google"];
 const MAX_EVENT_LOGS = 50;
+const MAX_SESSION_EDGE_LOGS = 50;
 
 function appendEvent(events: AuthEvent[], event: AuthEvent): AuthEvent[] {
   return [event, ...events].slice(0, MAX_EVENT_LOGS);
+}
+
+function appendSessionEdgeEvent(events: SessionEdgeLogEntry[], event: SessionEdgeLogEntry): SessionEdgeLogEntry[] {
+  return appendSessionEdgeLogEntry(events, event, MAX_SESSION_EDGE_LOGS);
+}
+
+function withRetryMeta(
+  result: AuthActionResult,
+  attempts: number,
+  timedOut: boolean,
+): AuthActionResult {
+  if (attempts <= 1 && !timedOut) {
+    return result;
+  }
+
+  const detailParts: string[] = [];
+
+  if (result.detail) {
+    detailParts.push(result.detail);
+  }
+
+  detailParts.push(`attempts=${attempts}`);
+
+  if (timedOut) {
+    detailParts.push("timeout=true");
+  }
+
+  return {
+    ...result,
+    detail: detailParts.join(" | "),
+  };
 }
 
 function stringifyPayload(value: unknown): string {
@@ -44,12 +91,38 @@ function stringifyPayload(value: unknown): string {
 export default function SettingsTabAuthSession() {
   const envCheck = useMemo(() => getAuthEnvCheck(), []);
   const [eventLogs, setEventLogs] = useState<AuthEvent[]>([]);
+  const [sessionEdgeState, setSessionEdgeState] = useState<SessionEdgeState>(() => createInitialSessionEdgeState());
+  const [sessionEdgeLogs, setSessionEdgeLogs] = useState<SessionEdgeLogEntry[]>([]);
   const [sessionPreview, setSessionPreview] = useState<string>("(not checked)");
   const [rpcPreview, setRpcPreview] = useState<string>("(not called)");
   const [busyAction, setBusyAction] = useState<string | null>(null);
+  const hadActiveSessionRef = useRef<boolean>(false);
 
   const appendResult = (result: AuthActionResult) => {
     setEventLogs((current) => appendEvent(current, createAuthEvent(result)));
+  };
+
+  const appendSessionEdgeState = (state: SessionEdgeState) => {
+    hadActiveSessionRef.current = state.hasActiveSession;
+    setSessionEdgeState(state);
+    setSessionEdgeLogs((current) => appendSessionEdgeEvent(current, createSessionEdgeLogEntry(state)));
+  };
+
+  const applySessionEdgeResult = (
+    action: SessionEdgeAction,
+    result: AuthActionResult,
+    attempts = 1,
+    timedOut = false,
+  ) => {
+    appendSessionEdgeState(
+      deriveSessionEdgeStateFromResult({
+        action,
+        result,
+        hadActiveSession: hadActiveSessionRef.current,
+        attempts,
+        timedOut,
+      }),
+    );
   };
 
   const withClient = async (
@@ -77,6 +150,36 @@ export default function SettingsTabAuthSession() {
     }
   };
 
+  const runRpcCheckWithPolicy = async (client: ReturnType<typeof getAuthClient>) => {
+    const execution = await runSessionActionWithPolicy(() => verifySessionWithAppConfigRpc(client), {
+      timeoutResult: buildSessionTimeoutResult({
+        gate: "AS-4",
+        title: "rpc_get_app_config timed out",
+        timeoutMs: SESSION_EDGE_RETRY_POLICY.timeoutMs,
+      }),
+    });
+
+    return {
+      execution,
+      result: withRetryMeta(execution.result, execution.attempts, execution.timedOut),
+    };
+  };
+
+  const runSessionRefreshWithPolicy = async (client: ReturnType<typeof getAuthClient>) => {
+    const execution = await runSessionActionWithPolicy(() => refreshSessionState(client), {
+      timeoutResult: buildSessionTimeoutResult({
+        gate: "AS-3",
+        title: "Session refresh timed out",
+        timeoutMs: SESSION_EDGE_RETRY_POLICY.timeoutMs,
+      }),
+    });
+
+    return {
+      execution,
+      result: withRetryMeta(execution.result, execution.attempts, execution.timedOut),
+    };
+  };
+
   const handleOAuthLogin = async (provider: AuthProvider) => {
     await withClient(`oauth:${provider}`, async (client) => {
       if (!envCheck.env) {
@@ -88,6 +191,7 @@ export default function SettingsTabAuthSession() {
       }
 
       const result = await signInWithOAuth(client, envCheck.env, provider);
+      applySessionEdgeResult("oauth", result);
 
       if (result.ok) {
         appendResult({
@@ -99,10 +203,12 @@ export default function SettingsTabAuthSession() {
         const sessionResult = await readSessionState(client);
         setSessionPreview(stringifyPayload(sessionResult.payload));
         appendResult(sessionResult);
+        applySessionEdgeResult("session-read", sessionResult);
 
-        const rpcResult = await verifySessionWithAppConfigRpc(client);
+        const { execution: rpcExecution, result: rpcResult } = await runRpcCheckWithPolicy(client);
         setRpcPreview(stringifyPayload(rpcResult.payload));
         appendResult(rpcResult);
+        applySessionEdgeResult("rpc-check", rpcResult, rpcExecution.attempts, rpcExecution.timedOut);
       }
 
       return result;
@@ -113,6 +219,16 @@ export default function SettingsTabAuthSession() {
     await withClient("session", async (client) => {
       const result = await readSessionState(client);
       setSessionPreview(stringifyPayload(result.payload));
+      applySessionEdgeResult("session-read", result);
+      return result;
+    });
+  };
+
+  const handleSessionRefresh = async () => {
+    await withClient("refresh", async (client) => {
+      const { execution, result } = await runSessionRefreshWithPolicy(client);
+      setSessionPreview(stringifyPayload(result.payload));
+      applySessionEdgeResult("session-refresh", result, execution.attempts, execution.timedOut);
       return result;
     });
   };
@@ -121,23 +237,25 @@ export default function SettingsTabAuthSession() {
     await withClient("signout", async (client) => {
       const result = await clearSession(client);
       setSessionPreview("(signed out)");
+      applySessionEdgeResult("sign-out", result);
       return result;
     });
   };
 
   const handleRpcCall = async () => {
     await withClient("rpc", async (client) => {
-      const result = await verifySessionWithAppConfigRpc(client);
+      const { execution, result } = await runRpcCheckWithPolicy(client);
       setRpcPreview(stringifyPayload(result.payload));
+      applySessionEdgeResult("rpc-check", result, execution.attempts, execution.timedOut);
       return result;
     });
   };
 
   return (
     <ScrollView contentContainerStyle={styles.container}>
-      <Text style={styles.title}>Auth Session Console (P2-01A)</Text>
+      <Text style={styles.title}>Auth Session Console (P2-01A + P2-01B)</Text>
       <Text style={styles.body}>
-        Scope: login - redirect callback - session create/store/restore - auth-only rpc_get_app_config check.
+        Scope: login/restore plus edge UX for expiration, refresh, offline, and OAuth cancel recovery.
       </Text>
 
       <View style={styles.section}>
@@ -191,6 +309,15 @@ export default function SettingsTabAuthSession() {
         </View>
         <View style={styles.buttonRow}>
           <Button
+            title="Refresh session token"
+            onPress={() => {
+              void handleSessionRefresh();
+            }}
+            disabled={!envCheck.env || busyAction !== null}
+          />
+        </View>
+        <View style={styles.buttonRow}>
+          <Button
             title="Sign out"
             onPress={() => {
               void handleSignOut();
@@ -204,6 +331,10 @@ export default function SettingsTabAuthSession() {
       <View style={styles.section}>
         <Text style={styles.sectionTitle}>AS-4 auth-only RPC</Text>
         <Text style={styles.body}>Keys: {APP_CONFIG_KEYS.join(", ")}</Text>
+        <Text style={styles.body}>
+          Retry policy: timeout={SESSION_EDGE_RETRY_POLICY.timeoutMs}ms, maxAttempts=
+          {SESSION_EDGE_RETRY_POLICY.maxAttempts}, retryDelay={SESSION_EDGE_RETRY_POLICY.retryDelayMs}ms
+        </Text>
         <View style={styles.buttonRow}>
           <Button
             title="Call rpc_get_app_config"
@@ -214,6 +345,25 @@ export default function SettingsTabAuthSession() {
           />
         </View>
         <Text style={styles.code}>{rpcPreview}</Text>
+      </View>
+
+      <View style={styles.section}>
+        <Text style={styles.sectionTitle}>P2-01B Session Edge UX</Text>
+        <Text style={styles.body}>State: {sessionEdgeState.status}</Text>
+        <Text style={styles.body}>Event key: {sessionEdgeState.eventKey}</Text>
+        <Text style={styles.body}>Recovery: {getSessionRecoveryActionLabel(sessionEdgeState.recoveryAction)}</Text>
+        <Text style={styles.body}>{sessionEdgeState.title}</Text>
+        <Text style={styles.code}>{sessionEdgeState.detail ?? "(no detail)"}</Text>
+        <Text style={styles.sectionTitle}>Session Edge Log</Text>
+        {sessionEdgeLogs.length === 0 ? (
+          <Text style={styles.body}>No edge events yet.</Text>
+        ) : (
+          sessionEdgeLogs.map((edgeLog) => (
+            <Text key={edgeLog.id} style={styles.logLine}>
+              {formatSessionEdgeLogEntry(edgeLog)}
+            </Text>
+          ))
+        )}
       </View>
 
       <View style={styles.section}>
