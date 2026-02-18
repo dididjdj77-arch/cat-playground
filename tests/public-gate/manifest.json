@@ -52,8 +52,9 @@
     {
       "id": "T-4",
       "title": "public house dto leak prevention",
-      "mode": "placeholder",
-      "reason": "Phase 1 follow-up"
+      "mode": "exact",
+      "status": "pass",
+      "reason": "P1-03 exact conversion"
     },
     {
       "id": "T-5",

@@ -15,7 +15,7 @@ const REQUIRED_APP_CONFIG_KEYS = [
   "popular_feed",
 ];
 
-const REQUIRED_EXACT_CASE_IDS = ["T-1", "T-5", "DCI-4"];
+const REQUIRED_EXACT_CASE_IDS = ["T-1", "T-4", "T-5", "DCI-4"];
 const FORBIDDEN_DTO_KEYS = new Set([
   "avatar_key",
   "avatar_url",
@@ -27,6 +27,7 @@ const FORBIDDEN_DTO_KEYS = new Set([
   "ended_at",
   "catalog_item_id",
 ]);
+const HOUSE_SUMMARY_WHITELIST_KEYS = ["slot_key", "equipped_at", "type", "standard_name"];
 
 function readJson(relativePath) {
   return JSON.parse(readText(relativePath));
@@ -523,6 +524,72 @@ function runGrantChecks(sqlSource, failures) {
   }
 }
 
+function runHouseGrantChecks(sqlSource, failures) {
+  const requiredGrantLines = [
+    "revoke all on function public.rpc_get_public_house_slots_summary(uuid) from public;",
+    "revoke all on function public.rpc_get_public_house_slots_summary(uuid) from anon;",
+    "revoke all on function public.rpc_get_public_house_slots_summary(uuid) from service_role;",
+    "grant execute on function public.rpc_get_public_house_slots_summary(uuid) to authenticated;",
+  ];
+
+  for (const line of requiredGrantLines) {
+    if (!sqlSource.includes(line)) {
+      failures.push(`missing house grant/revoke policy line: ${line}`);
+    }
+  }
+
+  if (sqlSource.includes("grant execute on function public.rpc_get_public_house_slots_summary(uuid) to anon;")) {
+    failures.push("rpc_get_public_house_slots_summary must not grant execute to anon");
+  }
+}
+
+function runHouseChecks({ houseSql, failures }) {
+  const summaryBody = extractFunctionBody(houseSql, "rpc_get_public_house_slots_summary");
+  if (!summaryBody) {
+    failures.push("required house RPC function body extraction failed from migration SQL");
+    return;
+  }
+
+  assertContains(
+    summaryBody,
+    "public.guard_block(v_viewer_id, p_target_user_id)",
+    "rpc_get_public_house_slots_summary",
+    failures,
+  );
+  assertContains(
+    summaryBody,
+    "public.guard_visibility_published(v_visibility, v_published_at)",
+    "rpc_get_public_house_slots_summary",
+    failures,
+  );
+  assertContains(
+    summaryBody,
+    "public.guard_soft_state(v_deleted_at, v_hidden_at)",
+    "rpc_get_public_house_slots_summary",
+    failures,
+  );
+  assertContains(
+    summaryBody,
+    "jsonb_build_object('error_code', 'not_found')",
+    "rpc_get_public_house_slots_summary",
+    failures,
+  );
+
+  const keys = extractJsonBuildKeys(summaryBody);
+  for (const key of HOUSE_SUMMARY_WHITELIST_KEYS) {
+    if (!keys.includes(key)) {
+      failures.push(`T-4 fail: house summary missing whitelist key ${key}`);
+    }
+  }
+
+  const forbidden = keys.filter(
+    (key) => FORBIDDEN_DTO_KEYS.has(key) || key.startsWith("reason_"),
+  );
+  if (forbidden.length > 0) {
+    failures.push(`T-4 fail: forbidden key(s) in house summary DTO builder: ${forbidden.join(", ")}`);
+  }
+}
+
 export function runPublicGate({ requireExact = false } = {}) {
   console.log("\n-- Public Surface Gate (P1-04 exact) --");
 
@@ -530,10 +597,15 @@ export function runPublicGate({ requireExact = false } = {}) {
   const manifest = readJson("tests/public-gate/manifest.json");
   const fixture = readJson("tests/fixtures/p0-04-public-surface.seed.json");
   const migrationRelativePath = "supabase/migrations/20260219040000_p1_04_nyanstagram_rpc.sql";
+  const houseMigrationRelativePath = "supabase/migrations/20260219030000_p1_03_house_rpc.sql";
   const migrationFullPath = resolve(rootDir, migrationRelativePath);
+  const houseMigrationFullPath = resolve(rootDir, houseMigrationRelativePath);
 
   if (!existsSync(migrationFullPath)) {
     failures.push(`missing migration file: ${migrationRelativePath}`);
+  }
+  if (!existsSync(houseMigrationFullPath)) {
+    failures.push(`missing migration file: ${houseMigrationRelativePath}`);
   }
 
   runManifestChecks(manifest, failures, { requireExact });
@@ -543,6 +615,12 @@ export function runPublicGate({ requireExact = false } = {}) {
     const migrationSql = readText(migrationRelativePath);
     runGrantChecks(migrationSql, failures);
     runGateChecks({ fixture, migrationSql, failures });
+  }
+
+  if (existsSync(houseMigrationFullPath)) {
+    const houseMigrationSql = readText(houseMigrationRelativePath);
+    runHouseGrantChecks(houseMigrationSql, failures);
+    runHouseChecks({ houseSql: houseMigrationSql, failures });
   }
 
   if (failures.length > 0) {
