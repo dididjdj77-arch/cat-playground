@@ -44,6 +44,8 @@ end;
 $$;
 
 revoke all on function public.rpc_get_app_config(text[]) from public;
+revoke all on function public.rpc_get_app_config(text[]) from anon;
+revoke all on function public.rpc_get_app_config(text[]) from service_role;
 grant execute on function public.rpc_get_app_config(text[]) to authenticated;
 
 insert into public.app_config (key, value)
