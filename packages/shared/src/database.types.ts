@@ -1392,6 +1392,15 @@ export type Database = {
         }
         Returns: Json
       }
+      rpc_patch_observation_items: {
+        Args: {
+          p_expected_version: number
+          p_group_id: string
+          p_idempotency_key: string
+          p_patches: Json
+        }
+        Returns: Json
+      }
       rpc_publish_post: { Args: { p_post_id: string }; Returns: Json }
       rpc_toggle_like: {
         Args: { p_target_id: string; p_target_type: string }
@@ -1412,6 +1421,18 @@ export type Database = {
         }
         Returns: Json
       }
+      rpc_upsert_observation_group_with_items: {
+        Args: {
+          p_common_payload: Json
+          p_idempotency_key: string
+          p_inventory_refs?: Json
+          p_items: Json
+          p_log_date: string
+          p_payload_version: string
+        }
+        Returns: Json
+      }
+      validate_payload_version: { Args: { p_version: string }; Returns: Json }
     }
     Enums: {
       [_ in never]: never
