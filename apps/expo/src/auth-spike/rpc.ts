@@ -16,6 +16,7 @@ const UX_ERROR_CODE_HINTS: Record<RpcBusinessError["code"], string> = {
   invalid_payload_version: "Show payload version validation UX.",
   rejected_version: "Block write and prompt payload update.",
   terms_not_agreed: "Show terms agreement flow.",
+  forbidden: "Show access denied UX.",
   version_conflict: "Show stale-data conflict UX.",
   duplicate_report: "Show duplicate submission UX.",
   invalid_target_type: "Show invalid target type validation UX.",
