@@ -12,3 +12,4 @@ export type {
   AppConfigValueMap,
   AppConfigResponse,
 } from "./app-config";
+export type { Database, Json } from "./database.types";
