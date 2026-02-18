@@ -1,5 +1,15 @@
+import { spawnSync } from "node:child_process";
 import { runDriftChecks } from "../tests/drift/run-drift-checks.mjs";
 
-const { exitCode } = runDriftChecks();
+function checkGeneratedTypesDrift() {
+  const result = spawnSync(process.execPath, ["scripts/gen-db-types.mjs", "--check"], {
+    stdio: "inherit"
+  });
 
-process.exit(exitCode);
+  return result.status ?? 1;
+}
+
+const { exitCode: driftExitCode } = runDriftChecks();
+const generatedTypesExitCode = checkGeneratedTypesDrift();
+
+process.exit(driftExitCode || generatedTypesExitCode);
