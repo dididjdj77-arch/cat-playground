@@ -15,7 +15,7 @@
   - RLS·SECURITY DEFINER: **no**
   - Write: **no**
 - Playbook refs: none
-- Prerequisites: P1-03
+- Prerequisites: P1-03, P2-00
 
 ## Hardening safety rules (MUST)
 1) Reality check: 레포에 실제로 존재하는 파일/경로/심볼/테이블/RPC 이름만 사용한다. 확실치 않으면 만들지 말고 OPEN으로 남긴다.
@@ -85,7 +85,7 @@
 - `docs/ROUTES-AND-IA.md`, `docs/DECISIONS.md`, `docs/AUTHZ-MODEL.md`  
 - D-006, D-035, D-037, D-074, D-099
 
-**Prerequisites**: P1-03
+**Prerequisites**: P1-03, P2-00
 
 **OPEN**  
 - (해소됨) house publish/unpublish RPC 함수명/계약은 API.md §7-4에 확정됨.
