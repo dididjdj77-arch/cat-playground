@@ -1,0 +1,116 @@
+{
+  "meta": {
+    "ep": "P0-04",
+    "strategy": "runtime_fixture"
+  },
+  "users": {
+    "A": {
+      "user_id": "00000000-0000-4000-8000-0000000000a1",
+      "nickname": "fixture_user_a"
+    },
+    "B": {
+      "user_id": "00000000-0000-4000-8000-0000000000b2",
+      "nickname": "fixture_user_b"
+    },
+    "C": {
+      "user_id": "00000000-0000-4000-8000-0000000000c3",
+      "nickname": "fixture_user_c"
+    },
+    "D": {
+      "user_id": "00000000-0000-4000-8000-0000000000d4",
+      "nickname": "fixture_user_d"
+    }
+  },
+  "blocks": [
+    {
+      "blocker": "A",
+      "blocked": "B"
+    },
+    {
+      "blocker": "B",
+      "blocked": "A"
+    },
+    {
+      "blocker": "C",
+      "blocked": "D"
+    }
+  ],
+  "topics": [
+    {
+      "id": "00000000-0000-4000-8000-000000001001",
+      "slug": "health",
+      "name": "health"
+    },
+    {
+      "id": "00000000-0000-4000-8000-000000001002",
+      "slug": "daily",
+      "name": "daily"
+    }
+  ],
+  "posts": [
+    {
+      "id": "00000000-0000-4000-8000-000000002001",
+      "author": "A",
+      "visibility": "public",
+      "published_at": "2026-01-01T00:00:00Z",
+      "body": "fixture public post from user A"
+    }
+  ],
+  "threads": [
+    {
+      "id": "00000000-0000-4000-8000-000000003001",
+      "topic_slug": "health",
+      "author": "A",
+      "title": "fixture thread title",
+      "body": "fixture thread body"
+    }
+  ],
+  "app_config": {
+    "rate_limits": {
+      "posts": {
+        "per_min": 2,
+        "per_day": 20
+      },
+      "comments/replies": {
+        "per_min": 10,
+        "per_day": 200
+      },
+      "likes": {
+        "per_min": 60,
+        "per_day": 1500
+      },
+      "reports": {
+        "per_min": 3,
+        "per_day": 30
+      }
+    },
+    "rate_limits_new_account": {
+      "posts": {
+        "per_min": 1,
+        "per_day": 5
+      },
+      "comments/replies": {
+        "per_min": 5,
+        "per_day": 50
+      },
+      "likes": {
+        "per_min": 30,
+        "per_day": 500
+      },
+      "reports": {
+        "per_min": 2,
+        "per_day": 10
+      }
+    },
+    "auto_hide": {
+      "threshold_n": 5,
+      "window_hours": 24,
+      "trust_days": 7
+    },
+    "popular_feed": {
+      "like_weight": 1,
+      "reply_weight": 2,
+      "window_days": 7
+    }
+  }
+}

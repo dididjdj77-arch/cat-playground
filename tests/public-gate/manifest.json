@@ -1,0 +1,64 @@
+{
+  "gates": [
+    {
+      "id": "G-1",
+      "title": "block 0-rows",
+      "status": "skip",
+      "mode": "skeleton",
+      "reason": "Phase 0 skeleton before first public RPC"
+    },
+    {
+      "id": "G-2",
+      "title": "DTO whitelist no leak",
+      "status": "skip",
+      "mode": "skeleton",
+      "reason": "Phase 0 skeleton before first public RPC"
+    },
+    {
+      "id": "G-3",
+      "title": "parent guard dependent 404",
+      "status": "skip",
+      "mode": "skeleton",
+      "reason": "Phase 0 skeleton before first public RPC"
+    },
+    {
+      "id": "G-4",
+      "title": "not found unification",
+      "status": "skip",
+      "mode": "skeleton",
+      "reason": "Phase 0 skeleton before first public RPC"
+    }
+  ],
+  "phase1_placeholders": [
+    {
+      "id": "T-1",
+      "title": "block snapshot test",
+      "mode": "placeholder"
+    },
+    {
+      "id": "T-2",
+      "title": "payload version normalize snapshot",
+      "mode": "placeholder"
+    },
+    {
+      "id": "T-3",
+      "title": "version conflict 409 scenario",
+      "mode": "placeholder"
+    },
+    {
+      "id": "T-4",
+      "title": "public house dto leak prevention",
+      "mode": "placeholder"
+    },
+    {
+      "id": "T-5",
+      "title": "comments parent post guard 404",
+      "mode": "placeholder"
+    },
+    {
+      "id": "T-6",
+      "title": "revalidate endpoint security negative",
+      "mode": "placeholder"
+    }
+  ]
+}

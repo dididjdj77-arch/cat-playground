@@ -1,2 +1,6 @@
-console.log("INFO: ci:public-gate skeleton is active (P0-01).");
-console.log("INFO: Exact G-1~G-4 automation will be implemented in P0-04.");
+import { runPublicGate } from "../tests/public-gate/run-public-gate.mjs";
+
+const requireExact = process.argv.includes("--require-exact");
+const { exitCode } = runPublicGate({ requireExact });
+
+process.exit(exitCode);

@@ -6,6 +6,7 @@ on:
       - "package.json"
       - "apps/**"
       - "packages/**"
+      - "tests/**"
       - "docs/**"
       - "scripts/**"
       - "supabase/**"
@@ -28,3 +29,9 @@ jobs:
 
       - name: Canonical verify
         run: npm run ci:verify
+
+      - name: Public surface gate
+        run: npm run ci:public-gate
+
+      - name: Drift gate
+        run: npm run ci:drift

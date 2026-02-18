@@ -1,0 +1,16 @@
+{
+  "placeholders": [
+    {
+      "id": "DCI-3",
+      "title": "payload rollup snapshot",
+      "mode": "placeholder",
+      "reason": "Phase 1 exact conversion"
+    },
+    {
+      "id": "DCI-4",
+      "title": "public DTO forbidden field expansion",
+      "mode": "placeholder",
+      "reason": "Phase 1 exact conversion"
+    }
+  ]
+}
