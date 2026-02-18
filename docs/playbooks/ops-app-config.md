@@ -88,8 +88,8 @@ grant execute on function public.rpc_get_app_config(text[]) to authenticated;
 -- CONFIG-BASELINES 수치와 다른 값을 seed하면 운영 파라미터 불일치가 발생한다.
 insert into public.app_config (key, value)
 values
-  ('rate_limits', '{"posts":{"per_min":2,"per_day":20}}'::jsonb),
-  ('rate_limits_new_account', '{"posts":{"per_min":1,"per_day":5}}'::jsonb),
+  ('rate_limits', '{"posts":{"per_minute":2,"per_day":20}}'::jsonb),
+  ('rate_limits_new_account', '{"posts":{"per_minute":1,"per_day":5}}'::jsonb),
   ('auto_hide', '{"threshold_n":5,"window_hours":24,"trust_days":7}'::jsonb),
   ('popular_feed', '{"like_weight":1,"reply_weight":2,"window_days":7}'::jsonb)
 on conflict (key) do nothing;

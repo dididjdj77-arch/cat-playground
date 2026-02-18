@@ -453,7 +453,7 @@ export type Database = {
           meta: Json
           note: string | null
           owner_id: string
-          raw_text: string | null
+          raw_text: string
           reason_code: string
           reason_note: string | null
           type: string
@@ -470,7 +470,7 @@ export type Database = {
           meta?: Json
           note?: string | null
           owner_id: string
-          raw_text?: string | null
+          raw_text: string
           reason_code?: string
           reason_note?: string | null
           type: string
@@ -487,7 +487,7 @@ export type Database = {
           meta?: Json
           note?: string | null
           owner_id?: string
-          raw_text?: string | null
+          raw_text?: string
           reason_code?: string
           reason_note?: string | null
           type?: string
@@ -1022,7 +1022,7 @@ export type Database = {
             columns: ["user_id"]
             isOneToOne: true
             referencedRelation: "profiles"
-            referencedColumns: ["id"]
+            referencedColumns: ["user_id"]
           },
         ]
       }
