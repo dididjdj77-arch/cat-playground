@@ -46,8 +46,9 @@
   - `rpc_update_reply`
   - `rpc_delete_reply`
   - `rpc_search_threads`
-  - `rpc_get_public_threads_feed`
+  - `rpc_get_public_threads_feed` — `p_sort`: `new`|`popular`|`following` (API.md §7-2), UI 피드 탭과 1:1 매핑
   - `rpc_get_public_thread_detail`
+  - `rpc_toggle_like` — P1-04에서 생성된 공용 RPC 재사용 (D-090). target_type: `'thread'`|`'reply'`
 
 ## Baseline spec (from Phase file)
 ```markdown
@@ -68,8 +69,9 @@
 - Public surface? **no** / Schema change? **no** / RLS·SECURITY DEFINER? **no** / Write? **no**
 
 **Interfaces**  
-- RPC(API.md §7-2): `rpc_get_public_threads_feed`, `rpc_list_topics`, `rpc_follow_topic`, `rpc_unfollow_topic`, `rpc_create_thread`, `rpc_update_thread`, `rpc_delete_thread`, `rpc_create_reply`, `rpc_update_reply`, `rpc_delete_reply`, `rpc_search_threads`
+- RPC(API.md §7-2): `rpc_get_public_threads_feed`(p_sort: new|popular|following), `rpc_list_topics`, `rpc_follow_topic`, `rpc_unfollow_topic`, `rpc_create_thread`, `rpc_update_thread`, `rpc_delete_thread`, `rpc_create_reply`, `rpc_update_reply`, `rpc_delete_reply`, `rpc_search_threads`
 - Detail RPC(API.md §8): `rpc_get_public_thread_detail`
+- Like RPC: `rpc_toggle_like` — P1-04에서 생성된 공용 RPC 재사용 (D-090, target_type: `'thread'`|`'reply'`)
 - UX: 작성자(닉네임/아바타) 탭 액션 메뉴(D-017, D-099)
 
 **Validation placeholders**  

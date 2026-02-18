@@ -38,7 +38,10 @@
 ## Targets (이 EP에서 만지는 주요 표면)
 - RPC:
   - `rpc_clear_house_slot`
+  - `rpc_get_my_house` (API.md §8 — 하우스+슬롯+인벤 상태 조회, /house 화면 필수)
   - `rpc_get_public_house_slots_summary`
+  - `rpc_inventory_switch` (API.md §7-5 — 인벤 교체, /inventory 화면 필수)
+  - `rpc_inventory_discontinue` (API.md §7-5 — 인벤 중단, /inventory 화면 필수)
   - `rpc_publish_house`
   - `rpc_set_house_slot`
   - `rpc_unpublish_house`
@@ -63,9 +66,12 @@
 - Public surface? **no** / Schema change? **no** / RLS·SECURITY DEFINER? **no** / Write? **no**
 
 **Interfaces**  
-- Routes: `/house`, `/inventory`, `/u/{nickname}/house`  
+- Routes: `/house`, `/inventory`, `/u/{nickname}/house`
 - Entry: 작성자(닉네임/아바타) 탭 액션 메뉴 → 하우스 보기 (D-099)
-- RPC: `rpc_set_house_slot`, `rpc_clear_house_slot`, `rpc_get_public_house_slots_summary`, `rpc_publish_house`, `rpc_unpublish_house`
+- `/u/{nickname}/house`: route layer에서 nickname → user_id resolve 후, resolved user_id를 `rpc_get_public_house_slots_summary(p_target_user_id)`로 전달 (API.md §5 참조)
+- House RPC: `rpc_set_house_slot`, `rpc_clear_house_slot`, `rpc_get_public_house_slots_summary`, `rpc_publish_house`, `rpc_unpublish_house`
+- House read RPC: `rpc_get_my_house` (API.md §8 — /house 화면 데이터 소스)
+- Inventory RPC: `rpc_inventory_switch`, `rpc_inventory_discontinue` (API.md §7-5 — /inventory 화면 인벤 관리)
 
 **Validation placeholders**  
 - 수동: is_current=false 장착 시도 → 실패 UX  

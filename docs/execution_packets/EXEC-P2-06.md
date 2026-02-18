@@ -40,13 +40,14 @@
 
 ## Targets (이 EP에서 만지는 주요 표면)
 - RPC:
+  - `rpc_get_my_profile` (API.md §8 — 프로필 화면 데이터 소스, 설정 진입 시 필수 호출)
+  - `rpc_update_profile`
   - `rpc_report_content`
   - `rpc_block_user`
   - `rpc_unblock_user`
   - `rpc_get_notifications`
   - `rpc_mark_notification_read`
   - `rpc_mark_all_notifications_read`
-  - `rpc_update_profile`
 
 ## Baseline spec (from Phase file)
 ```markdown
@@ -67,14 +68,18 @@
 
 **Interfaces**  
 - Route: `/notifications`  
-- RPC: `rpc_report_content`, `rpc_block_user`, `rpc_unblock_user`(API.md §7-3), `rpc_get_notifications`, `rpc_mark_notification_read`, `rpc_mark_all_notifications_read`(API.md §7-7), `rpc_update_profile`(API.md §7-6)
+- RPC: `rpc_get_my_profile`(API.md §8), `rpc_update_profile`(API.md §7-6), `rpc_report_content`, `rpc_block_user`, `rpc_unblock_user`(API.md §7-3), `rpc_get_notifications`, `rpc_mark_notification_read`, `rpc_mark_all_notifications_read`(API.md §7-7)
 
 **Validation placeholders**  
 - 수동: 중복 신고(duplicate_report), 차단 후 상호작용 불가, 알림 읽음 처리
 
-**Hardening hints**  
-- [ ] 알림 type-target 매핑(D-070) UI 반영  
+**Hardening hints**
+- [ ] 알림 type-target 매핑(D-070) UI 반영
 - [ ] 프로필 SEO는 웹 noindex(D-078) — 앱은 안내만
+- [ ] 아바타 업로드 플로우 (D-067):
+  - 경로: `avatars/{user_id}/{uuid}.webp`
+  - 제약: image/jpeg·png·webp, 최대 10MB
+  - 순서: storage upload 성공 → `rpc_update_profile(p_avatar_key=...)` 호출
 
 **SSOT refs**  
 - `docs/ROUTES-AND-IA.md`, `docs/DECISIONS.md`, `docs/playbooks/moderation.md`  
