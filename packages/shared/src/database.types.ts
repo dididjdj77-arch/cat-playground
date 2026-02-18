@@ -1346,6 +1346,7 @@ export type Database = {
         Args: { p_published_at: string; p_visibility: string }
         Returns: boolean
       }
+      rpc_agree_terms: { Args: never; Returns: Json }
       rpc_block_user: { Args: { p_blocked_user_id: string }; Returns: Json }
       rpc_create_comment: {
         Args: { p_body: string; p_post_id: string }
@@ -1364,6 +1365,10 @@ export type Database = {
       rpc_delete_comment: { Args: { p_comment_id: string }; Returns: Json }
       rpc_delete_post: { Args: { p_post_id: string }; Returns: Json }
       rpc_get_app_config: { Args: { p_keys: string[] }; Returns: Json }
+      rpc_get_notifications: {
+        Args: { p_cursor?: string; p_limit?: number }
+        Returns: Json
+      }
       rpc_get_public_post_comments: {
         Args: { p_cursor?: string; p_limit?: number; p_post_id: string }
         Returns: Json
@@ -1397,6 +1402,11 @@ export type Database = {
         }
         Returns: Json
       }
+      rpc_mark_all_notifications_read: { Args: never; Returns: Json }
+      rpc_mark_notification_read: {
+        Args: { p_notification_id: string }
+        Returns: Json
+      }
       rpc_patch_observation_items: {
         Args: {
           p_expected_version: number
@@ -1416,6 +1426,7 @@ export type Database = {
         }
         Returns: Json
       }
+      rpc_set_initial_nickname: { Args: { p_nickname: string }; Returns: Json }
       rpc_toggle_like: {
         Args: { p_target_id: string; p_target_type: string }
         Returns: Json
@@ -1438,6 +1449,10 @@ export type Database = {
           p_post_id: string
           p_visibility?: string
         }
+        Returns: Json
+      }
+      rpc_update_profile: {
+        Args: { p_avatar_key?: string; p_bio?: string; p_nickname?: string }
         Returns: Json
       }
       rpc_upsert_observation_group_with_items: {
