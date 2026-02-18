@@ -111,3 +111,5 @@
 
 ## O-031 terms_agreed_at 가드 부트스트랩 예외 최소 집합
 - **Status: Resolved → D-097**
+
+- API.md post detail의 meta 포함 기술 vs DCI-4 금지 목록 불일치 — 별도 문서 EP 필요
