@@ -1343,6 +1343,30 @@ export type Database = {
         Returns: boolean
       }
       rpc_get_app_config: { Args: { p_keys: string[] }; Returns: Json }
+      rpc_inventory_correction: {
+        Args: {
+          p_catalog_item_id?: string
+          p_changed_at?: string
+          p_raw_text: string
+          p_reason_note?: string
+          p_type: string
+        }
+        Returns: Json
+      }
+      rpc_inventory_discontinue: {
+        Args: { p_reason_note?: string; p_type: string }
+        Returns: Json
+      }
+      rpc_inventory_switch: {
+        Args: {
+          p_catalog_item_id?: string
+          p_changed_at?: string
+          p_raw_text: string
+          p_reason_note?: string
+          p_type: string
+        }
+        Returns: Json
+      }
     }
     Enums: {
       [_ in never]: never
