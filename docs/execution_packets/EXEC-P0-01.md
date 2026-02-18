@@ -94,28 +94,23 @@
 - [ ] `TBD`/SSOT 갭이 남아있으면 **추측 구현 금지**. OPEN에 기록하고 컨트롤러에게 SSOT 보강 요청.
 - [ ] Validation 스크립트(`repo:*`, `db:*`, `ci:*`)가 실제 레포에서 무엇을 실행하는지 확인(필요 시 P0-01/02에서 매핑).
 
-### 3) RPC/Contract 구현
-- [ ] GRANT/REVOKE: anon/authenticated 권한을 SSOT에 맞게 최소로 설정.
-- [ ] 테스트/스냅샷(VERIFICATION, drift)으로 계약/가드/누출 방지를 회귀로 고정.
+### Non-goals (이 EP에서 하지 않는 것)
+- DB 함수/RLS/GRANT/REVOKE/마이그레이션 변경 — Impact flags 전부 no.
+- 앱/웹 기능 구현(Transport Adapter, RPC 호출, 에러 매핑, ISR 등) — Phase 1+ EP에서 수행.
+- 도메인 RPC 구현.
 
-### 4) App(Expo) 구현
-- [ ] ROUTES-AND-IA 기준으로 화면/탭/라우트 스택을 구성(스펙 외 UI 확장 금지).
-- [ ] Transport Adapter(P2-00) 경유로 RPC 호출/에러 매핑을 일원화.
-- [ ] `error_code` 기반 UX 분기: `not_found`=404 UX, `terms_not_agreed`, `version_conflict` 등은 표준 UX로 처리.
-- [ ] write 흐름은 **idempotency_key 재사용**(재시도 동일 키) 원칙을 지켜 중복 생성 위험을 줄인다.
-- [ ] 수동 시나리오(Phase 파일 Validation placeholders)를 실제 기기(iOS/Android) 기준으로 재현/증거화.
+### 4) App(Expo) 스텁
+- [ ] ROUTES-AND-IA 기준으로 탭 4개 라우팅 스텁만 구성(하우스/다이어리/소셜/설정).
+- [ ] 기능 구현 금지 — 빈 화면 + 라우트 구조만 확정.
 
-### 5) Web(SEO/SSR/ISR) 구현
-- [ ] Next 라우팅 구조(App Router/Pages Router)는 레포 근거로 확정. 불명확하면 OPEN으로 남기고 보수적으로 구현.
-- [ ] Transport Adapter(P3-00): `error_code` → HTTP status 변환을 SSR/ISR 경로에서 강제.
-- [ ] SEO 규칙: index/noindex, robots/sitemap/metadata, 404 통일(D-050)을 준수.
-- [ ] ISR/revalidate는 allowlist + secret header로만 트리거. secret 노출(로그/쿼리/바디) 금지.
-- [ ] 보안 네거티브 테스트(T-6)가 머지 조건이 되도록 자동화.
+### 5) Web(SEO) 스텁
+- [ ] 웹 라우트 스텁만 생성(`/c*`, `/p*`, `/search`).
+- [ ] Next 라우팅 구조(App Router/Pages Router)는 레포 근거로 확정. 불명확하면 OPEN.
+- [ ] 기능 구현 금지 — 라우트 존재 + 404 페이지 스텁만.
 
 ## Validation (must run)
 - Risk level: **FAST**
 - Setup:
-  - `db:reset` (로컬) + 필요 시 CI 동일 루프 확인
   - `repo:lint` / `repo:typecheck` (가능한 경우)
 - Smoke tests (at least 1):
   - Phase 파일의 Validation placeholders 중 1개 이상을 **실제 실행**하고 출력/스크린샷을 남긴다.

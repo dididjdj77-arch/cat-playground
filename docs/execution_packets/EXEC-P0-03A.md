@@ -93,13 +93,10 @@
 - [ ] RLS 정책 변경은 **스키마 변경과 분리**(Phase 0에서는 P0-03D).
 - [ ] 롤백 경로 명시: `_down.sql` 또는 revert 커밋 전략 중 하나를 확정.
 
-### 3) RPC/Contract 구현
-- [ ] write RPC는 트랜잭션 경계 명시(부분쓰기 방지) + idempotency/expected_version(해당 시) 구현.
-- [ ] 비즈니스 에러는 JSON return(`error_code`, 추가 필드)로 전달(raise exception은 hard fail만).
-- [ ] `guard_terms_agreed()` 적용(D-073) + guard 호출 순서(D-096) 고정.
-- [ ] replay는 최초 성공과 동일 shape를 반환(status-only 금지, D-061).
-- [ ] GRANT/REVOKE: anon/authenticated 권한을 SSOT에 맞게 최소로 설정.
-- [ ] 테스트/스냅샷(VERIFICATION, drift)으로 계약/가드/누출 방지를 회귀로 고정.
+### Non-goals (이 EP에서 하지 않는 것)
+- RPC/함수/GRANT/REVOKE/RLS 변경 — Impact flags에서 RLS: **no**. 순수 스키마(테이블/제약/인덱스)만 다룬다.
+- Guard 함수 구현 — P0-03D에서 수행.
+- 도메인 write RPC 구현 — Phase 1 이후 해당 EP에서 수행.
 
 ## Validation (must run)
 - Risk level: **PRECISE**
