@@ -22,6 +22,7 @@ export {
   ConflictError,
   ValidationError,
   TermsError,
+  ForbiddenError,
 } from "./transport-adapter";
 export type { RpcHttpStatus, RpcErrorBody, RpcTypedErrorArgs, TypedRpcError } from "./transport-adapter";
 export type { Database, Json, Tables, TablesInsert, TablesUpdate } from "./database.types";

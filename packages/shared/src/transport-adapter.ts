@@ -7,6 +7,7 @@ export const RPC_ERROR_CODE_TO_HTTP_STATUS = {
   invalid_payload_version: 400,
   rejected_version: 400,
   terms_not_agreed: 403,
+  forbidden: 403,
   duplicate_report: 409,
   invalid_target_type: 400,
   invalid_inventory_item: 400,
@@ -109,7 +110,14 @@ export class TermsError extends RpcBusinessError {
   }
 }
 
-export type TypedRpcError = NotFoundError | ConflictError | ValidationError | TermsError;
+export class ForbiddenError extends RpcBusinessError {
+  constructor(args: RpcTypedErrorArgs) {
+    super(args);
+    this.name = "ForbiddenError";
+  }
+}
+
+export type TypedRpcError = NotFoundError | ConflictError | ValidationError | TermsError | ForbiddenError;
 
 export function toTypedRpcError(args: RpcTypedErrorArgs): TypedRpcError {
   switch (args.body.error_code) {
@@ -120,6 +128,8 @@ export function toTypedRpcError(args: RpcTypedErrorArgs): TypedRpcError {
       return new ConflictError(args);
     case "terms_not_agreed":
       return new TermsError(args);
+    case "forbidden":
+      return new ForbiddenError(args);
     case "invalid_request":
     case "invalid_payload_version":
     case "rejected_version":
