@@ -1,4 +1,6 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
+import { RpcBusinessError } from "@cat-playground/shared";
+import { callSupabaseRpcWithAdapter, UnknownRpcErrorCodeError } from "../transport";
 import type { AuthSpikeActionResult } from "./types";
 
 export const AUTH_SPIKE_APP_CONFIG_KEYS = [
@@ -8,85 +10,87 @@ export const AUTH_SPIKE_APP_CONFIG_KEYS = [
   "popular_feed",
 ] as const;
 
-const UX_ERROR_CODE_HINTS: Record<string, string> = {
+const UX_ERROR_CODE_HINTS: Record<RpcBusinessError["code"], string> = {
   not_found: "Treat as 404 UX.",
+  invalid_request: "Show validation message UX.",
+  invalid_payload_version: "Show payload version validation UX.",
+  rejected_version: "Block write and prompt payload update.",
   terms_not_agreed: "Show terms agreement flow.",
   version_conflict: "Show stale-data conflict UX.",
+  duplicate_report: "Show duplicate submission UX.",
+  invalid_target_type: "Show invalid target type validation UX.",
+  invalid_inventory_item: "Show invalid inventory item validation UX.",
 };
 
-function isRecord(value: unknown): value is Record<string, unknown> {
-  return typeof value === "object" && value !== null;
-}
-
-function readErrorCode(value: unknown): string | null {
-  if (!isRecord(value)) {
-    return null;
+function toRpcFailureResult(title: string, error: unknown): AuthSpikeActionResult {
+  if (error instanceof RpcBusinessError) {
+    return {
+      ok: false,
+      gate: "AS-4",
+      title: `${title}: error_code=${error.code}`,
+      detail: `${UX_ERROR_CODE_HINTS[error.code]} (HTTP ${error.status})`,
+      payload: error.body,
+    };
   }
 
-  const errorCode = value.error_code;
-
-  if (typeof errorCode !== "string") {
-    return null;
+  if (error instanceof UnknownRpcErrorCodeError) {
+    return {
+      ok: false,
+      gate: "AS-4",
+      title: `${title}: unknown error_code=${error.errorCode}`,
+      detail: "Unknown error_code from RPC response.",
+      payload: error.body,
+    };
   }
 
-  return errorCode;
+  if (error instanceof Error) {
+    return {
+      ok: false,
+      gate: "AS-4",
+      title,
+      detail: error.message,
+    };
+  }
+
+  return {
+    ok: false,
+    gate: "AS-4",
+    title,
+    detail: "Unknown runtime error.",
+  };
 }
 
 export async function callAppConfigRpc(client: SupabaseClient): Promise<AuthSpikeActionResult> {
-  const { data, error } = await client.rpc("rpc_get_app_config", {
-    p_keys: [...AUTH_SPIKE_APP_CONFIG_KEYS],
-  });
-
-  if (error) {
-    return {
-      ok: false,
-      gate: "AS-4",
-      title: "rpc_get_app_config failed",
-      detail: error.message,
-    };
-  }
-
-  const errorCode = readErrorCode(data);
-
-  if (errorCode) {
-    const hint = UX_ERROR_CODE_HINTS[errorCode] ?? "Unknown error_code from RPC response.";
+  try {
+    const data = await callSupabaseRpcWithAdapter(client, "rpc_get_app_config", {
+      p_keys: [...AUTH_SPIKE_APP_CONFIG_KEYS],
+    });
 
     return {
-      ok: false,
+      ok: true,
       gate: "AS-4",
-      title: `rpc_get_app_config returned error_code=${errorCode}`,
-      detail: hint,
+      title: "rpc_get_app_config returned data",
       payload: data,
     };
+  } catch (error) {
+    return toRpcFailureResult("rpc_get_app_config failed", error);
   }
-
-  return {
-    ok: true,
-    gate: "AS-4",
-    title: "rpc_get_app_config returned data",
-    payload: data,
-  };
 }
 
 export async function callUnknownKeyRpc(client: SupabaseClient): Promise<AuthSpikeActionResult> {
-  const { data, error } = await client.rpc("rpc_get_app_config", {
-    p_keys: ["unknown_key"],
-  });
+  try {
+    const data = await callSupabaseRpcWithAdapter(client, "rpc_get_app_config", {
+      p_keys: ["unknown_key"],
+    });
 
-  if (error) {
     return {
-      ok: false,
+      ok: true,
       gate: "AS-4",
-      title: "Unknown key call failed",
-      detail: error.message,
+      title: "Unknown key call completed",
+      detail: "Expected payload is {} because unknown keys are ignored.",
+      payload: data,
     };
+  } catch (error) {
+    return toRpcFailureResult("Unknown key call failed", error);
   }
-
-  return {
-    ok: true,
-    gate: "AS-4",
-    title: "Unknown key call completed",
-    detail: "Expected payload is {} because unknown keys are ignored.",
-    payload: data,
-  };
 }

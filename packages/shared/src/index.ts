@@ -12,4 +12,16 @@ export type {
   AppConfigValueMap,
   AppConfigResponse,
 } from "./app-config";
+export {
+  RPC_ERROR_CODE_TO_HTTP_STATUS,
+  readRpcErrorCode,
+  parseRpcErrorBody,
+  toTypedRpcError,
+  RpcBusinessError,
+  NotFoundError,
+  ConflictError,
+  ValidationError,
+  TermsError,
+} from "./transport-adapter";
+export type { RpcHttpStatus, RpcErrorBody, RpcTypedErrorArgs, TypedRpcError } from "./transport-adapter";
 export type { Database, Json, Tables, TablesInsert, TablesUpdate } from "./database.types";
