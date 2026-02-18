@@ -1,27 +1,27 @@
 import { useMemo, useState } from "react";
 import { Button, ScrollView, StyleSheet, Text, View } from "react-native";
 import {
-  AUTH_SPIKE_APP_CONFIG_KEYS,
-  callAppConfigRpc,
-  callUnknownKeyRpc,
+  APP_CONFIG_KEYS,
+  verifySessionWithAppConfigRpc,
   clearSession,
-  createAuthSpikeEvent,
-  formatAuthSpikeEvent,
-  getAuthSpikeClient,
-  getAuthSpikeEnvCheck,
+  createAuthEvent,
+  formatAuthEvent,
+  getAuthClient,
+  getAuthEnvCheck,
   readSessionState,
   signInWithOAuth,
-  type AuthSpikeActionResult,
-  type AuthSpikeEvent,
-  type AuthSpikeProvider,
-} from "../../src/auth-spike";
+  type AuthActionResult,
+  type AuthEvent,
+  type AuthProvider,
+} from "../../src/auth";
 
 export const EXPO_ROUTE_STUB = "/settings";
 
-const OAUTH_PROVIDERS: AuthSpikeProvider[] = ["apple", "kakao", "google"];
+const REQUIRED_OAUTH_PROVIDERS: AuthProvider[] = ["apple", "kakao"];
+const OPTIONAL_OAUTH_PROVIDERS: AuthProvider[] = ["google"];
 const MAX_EVENT_LOGS = 50;
 
-function appendEvent(events: AuthSpikeEvent[], event: AuthSpikeEvent): AuthSpikeEvent[] {
+function appendEvent(events: AuthEvent[], event: AuthEvent): AuthEvent[] {
   return [event, ...events].slice(0, MAX_EVENT_LOGS);
 }
 
@@ -41,26 +41,26 @@ function stringifyPayload(value: unknown): string {
   return JSON.stringify(value, null, 2);
 }
 
-export default function SettingsTabAuthSpike() {
-  const envCheck = useMemo(() => getAuthSpikeEnvCheck(), []);
-  const [eventLogs, setEventLogs] = useState<AuthSpikeEvent[]>([]);
+export default function SettingsTabAuthSession() {
+  const envCheck = useMemo(() => getAuthEnvCheck(), []);
+  const [eventLogs, setEventLogs] = useState<AuthEvent[]>([]);
   const [sessionPreview, setSessionPreview] = useState<string>("(not checked)");
   const [rpcPreview, setRpcPreview] = useState<string>("(not called)");
   const [busyAction, setBusyAction] = useState<string | null>(null);
 
-  const appendResult = (result: AuthSpikeActionResult) => {
-    setEventLogs((current) => appendEvent(current, createAuthSpikeEvent(result)));
+  const appendResult = (result: AuthActionResult) => {
+    setEventLogs((current) => appendEvent(current, createAuthEvent(result)));
   };
 
   const withClient = async (
     actionName: string,
-    runner: (client: ReturnType<typeof getAuthSpikeClient>) => Promise<AuthSpikeActionResult>,
+    runner: (client: ReturnType<typeof getAuthClient>) => Promise<AuthActionResult>,
   ) => {
     if (!envCheck.env) {
       appendResult({
         ok: false,
         gate: "AS-5",
-        title: "Missing auth spike env values",
+        title: "Missing auth env values",
         detail: envCheck.missingKeys.join(", "),
       });
       return;
@@ -69,7 +69,7 @@ export default function SettingsTabAuthSpike() {
     setBusyAction(actionName);
 
     try {
-      const client = getAuthSpikeClient(envCheck.env);
+      const client = getAuthClient(envCheck.env);
       const result = await runner(client);
       appendResult(result);
     } finally {
@@ -77,13 +77,13 @@ export default function SettingsTabAuthSpike() {
     }
   };
 
-  const handleOAuthLogin = async (provider: AuthSpikeProvider) => {
+  const handleOAuthLogin = async (provider: AuthProvider) => {
     await withClient(`oauth:${provider}`, async (client) => {
       if (!envCheck.env) {
         return {
           ok: false,
           gate: "AS-5",
-          title: "Missing auth spike env values",
+          title: "Missing auth env values",
         };
       }
 
@@ -95,6 +95,14 @@ export default function SettingsTabAuthSpike() {
           gate: "AS-1",
           title: `${provider} login accepted by provider`,
         });
+
+        const sessionResult = await readSessionState(client);
+        setSessionPreview(stringifyPayload(sessionResult.payload));
+        appendResult(sessionResult);
+
+        const rpcResult = await verifySessionWithAppConfigRpc(client);
+        setRpcPreview(stringifyPayload(rpcResult.payload));
+        appendResult(rpcResult);
       }
 
       return result;
@@ -119,15 +127,7 @@ export default function SettingsTabAuthSpike() {
 
   const handleRpcCall = async () => {
     await withClient("rpc", async (client) => {
-      const result = await callAppConfigRpc(client);
-      setRpcPreview(stringifyPayload(result.payload));
-      return result;
-    });
-  };
-
-  const handleRpcNegative = async () => {
-    await withClient("rpc-negative", async (client) => {
-      const result = await callUnknownKeyRpc(client);
+      const result = await verifySessionWithAppConfigRpc(client);
       setRpcPreview(stringifyPayload(result.payload));
       return result;
     });
@@ -135,9 +135,9 @@ export default function SettingsTabAuthSpike() {
 
   return (
     <ScrollView contentContainerStyle={styles.container}>
-      <Text style={styles.title}>Auth Spike Console (P0.9-01)</Text>
+      <Text style={styles.title}>Auth Session Console (P2-01A)</Text>
       <Text style={styles.body}>
-        Scope: login - redirect callback - session check - auth-only rpc_get_app_config call.
+        Scope: login - redirect callback - session create/store/restore - auth-only rpc_get_app_config check.
       </Text>
 
       <View style={styles.section}>
@@ -151,10 +151,23 @@ export default function SettingsTabAuthSpike() {
 
       <View style={styles.section}>
         <Text style={styles.sectionTitle}>AS-1 + AS-2 OAuth Login</Text>
-        {OAUTH_PROVIDERS.map((provider) => (
+        <Text style={styles.body}>Required providers: Apple, Kakao (D-066)</Text>
+        {REQUIRED_OAUTH_PROVIDERS.map((provider) => (
           <View key={provider} style={styles.buttonRow}>
             <Button
               title={`Sign in with ${provider}`}
+              onPress={() => {
+                void handleOAuthLogin(provider);
+              }}
+              disabled={!envCheck.env || busyAction !== null}
+            />
+          </View>
+        ))}
+        <Text style={styles.body}>Optional provider: Google (D-066)</Text>
+        {OPTIONAL_OAUTH_PROVIDERS.map((provider) => (
+          <View key={provider} style={styles.buttonRow}>
+            <Button
+              title={`Sign in with ${provider} (optional)`}
               onPress={() => {
                 void handleOAuthLogin(provider);
               }}
@@ -166,6 +179,7 @@ export default function SettingsTabAuthSpike() {
 
       <View style={styles.section}>
         <Text style={styles.sectionTitle}>AS-3 Session</Text>
+        <Text style={styles.body}>Check this after app restart to verify session restore from storage.</Text>
         <View style={styles.buttonRow}>
           <Button
             title="Check session"
@@ -189,21 +203,12 @@ export default function SettingsTabAuthSpike() {
 
       <View style={styles.section}>
         <Text style={styles.sectionTitle}>AS-4 auth-only RPC</Text>
-        <Text style={styles.body}>Keys: {AUTH_SPIKE_APP_CONFIG_KEYS.join(", ")}</Text>
+        <Text style={styles.body}>Keys: {APP_CONFIG_KEYS.join(", ")}</Text>
         <View style={styles.buttonRow}>
           <Button
             title="Call rpc_get_app_config"
             onPress={() => {
               void handleRpcCall();
-            }}
-            disabled={!envCheck.env || busyAction !== null}
-          />
-        </View>
-        <View style={styles.buttonRow}>
-          <Button
-            title="Negative: unknown key"
-            onPress={() => {
-              void handleRpcNegative();
             }}
             disabled={!envCheck.env || busyAction !== null}
           />
@@ -218,7 +223,7 @@ export default function SettingsTabAuthSpike() {
         ) : (
           eventLogs.map((eventLog) => (
             <Text key={eventLog.id} style={styles.logLine}>
-              {formatAuthSpikeEvent(eventLog)}
+              {formatAuthEvent(eventLog)}
             </Text>
           ))
         )}
