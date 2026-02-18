@@ -49,16 +49,17 @@
 - Forbidden: Allowed에 적힌 것 외 변경 금지  
 - Public surface? **no** / Schema change? **no** / RLS·SECURITY DEFINER? **no** / Write? **no**
 
-**Interfaces**  
-- codegen 스크립트(이름 TBD) → `ci:verify` 포함  
+**Interfaces**
+- codegen 스크립트(이름 TBD) → `ci:verify` 포함
 - whitelist 타입 → Public Gate/DTO 누출 테스트와 결합
+- 기존 패턴: `packages/shared/src/public-dto.ts` (`PUBLIC_HOUSE_SLOT_WHITELIST`)
 
 **Validation placeholders**  
 - `repo:typecheck`, `repo:test`, `ci:verify`
 
-**Hardening hints**  
-- [ ] 코드젠 도구/명령/출력경로 확정  
-- [ ] generated 파일 커밋 정책 결정
+**Hardening hints**
+- [ ] 코드젠 도구/명령/출력경로 확정 (Blocker)
+- [ ] generated 파일 커밋 정책 확정 (OPEN 참조)
 
 **SSOT refs**  
 - `docs/API.md`, `docs/PROCESS.md`, `roadmap.md`  
@@ -79,14 +80,20 @@
 - [ ] `TBD`/SSOT 갭이 남아있으면 **추측 구현 금지**. OPEN에 기록하고 컨트롤러에게 SSOT 보강 요청.
 - [ ] Validation 스크립트(`repo:*`, `db:*`, `ci:*`)가 실제 레포에서 무엇을 실행하는지 확인(필요 시 P0-01/02에서 매핑).
 
-### 3) RPC/Contract 구현
-- [ ] GRANT/REVOKE: anon/authenticated 권한을 SSOT에 맞게 최소로 설정.
-- [ ] 테스트/스냅샷(VERIFICATION, drift)으로 계약/가드/누출 방지를 회귀로 고정.
+### Non-goals (이 EP에서 하지 않는 것)
+- DB 함수/RLS/GRANT/REVOKE/마이그레이션 변경 — Scope(`packages/shared/**`, `scripts/**`, `.github/**`)에 해당하지 않음.
+- docs/** 문서 변경 — Scope 외. 필요 시 별도 EP.
+- 도메인 RPC 구현.
 
-### 1) 문서/운영 작업
-- [ ] 문서 변경은 SSOT 원칙(이유는 DECISIONS/ADR, 수치는 CONFIG-BASELINES)에 맞게 최소 변경.
-- [ ] 비밀값은 쓰지 않고, **설정 위치/절차**만 기록.
-- [ ] 체크리스트는 실행 가능 형태(누가/언제/어디서/어떤 근거로)로 작성.
+### 5) 코드젠 파이프라인 구축
+- [ ] DB 스키마→TS 타입 코드젠 스크립트를 `scripts/` 하위에 생성(도구/명령/출력경로는 Blocker 해소 후 확정).
+- [ ] 생성된 타입이 `packages/shared/` 하위에 출력되도록 경로 설정.
+- [ ] `ci:verify`에 코드젠 drift 체크를 포함(생성물과 DB 스키마 불일치 시 실패).
+
+### 6) Whitelist 타입 경계 강화
+- [ ] 기존 패턴 참조: `packages/shared/src/public-dto.ts` (`PUBLIC_HOUSE_SLOT_WHITELIST` 등).
+- [ ] 공개 응답 whitelist를 타입으로 강제하는 공용 경계를 `packages/shared/` 내에 확장.
+- [ ] Public Gate/DTO 누출 테스트와 결합 가능한 형태로 export.
 
 ## Validation (must run)
 - Risk level: **FAST**
@@ -121,6 +128,7 @@
 
 ## OPEN (from Phase)
 - 코드젠 도구/명령/출력경로(레포 근거 필요).
+- generated 파일 커밋 정책(커밋 vs CI-only 생성) — CI 파이프라인 전체에 영향하므로 Blocker 해소 시 함께 확정 필요.
 
 ## Result Packet (PR 본문에 채워 넣기)
 
