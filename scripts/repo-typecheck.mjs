@@ -9,7 +9,8 @@ for (const token of [
   "export { ERROR_CODES }",
   "export type { ErrorCode }",
   "export { PUBLIC_HOUSE_SLOT_WHITELIST }",
-  "export type { PublicHouseSlotDto, PublicHouseSlotKey }"
+  "export type { PublicHouseSlotDto, PublicHouseSlotKey }",
+  "export type { Database, Json, Tables, TablesInsert, TablesUpdate }"
 ]) {
   if (!sharedIndex.includes(token)) {
     missingExports.push(token);
