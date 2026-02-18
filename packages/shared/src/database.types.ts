@@ -1380,6 +1380,12 @@ export type Database = {
       rpc_delete_thread: { Args: { p_thread_id: string }; Returns: Json }
       rpc_follow_topic: { Args: { p_topic_id: string }; Returns: Json }
       rpc_get_app_config: { Args: { p_keys: string[] }; Returns: Json }
+      rpc_get_my_house: { Args: never; Returns: Json }
+      rpc_get_my_observation_group: {
+        Args: { p_log_date: string }
+        Returns: Json
+      }
+      rpc_get_my_profile: { Args: never; Returns: Json }
       rpc_get_notifications: {
         Args: { p_cursor?: string; p_limit?: number }
         Returns: Json
