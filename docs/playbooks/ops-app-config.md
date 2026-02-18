@@ -98,27 +98,43 @@ on conflict (key) do nothing;
 ## Environment Matrix
 
 > 목적: dev/staging/prod 환경에서 필요한 설정 "필드"를 고정한다.
-> 원칙: 값은 Phase 0.9에서 채우며, 이 문서에는 실제 비밀값을 기록하지 않는다.
+> P0.9-02 적용 원칙: 레포 근거가 있는 값은 실제 키/기본값으로 채우고, 근거가 없는 항목은 `TBD (OPEN)`으로 남긴다.
+> 비밀값은 평문으로 기록하지 않고, 키 이름/저장 위치/권한 경계만 기록한다.
 
 | 필드 | dev | staging | prod | 저장 위치 | 권한 경계 |
 |------|-----|---------|------|-----------|-----------|
-| Supabase URL | TBD | TBD | TBD | Supabase Dashboard 또는 서버 환경변수 | 공개 가능(서비스 endpoint) |
-| Supabase anon key | TBD | TBD | TBD | 서버/앱 환경변수(.env.*) | 공개 가능(anon) |
-| Supabase service_role key | TBD | TBD | TBD | 서버 전용 비밀 저장소(Secrets Manager/Vault) | 서버 전용, 클라이언트 노출 금지 |
-| OAuth redirect URI | TBD | TBD | TBD | OAuth Provider Console + 앱/웹 설정 문서 | 공개 가능(URI), 임의 변경 금지 |
-| Expo scheme | TBD | TBD | TBD | Expo app config(`app.json`/`app.config.*`) | 공개 가능(딥링크 식별자) |
-| Next.js domain | TBD | TBD | TBD | 배포 플랫폼 프로젝트 설정 | 공개 가능(도메인) |
-| app_config key: `rate_limits` | TBD | TBD | TBD | `public.app_config` (`rpc_get_app_config` 경유) | authenticated RPC 읽기 전용 |
-| app_config key: `rate_limits_new_account` | TBD | TBD | TBD | `public.app_config` (`rpc_get_app_config` 경유) | authenticated RPC 읽기 전용 |
-| app_config key: `auto_hide` | TBD | TBD | TBD | `public.app_config` (`rpc_get_app_config` 경유) | authenticated RPC 읽기 전용 |
-| app_config key: `popular_feed` | TBD | TBD | TBD | `public.app_config` (`rpc_get_app_config` 경유) | authenticated RPC 읽기 전용 |
+| Supabase URL | `LOCAL_SUPABASE_URL=http://127.0.0.1:54321` | `STAGING_SUPABASE_URL=https://your-staging-project-ref.supabase.co` | `PROD_SUPABASE_URL=https://your-prod-project-ref.supabase.co` | `.env.example` + 런타임 `.env` | 공개 가능(서비스 endpoint) |
+| Supabase anon key | `LOCAL_SUPABASE_ANON_KEY` | `STAGING_SUPABASE_ANON_KEY` | `PROD_SUPABASE_ANON_KEY` | `.env.example` + 런타임 `.env` | 공개 가능(anon) |
+| Supabase service_role key | `LOCAL_SUPABASE_SERVICE_ROLE_KEY` | `STAGING_SUPABASE_SERVICE_ROLE_KEY` | `PROD_SUPABASE_SERVICE_ROLE_KEY` | `.env.example` + 서버 전용 비밀 저장소 | 서버 전용, 클라이언트 노출 금지 |
+| OAuth redirect URI (Expo Auth Spike) | `<EXPO_PUBLIC_AUTH_REDIRECT_SCHEME>://auth/callback` | `<EXPO_PUBLIC_AUTH_REDIRECT_SCHEME>://auth/callback` | `<EXPO_PUBLIC_AUTH_REDIRECT_SCHEME>://auth/callback` | `apps/expo/src/auth-spike/oauth.ts` + `apps/expo/.env.example` | 공개 가능(URI), 임의 변경 금지 |
+| Expo scheme | `LOCAL_EXPO_PUBLIC_AUTH_REDIRECT_SCHEME` -> `EXPO_PUBLIC_AUTH_REDIRECT_SCHEME` | `STAGING_EXPO_PUBLIC_AUTH_REDIRECT_SCHEME` -> `EXPO_PUBLIC_AUTH_REDIRECT_SCHEME` | `PROD_EXPO_PUBLIC_AUTH_REDIRECT_SCHEME` -> `EXPO_PUBLIC_AUTH_REDIRECT_SCHEME` | `.env.example` + `apps/expo/.env.example` | 공개 가능(딥링크 식별자) |
+| Next.js domain | `LOCAL_NEXT_PUBLIC_SITE_URL=https://localhost:3000` | `STAGING_NEXT_PUBLIC_SITE_URL=<staging-next-domain>` | `PROD_NEXT_PUBLIC_SITE_URL=<prod-next-domain>` | `.env.example` + 배포 플랫폼 프로젝트 설정 | 공개 가능(도메인) |
+| robots/sitemap base URL | `https://localhost:3000` | `TBD (OPEN)` | `TBD (OPEN)` | dev 근거: `docs/playbooks/seo-web.md`; staging/prod는 배포 도메인 확정 후 기록 | 공개 가능(URL) |
+| ISR revalidate secret | `LOCAL_REVALIDATE_SECRET` | `STAGING_REVALIDATE_SECRET` | `PROD_REVALIDATE_SECRET` | `.env.example` + 서버 전용 비밀 저장소 (`REVALIDATE_SECRET`) | 서버 전용, 클라이언트 노출 금지 |
+| app_config key: `rate_limits` | `public.app_config.rate_limits` | `public.app_config.rate_limits` | `public.app_config.rate_limits` | `public.app_config` (`rpc_get_app_config` 경유) | authenticated RPC 읽기 전용 |
+| app_config key: `rate_limits_new_account` | `public.app_config.rate_limits_new_account` | `public.app_config.rate_limits_new_account` | `public.app_config.rate_limits_new_account` | `public.app_config` (`rpc_get_app_config` 경유) | authenticated RPC 읽기 전용 |
+| app_config key: `auto_hide` | `public.app_config.auto_hide` | `public.app_config.auto_hide` | `public.app_config.auto_hide` | `public.app_config` (`rpc_get_app_config` 경유) | authenticated RPC 읽기 전용 |
+| app_config key: `popular_feed` | `public.app_config.popular_feed` | `public.app_config.popular_feed` | `public.app_config.popular_feed` | `public.app_config` (`rpc_get_app_config` 경유) | authenticated RPC 읽기 전용 |
 
 ### Environment Matrix 체크리스트
 
-- [ ] 모든 필드의 값은 `TBD`로 유지한다(실값/토큰/비밀번호 기록 금지).
-- [ ] 비밀 필드는 저장 위치를 "서버 전용 비밀 저장소"로 기록하고 클라이언트 노출 금지를 명시한다.
-- [ ] OAuth redirect URI / Expo scheme / Next.js domain을 환경별(dev/staging/prod)로 모두 채울 수 있는 자리만 확보한다.
+- [ ] 비밀값 평문을 기록하지 않고, 키 이름/저장 위치/권한 경계만 기록한다.
+- [ ] 환경별로 `*_SUPABASE_*`, `*_EXPO_PUBLIC_AUTH_REDIRECT_SCHEME`, `*_NEXT_PUBLIC_SITE_URL`, `*_REVALIDATE_SECRET` 키를 채운다.
+- [ ] OAuth redirect URI는 `<EXPO_PUBLIC_AUTH_REDIRECT_SCHEME>://auth/callback` 규칙으로 기록하고, provider 콘솔 값과 일치시킨다.
 - [ ] app_config 수치 근거는 `docs/CONFIG-BASELINES.md`를 따르고, 키 목록은 D-056 whitelist와 정합시킨다.
+- [ ] 레포 근거가 없는 값은 `TBD (OPEN)`으로 남기고 배포 환경 확정 시 업데이트한다.
+
+### AS-5 환경별 재현 체크리스트 (로그인 -> 세션 확인)
+
+- [ ] 실행 환경(dev/staging/prod)별로 Env Matrix 값을 주입한 뒤 Expo 앱을 실행한다.
+- [ ] iOS/Android 각각 `AS-1`(로그인), `AS-2`(redirect/deeplink), `AS-3`(세션 복구), `AS-4`(auth-only RPC)를 1회 이상 통과시킨다.
+- [ ] 네거티브 1건 이상(로그인 취소/네트워크 오류/unknown key RPC)을 재현하고 결과를 기록한다.
+- [ ] 증거(스크린샷/로그)에는 실행 환경, 실행 시각, 사용한 설정 키 범위를 함께 남긴다.
+
+### OPEN (P0.9-02)
+
+- [ ] staging/prod의 실제 Next.js domain 및 robots/sitemap base URL은 레포에 확정값이 없으므로 `TBD (OPEN)` 상태다.
+- [ ] provider별 OAuth redirect URI 실값(Apple/Kakao/Google 콘솔)은 운영 콘솔 확정 후 동일 섹션에 반영한다.
 
 ## 검증
 
