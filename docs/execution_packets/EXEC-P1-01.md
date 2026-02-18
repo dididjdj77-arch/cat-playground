@@ -79,8 +79,9 @@
 
 **Prerequisites**: P0-03A~D, P0-04
 
-**OPEN**  
-- correction RPC(v1 UX 미확정) 포함 여부(기본: 예비 등록만).
+**OPEN**
+- ~~correction RPC(v1 UX 미확정) 포함 여부(기본: 예비 등록만).~~
+  - (해소) 스텁만 등록, 호출 시 `invalid_request` 반환. 후속 EP에서 구현.
 
 ---
 ```
@@ -146,7 +147,8 @@
 - [ ] 앱/웹: 기능 플래그/리버트 커밋 절차.
 
 ## OPEN (from Phase)
-- correction RPC(v1 UX 미확정) 포함 여부(기본: 예비 등록만).
+- ~~correction RPC(v1 UX 미확정) 포함 여부(기본: 예비 등록만).~~
+  - **해소**: correction RPC는 **스텁만 등록**한다. 본체 미구현, 호출 시 `{"error_code":"invalid_request"}` 반환. UX 확정 시 후속 EP에서 구현한다(D-095 "예비 등록만" 유지).
 
 ## Result Packet (PR 본문에 채워 넣기)
 

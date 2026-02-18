@@ -362,6 +362,7 @@
 - 무엇:
   - 닉네임 변경은 허용하되 이전 닉네임은 1시간 재할당 금지, /u/{nickname}은 리다이렉트 없이 404 유지.
   - **v1 범위**: 닉네임 변경 기능은 v1에서 구현하지 않는다(최초 설정 후 고정). v1.1+에서 구현 시 nickname_reservations 등 저장소 설계가 선행되어야 한다.
+  - **v1 RPC 동작(LOCK)**: `rpc_update_profile`에서 `p_nickname` 파라미터는 silently ignored한다(무조건 무시). 에러 반환 없음, 업데이트 없음. bio/avatar_key만 업데이트 대상.
 - 의미: 닉네임 변경 허용하되 단기간 혼란 방지
 - 변경: ADR 권장
 
@@ -873,3 +874,13 @@
 - 의미: Phase 2 앱 화면 설계 시 "어디서 들어가나"를 고정해 동선/라우트 드리프트를 방지한다.
 - See: D-017, D-035, `docs/ROUTES-AND-IA.md`
 - 변경: ADR 필요
+
+## D-100. like/reply/comment count 보정 방식
+- Class: GUARD
+- 무엇:
+  - v1: write RPC 내 원자 increment/decrement만 구현한다(D-046).
+  - 배치 보정(전체 재계산)은 Phase 3 pg_cron 잡으로 구현한다(D-069).
+  - P1에서는 배치 보정 없이 write-time 카운트만으로 운영한다.
+- 의미: 동시성에서 lost update를 방지하면서, 배치 보정의 복잡도를 Phase 3으로 분리한다.
+- See: D-046, D-069
+- 변경: ADR 불필요

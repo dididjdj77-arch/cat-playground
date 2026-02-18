@@ -164,7 +164,7 @@
 - moderation_actions(id, actor_id, action, target_type, target_id, meta jsonb?, created_at)
 
 ## 10) 집계/보정(권장)
-- like_count/reply_count/comment_count는 트리거 또는 배치로 보정 가능(OPEN: 주기/방식)
+- like_count/reply_count/comment_count: v1은 write RPC 내 원자 increment/decrement만 구현(D-046, D-100). 배치 보정(전체 재계산)은 Phase 3 pg_cron 잡으로 구현(D-069)
 
 ## 11) payload_versions / KPI
 - payload_versions(version text pk, state(ACTIVE|DEPRECATED|REJECT), meta jsonb?, created_at, updated_at)

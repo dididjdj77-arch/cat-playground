@@ -78,15 +78,21 @@
 **Interfaces**  
 - Public read RPC(확정): `rpc_get_public_threads_feed`(p_sort: new|popular|following), `rpc_get_public_thread_detail`
 - Write RPC(확정, API.md §7-2): `rpc_list_topics`, `rpc_follow_topic`, `rpc_unfollow_topic`, `rpc_create_thread`, `rpc_update_thread`, `rpc_delete_thread`, `rpc_create_reply`, `rpc_update_reply`, `rpc_delete_reply`, `rpc_search_threads`
-- Tables: `topics`, `topic_follows`, `threads`, `replies`, `likes`
+- Tables: `topics`, `topic_follows`, `threads`, `replies`, `likes`, `notifications`(**필수** — D-093: reply write RPC 트랜잭션 내 INSERT)
 
 **Validation placeholders**  
 - `ci:public-gate`  
 - Drift(가능하면): DCI-1, FTS 스냅샷
 
-**Hardening hints**  
-- [ ] popular 피드 공식은 app_config `popular_feed`로부터 읽기(D-076)  
+**Hardening hints**
+- [ ] popular 피드 공식은 app_config `popular_feed`로부터 읽기(D-076)
 - [ ] noindex는 웹에서만(Phase 3 정책), RPC에는 비노출 원칙만
+- [ ] **notifications INSERT 필수**(D-093): reply→thread 알림을 rpc_create_reply 동일 트랜잭션에서 INSERT. block 관계 시 미생성
+- [ ] **커서 키 스펙 고정**(D-077 구체화):
+  - new/following feed: `{created_at, id}` — 시간순
+  - popular feed: `{score, created_at, id}` — 인기순 + 시간 tiebreak
+  - search: `{rank, created_at, id}` — FTS rank + 시간
+- [ ] DCI-1: author 닉네임 붙일 때 profiles.user_id = threads.author_id 고정(profiles.id 조인 금지)
 
 **SSOT refs**  
 - `docs/DATA-MODEL.md`, `docs/AUTHZ-MODEL.md`, `docs/API.md`, `docs/VERIFICATION.md`  
@@ -165,6 +171,11 @@
 
 ## OPEN (from Phase)
 - (해소됨) search/feed 포함 채널 RPC 함수명/파라미터는 API.md §7-2, §8에 확정됨.
+
+## 추가 책임 (P1 리뷰)
+- **notifications INSERT**: reply write RPC에서 동일 트랜잭션 내 INSERT 필수(D-093, D-070: reply→thread).
+- **커서 키 스펙**: feed 3종 + search에 대해 keyset cursor key를 아래로 고정한다:
+  - new/following: `{created_at, id}` | popular: `{score, created_at, id}` | search: `{rank, created_at, id}`
 
 ## Result Packet (PR 본문에 채워 넣기)
 

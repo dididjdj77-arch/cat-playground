@@ -78,7 +78,7 @@
 **Hardening hints**
 - [ ] rpc_agree_terms, rpc_set_initial_nickname은 guard_terms_agreed 스킵(D-097 pre-terms 예외)
 - [ ] rpc_update_profile은 guard 호출 순서(D-096) 준수: terms → block → soft_state → domain
-- [ ] 닉네임 변경은 v1 미지원(D-051) — rpc_update_profile에서 nickname 변경 차단 또는 무시
+- [ ] 닉네임 변경은 v1 미지원(D-051) — rpc_update_profile에서 p_nickname은 **silently ignored**(무조건 무시). 현재값 전송/미전송 모두 동일하게 무시 처리
 
 **SSOT refs**
 - `docs/API.md`, `docs/AUTHZ-MODEL.md`, `docs/DATA-MODEL.md`, `docs/VERIFICATION.md`
@@ -150,6 +150,11 @@
 
 ## OPEN (from Phase)
 - none
+
+## 추가 명확화 (P1 리뷰)
+- **rpc_update_profile p_nickname 처리**: silently ignored로 확정(D-051). `p_nickname`이 전달되어도 업데이트하지 않으며, 에러도 반환하지 않는다. bio/avatar_key만 업데이트 대상.
+- **rpc_mark_notification_read / rpc_mark_all_notifications_read**: write RPC이므로 guard_terms_agreed 적용 필수(D-073).
+- **notification type-target CHECK**: DB에 `comment→post, reply→thread, like→post` CHECK constraint가 이미 존재(D-070). P1-04/05에서 INSERT 시 매핑 위반하면 constraint error 발생.
 
 ## Result Packet (PR 본문에 채워 넣기)
 

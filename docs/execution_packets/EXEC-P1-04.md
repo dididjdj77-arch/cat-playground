@@ -78,16 +78,23 @@
 - Public RPC: `rpc_get_public_posts_feed`, `rpc_get_public_post_comments`  
 - Like RPC: `rpc_toggle_like`  
 - Write RPC(확정, API.md §7-1): `rpc_create_post`, `rpc_update_post`, `rpc_delete_post`, `rpc_publish_post`, `rpc_unpublish_post`, `rpc_create_comment`, `rpc_update_comment`, `rpc_delete_comment`
-- Tables: `posts`, `comments`, `likes`, `notifications`(옵션)
+- Tables: `posts`, `comments`, `likes`, `notifications`(**필수** — D-093: comment/like write RPC 트랜잭션 내 INSERT)
 
 **Validation placeholders**  
 - `ci:public-gate` (G-1~G-4)  
 - VERIFICATION: T-1, T-5  
 - Negative: hidden/deleted/unpublished/private 상태 404 통일
 
-**Hardening hints**  
-- [ ] publish/unpublish 전이(D-007) + private+published CHECK 동시 방어  
+**Hardening hints**
+- [ ] publish/unpublish 전이(D-007) + private+published CHECK 동시 방어
 - [ ] 롤백: public RPC revoke + 함수 revert + 게이트 revert(필요 시)
+- [ ] **notifications INSERT 필수**(D-093): comment→post, like→post 알림을 write RPC 동일 트랜잭션에서 INSERT. block 관계 시 미생성
+- [ ] **DCI-4 placeholder → exact 전환**: public DTO forbidden field 검증 스크립트 작성
+- [ ] **G-1~G-4 skeleton → exact 전환**: manifest mode를 exact로 변경하고 실제 테스트 구현
+  - G-1: block 관계면 공개 피드/조회 결과 0 rows
+  - G-2: public DTO whitelist 0 leak (forbidden field 미포함)
+  - G-3: 부모 post guard 실패 시 comments → `not_found`(404), 0 rows 아님
+  - G-4: 공개 표면 "조회 불가" 전부 `not_found` 통일(D-050)
 
 **SSOT refs**  
 - `docs/API.md`, `docs/AUTHZ-MODEL.md`, `docs/VERIFICATION.md`, `docs/playbooks/rpc-public.md`  
@@ -167,6 +174,11 @@
 
 ## OPEN (from Phase)
 - (해소됨) posts CRUD/publish/unpublish/comment CRUD RPC 함수명은 API.md §7-1에 확정됨.
+
+## 추가 책임 (P1 리뷰)
+- **notifications INSERT**: comment/like write RPC에서 동일 트랜잭션 내 INSERT 필수(D-093). "(옵션)" → **필수**로 격상.
+- **DCI-4 placeholder → exact 전환**: public DTO forbidden field 검증 스크립트 작성 및 manifest.json 업데이트.
+- **G-1~G-4 skeleton → exact 전환**: run-public-gate.mjs에서 skeleton SKIP이 아닌 실제 테스트로 전환. GitHub branch protection에서 ci:public-gate를 required check로 설정 확인.
 
 ## Result Packet (PR 본문에 채워 넣기)
 
