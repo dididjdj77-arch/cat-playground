@@ -11,6 +11,7 @@ import {
   type SessionRetryPolicy,
 } from "./types";
 
+// Structural checks are preferred; regex patterns are fallback for untyped errors.
 const NETWORK_ERROR_PATTERN = /network request failed|failed to fetch|network error|offline|timeout|timed out/i;
 const EXPIRED_ERROR_PATTERN = /jwt.+expired|token.+expired|refresh token.+(missing|invalid|expired)/i;
 const NO_SESSION_PATTERN = /no active session|returned no session/i;
@@ -18,6 +19,12 @@ const OAUTH_CANCEL_PATTERN = /browser result:\s*(cancel|dismiss|locked)/i;
 const RPC_ERROR_CODE_PATTERN = /error_code=/i;
 
 let sessionEdgeLogSequence = 0;
+
+interface StructuralAuthError {
+  __isAuthError?: boolean;
+  status?: number;
+  code?: string;
+}
 
 export const SESSION_EDGE_RETRY_POLICY: SessionRetryPolicy = {
   timeoutMs: 8000,
@@ -36,18 +43,38 @@ class SessionActionTimeoutError extends Error {
 }
 
 function toSearchableText(result: AuthActionResult): string {
-  return `${result.title} ${result.detail ?? ""}`.toLowerCase();
+  return `${result.title} ${result.detail ?? ""}`;
+}
+
+function extractStructuralError(result: AuthActionResult): StructuralAuthError | null {
+  const payload = result.payload;
+  if (typeof payload === "object" && payload !== null) {
+    return payload as StructuralAuthError;
+  }
+  return null;
 }
 
 function isOfflineResult(result: AuthActionResult): boolean {
+  const structural = extractStructuralError(result);
+  if (structural?.code === "network_error" || structural?.status === 0) {
+    return true;
+  }
   return NETWORK_ERROR_PATTERN.test(toSearchableText(result));
 }
 
 function isSessionMissingResult(result: AuthActionResult): boolean {
+  const structural = extractStructuralError(result);
+  if (structural?.code === "session_not_found" || structural?.code === "no_session") {
+    return true;
+  }
   return NO_SESSION_PATTERN.test(toSearchableText(result));
 }
 
 function isSessionExpiredResult(result: AuthActionResult): boolean {
+  const structural = extractStructuralError(result);
+  if (structural?.__isAuthError && (structural.status === 401 || structural.code === "session_expired")) {
+    return true;
+  }
   return EXPIRED_ERROR_PATTERN.test(toSearchableText(result));
 }
 
@@ -187,9 +214,11 @@ export async function runSessionActionWithPolicy(
 
   const shouldRetry = options.shouldRetry ?? defaultShouldRetry;
   let attempts = 0;
+  let lastTimedOut = false;
 
   while (attempts < policy.maxAttempts) {
     attempts += 1;
+    lastTimedOut = false;
 
     try {
       const result = await withTimeout(runner(), policy.timeoutMs);
@@ -203,14 +232,18 @@ export async function runSessionActionWithPolicy(
       }
     } catch (error) {
       if (error instanceof SessionActionTimeoutError) {
-        return {
-          result: options.timeoutResult,
-          attempts,
-          timedOut: true,
-        };
-      }
+        lastTimedOut = true;
 
-      throw error;
+        if (attempts >= policy.maxAttempts) {
+          return {
+            result: options.timeoutResult,
+            attempts,
+            timedOut: true,
+          };
+        }
+      } else {
+        throw error;
+      }
     }
 
     await delay(policy.retryDelayMs * attempts);
@@ -219,7 +252,7 @@ export async function runSessionActionWithPolicy(
   return {
     result: options.timeoutResult,
     attempts,
-    timedOut: true,
+    timedOut: lastTimedOut,
   };
 }
 
@@ -287,6 +320,19 @@ export function deriveSessionEdgeStateFromResult(input: SessionEdgeTransitionInp
         input.hadActiveSession,
       );
     }
+
+    return createState(
+      {
+        status: "unknown-error",
+        eventKey: SESSION_EDGE_EVENT_KEYS.unknownError,
+        gate: input.result.gate,
+        title: "Sign-out failed",
+        detail: detailWithAttempt,
+        recoverable: true,
+        recoveryAction: "sign-in",
+      },
+      input.hadActiveSession,
+    );
   }
 
   if (input.action === "session-refresh") {
