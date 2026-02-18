@@ -1366,8 +1366,19 @@ export type Database = {
         }
         Returns: Json
       }
+      rpc_create_reply: {
+        Args: { p_body: string; p_thread_id: string }
+        Returns: Json
+      }
+      rpc_create_thread: {
+        Args: { p_body: string; p_title: string; p_topic_id: string }
+        Returns: Json
+      }
       rpc_delete_comment: { Args: { p_comment_id: string }; Returns: Json }
       rpc_delete_post: { Args: { p_post_id: string }; Returns: Json }
+      rpc_delete_reply: { Args: { p_reply_id: string }; Returns: Json }
+      rpc_delete_thread: { Args: { p_thread_id: string }; Returns: Json }
+      rpc_follow_topic: { Args: { p_topic_id: string }; Returns: Json }
       rpc_get_app_config: { Args: { p_keys: string[] }; Returns: Json }
       rpc_get_notifications: {
         Args: { p_cursor?: string; p_limit?: number }
@@ -1384,6 +1395,14 @@ export type Database = {
       rpc_get_public_post_detail: { Args: { p_post_id: string }; Returns: Json }
       rpc_get_public_posts_feed: {
         Args: { p_cursor?: string; p_limit?: number }
+        Returns: Json
+      }
+      rpc_get_public_thread_detail: {
+        Args: { p_thread_id: string }
+        Returns: Json
+      }
+      rpc_get_public_threads_feed: {
+        Args: { p_cursor?: string; p_limit?: number; p_sort?: string }
         Returns: Json
       }
       rpc_inventory_correction: {
@@ -1410,6 +1429,7 @@ export type Database = {
         }
         Returns: Json
       }
+      rpc_list_topics: { Args: never; Returns: Json }
       rpc_mark_all_notifications_read: { Args: never; Returns: Json }
       rpc_mark_notification_read: {
         Args: { p_notification_id: string }
@@ -1435,6 +1455,15 @@ export type Database = {
         }
         Returns: Json
       }
+      rpc_search_threads: {
+        Args: {
+          p_cursor?: string
+          p_limit?: number
+          p_q: string
+          p_topic_id?: string
+        }
+        Returns: Json
+      }
       rpc_set_house_slot: {
         Args: {
           p_inventory_item_id: string
@@ -1449,6 +1478,7 @@ export type Database = {
         Returns: Json
       }
       rpc_unblock_user: { Args: { p_blocked_user_id: string }; Returns: Json }
+      rpc_unfollow_topic: { Args: { p_topic_id: string }; Returns: Json }
       rpc_unhide_content: {
         Args: { p_target_id: string; p_target_type: string }
         Returns: Json
@@ -1471,6 +1501,14 @@ export type Database = {
       }
       rpc_update_profile: {
         Args: { p_avatar_key?: string; p_bio?: string; p_nickname?: string }
+        Returns: Json
+      }
+      rpc_update_reply: {
+        Args: { p_body: string; p_reply_id: string }
+        Returns: Json
+      }
+      rpc_update_thread: {
+        Args: { p_body?: string; p_thread_id: string; p_title?: string }
         Returns: Json
       }
       rpc_upsert_observation_group_with_items: {
