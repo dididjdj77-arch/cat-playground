@@ -1329,6 +1329,10 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      check_auto_hide: {
+        Args: { p_target_id: string; p_target_type: string }
+        Returns: undefined
+      }
       guard_block: {
         Args: { p_target_user_id: string; p_viewer_id: string }
         Returns: boolean
@@ -1342,6 +1346,7 @@ export type Database = {
         Args: { p_published_at: string; p_visibility: string }
         Returns: boolean
       }
+      rpc_block_user: { Args: { p_blocked_user_id: string }; Returns: Json }
       rpc_create_comment: {
         Args: { p_body: string; p_post_id: string }
         Returns: Json
@@ -1402,7 +1407,21 @@ export type Database = {
         Returns: Json
       }
       rpc_publish_post: { Args: { p_post_id: string }; Returns: Json }
+      rpc_report_content: {
+        Args: {
+          p_note?: string
+          p_reason_code: string
+          p_target_id: string
+          p_target_type: string
+        }
+        Returns: Json
+      }
       rpc_toggle_like: {
+        Args: { p_target_id: string; p_target_type: string }
+        Returns: Json
+      }
+      rpc_unblock_user: { Args: { p_blocked_user_id: string }; Returns: Json }
+      rpc_unhide_content: {
         Args: { p_target_id: string; p_target_type: string }
         Returns: Json
       }
