@@ -95,6 +95,31 @@ values
 on conflict (key) do nothing;
 ```
 
+## Environment Matrix
+
+> 목적: dev/staging/prod 환경에서 필요한 설정 "필드"를 고정한다.
+> 원칙: 값은 Phase 0.9에서 채우며, 이 문서에는 실제 비밀값을 기록하지 않는다.
+
+| 필드 | dev | staging | prod | 저장 위치 | 권한 경계 |
+|------|-----|---------|------|-----------|-----------|
+| Supabase URL | TBD | TBD | TBD | Supabase Dashboard 또는 서버 환경변수 | 공개 가능(서비스 endpoint) |
+| Supabase anon key | TBD | TBD | TBD | 서버/앱 환경변수(.env.*) | 공개 가능(anon) |
+| Supabase service_role key | TBD | TBD | TBD | 서버 전용 비밀 저장소(Secrets Manager/Vault) | 서버 전용, 클라이언트 노출 금지 |
+| OAuth redirect URI | TBD | TBD | TBD | OAuth Provider Console + 앱/웹 설정 문서 | 공개 가능(URI), 임의 변경 금지 |
+| Expo scheme | TBD | TBD | TBD | Expo app config(`app.json`/`app.config.*`) | 공개 가능(딥링크 식별자) |
+| Next.js domain | TBD | TBD | TBD | 배포 플랫폼 프로젝트 설정 | 공개 가능(도메인) |
+| app_config key: `rate_limits` | TBD | TBD | TBD | `public.app_config` (`rpc_get_app_config` 경유) | authenticated RPC 읽기 전용 |
+| app_config key: `rate_limits_new_account` | TBD | TBD | TBD | `public.app_config` (`rpc_get_app_config` 경유) | authenticated RPC 읽기 전용 |
+| app_config key: `auto_hide` | TBD | TBD | TBD | `public.app_config` (`rpc_get_app_config` 경유) | authenticated RPC 읽기 전용 |
+| app_config key: `popular_feed` | TBD | TBD | TBD | `public.app_config` (`rpc_get_app_config` 경유) | authenticated RPC 읽기 전용 |
+
+### Environment Matrix 체크리스트
+
+- [ ] 모든 필드의 값은 `TBD`로 유지한다(실값/토큰/비밀번호 기록 금지).
+- [ ] 비밀 필드는 저장 위치를 "서버 전용 비밀 저장소"로 기록하고 클라이언트 노출 금지를 명시한다.
+- [ ] OAuth redirect URI / Expo scheme / Next.js domain을 환경별(dev/staging/prod)로 모두 채울 수 있는 자리만 확보한다.
+- [ ] app_config 수치 근거는 `docs/CONFIG-BASELINES.md`를 따르고, 키 목록은 D-056 whitelist와 정합시킨다.
+
 ## 검증
 
 ### 스모크 테스트
