@@ -1,5 +1,17 @@
 {
   "name": "@cat-playground/expo",
   "private": true,
-  "version": "0.0.0"
+  "version": "0.0.0",
+  "scripts": {
+    "start": "expo start --clear"
+  },
+  "dependencies": {
+    "@react-native-async-storage/async-storage": "*",
+    "@supabase/supabase-js": "*",
+    "expo": "*",
+    "expo-auth-session": "*",
+    "expo-web-browser": "*",
+    "react": "*",
+    "react-native": "*"
+  }
 }
