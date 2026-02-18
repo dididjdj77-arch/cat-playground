@@ -1348,6 +1348,10 @@ export type Database = {
       }
       rpc_agree_terms: { Args: never; Returns: Json }
       rpc_block_user: { Args: { p_blocked_user_id: string }; Returns: Json }
+      rpc_clear_house_slot: {
+        Args: { p_room_key: string; p_slot_key: string }
+        Returns: Json
+      }
       rpc_create_comment: {
         Args: { p_body: string; p_post_id: string }
         Returns: Json
@@ -1367,6 +1371,10 @@ export type Database = {
       rpc_get_app_config: { Args: { p_keys: string[] }; Returns: Json }
       rpc_get_notifications: {
         Args: { p_cursor?: string; p_limit?: number }
+        Returns: Json
+      }
+      rpc_get_public_house_slots_summary: {
+        Args: { p_target_user_id: string }
         Returns: Json
       }
       rpc_get_public_post_comments: {
@@ -1416,6 +1424,7 @@ export type Database = {
         }
         Returns: Json
       }
+      rpc_publish_house: { Args: never; Returns: Json }
       rpc_publish_post: { Args: { p_post_id: string }; Returns: Json }
       rpc_report_content: {
         Args: {
@@ -1423,6 +1432,14 @@ export type Database = {
           p_reason_code: string
           p_target_id: string
           p_target_type: string
+        }
+        Returns: Json
+      }
+      rpc_set_house_slot: {
+        Args: {
+          p_inventory_item_id: string
+          p_room_key: string
+          p_slot_key: string
         }
         Returns: Json
       }
@@ -1436,6 +1453,7 @@ export type Database = {
         Args: { p_target_id: string; p_target_type: string }
         Returns: Json
       }
+      rpc_unpublish_house: { Args: never; Returns: Json }
       rpc_unpublish_post: { Args: { p_post_id: string }; Returns: Json }
       rpc_update_comment: {
         Args: { p_body: string; p_comment_id: string }
