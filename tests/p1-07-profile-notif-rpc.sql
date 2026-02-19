@@ -1,37 +1,37 @@
 begin;
 
-set local role authenticated;
+set local search_path = public, auth, pg_temp;
 
 do $$
 declare
-  v_user_id uuid;
-  v_other_user_id uuid;
+  v_user_id uuid := '77777777-7777-7777-7777-777777777771';
+  v_other_user_id uuid := '78888888-8888-8888-8888-888888888882';
   v_notif_id uuid;
   v_result jsonb;
 begin
-  select p.user_id
-  into v_user_id
-  from public.profiles p
-  order by p.created_at
-  limit 1;
+  -- Fixture: insert test users into auth.users (triggers profile bootstrap)
+  insert into auth.users (id, aud, role, email)
+  values
+    (v_user_id, 'authenticated', 'authenticated', 'p1-07-owner@example.com'),
+    (v_other_user_id, 'authenticated', 'authenticated', 'p1-07-other@example.com')
+  on conflict (id) do nothing;
 
-  if v_user_id is null then
-    raise exception 'test precondition failed: profiles row is required';
-  end if;
+  -- Set terms_agreed for primary user
+  update public.profiles
+  set terms_agreed_at = now(),
+      nickname = 'testnick_p107a',
+      nickname_changed_at = now(),
+      updated_at = now()
+  where user_id = v_user_id;
 
-  select p.user_id
-  into v_other_user_id
-  from public.profiles p
-  where p.user_id <> v_user_id
-  order by p.created_at
-  limit 1;
+  update public.profiles
+  set terms_agreed_at = now(),
+      updated_at = now()
+  where user_id = v_other_user_id;
 
-  if v_other_user_id is null then
-    v_other_user_id := v_user_id;
-  end if;
-
-  perform set_config('request.jwt.claim.role', 'authenticated', true);
+  -- Set JWT claims for authenticated RPC calls
   perform set_config('request.jwt.claim.sub', v_user_id::text, true);
+  perform set_config('request.jwt.claim.role', 'authenticated', true);
 
   -- Smoke: agree_terms sets terms_agreed_at (idempotent)
   v_result := public.rpc_agree_terms();

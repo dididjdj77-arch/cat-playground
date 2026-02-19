@@ -3,6 +3,10 @@ import { dirname, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 import { checkDci1ProfilesJoin } from "./check-dci-1-profiles-join.mjs";
 import { checkDci2AppConfigWhitelist } from "./check-dci-2-app-config-whitelist.mjs";
+import { checkDci5SchemaDrift } from "./check-dci-5-schema-drift.mjs";
+import { checkDci6RpcGuardCompleteness } from "./check-dci-6-rpc-guard-completeness.mjs";
+import { checkDci7RlsCoverage } from "./check-dci-7-rls-coverage.mjs";
+import { checkDci8GrantRevoke } from "./check-dci-8-grant-revoke.mjs";
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const rootDir = resolve(__dirname, "..", "..");
@@ -80,6 +84,10 @@ export function runDriftChecks() {
     checkErrorCodesDrift(),
     checkDci1ProfilesJoin({ rootDir }),
     checkDci2AppConfigWhitelist({ rootDir }),
+    checkDci5SchemaDrift({ rootDir }),
+    checkDci6RpcGuardCompleteness({ rootDir }),
+    checkDci7RlsCoverage({ rootDir }),
+    checkDci8GrantRevoke({ rootDir }),
   ];
 
   for (const check of checks) {

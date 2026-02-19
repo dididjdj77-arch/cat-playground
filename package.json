@@ -15,7 +15,8 @@
     "db:smoke": "node scripts/db-smoke.mjs",
     "db:types": "node scripts/gen-db-types.mjs",
     "db:types:check": "node scripts/gen-db-types.mjs --check",
-    "ci:verify": "npm run repo:lint && npm run repo:typecheck && npm run repo:test && npm run db:reset && npm run db:smoke && npm run db:types:check && node scripts/lint-decisions.mjs && bash scripts/check-docs-integrity.sh",
+    "db:sql-tests": "node scripts/db-sql-tests.mjs",
+    "ci:verify": "npm run repo:lint && npm run repo:typecheck && npm run repo:test && npm run db:reset && npm run db:smoke && npm run db:types:check && node scripts/lint-decisions.mjs && bash scripts/check-docs-integrity.sh && npm run ci:public-gate",
     "ci:public-gate": "node scripts/ci-public-gate.mjs",
     "ci:drift": "node scripts/ci-drift.mjs"
   }

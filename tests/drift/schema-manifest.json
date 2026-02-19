@@ -1,0 +1,341 @@
+{
+  "tables": [
+    "profiles",
+    "profile_settings",
+    "cats",
+    "house_profiles",
+    "house_slots",
+    "catalog_items",
+    "catalog_aliases",
+    "catalog_suggestions",
+    "inventory_items",
+    "observation_groups",
+    "observations",
+    "observation_patch_dedup",
+    "observation_inventory_refs",
+    "posts",
+    "comments",
+    "comment_revisions",
+    "reply_revisions",
+    "topics",
+    "topic_follows",
+    "threads",
+    "replies",
+    "likes",
+    "blocks",
+    "reports",
+    "moderation_actions",
+    "notifications",
+    "payload_versions",
+    "payload_version_events",
+    "payload_version_rollups",
+    "ops_metrics",
+    "app_config"
+  ],
+  "check_constraints": [
+    {
+      "id": "CHK-inv-type",
+      "table": "inventory_items",
+      "description": "D-038: type enum (food|litter|toy|furniture)",
+      "pattern": "type\\s+in\\s*\\(\\s*'food'\\s*,\\s*'litter'\\s*,\\s*'toy'\\s*,\\s*'furniture'\\s*\\)"
+    },
+    {
+      "id": "CHK-inv-reason-code",
+      "table": "inventory_items",
+      "description": "D-075: reason_code (initial|switch|correction)",
+      "pattern": "reason_code\\s+in\\s*\\(\\s*'initial'\\s*,\\s*'switch'\\s*,\\s*'correction'\\s*\\)"
+    },
+    {
+      "id": "CHK-inv-raw-text-len",
+      "table": "inventory_items",
+      "description": "D-087: raw_text 1~200",
+      "pattern": "char_length\\(raw_text\\)\\s+between\\s+1\\s+and\\s+200"
+    },
+    {
+      "id": "CHK-inv-reason-note-len",
+      "table": "inventory_items",
+      "description": "D-087: reason_note <= 500",
+      "pattern": "char_length\\(reason_note\\)\\s*<=\\s*500"
+    },
+    {
+      "id": "CHK-inv-current-invariant",
+      "table": "inventory_items",
+      "description": "D-057: ended_at/is_current invariant",
+      "pattern": "ended_at\\s+is\\s+null\\s+and\\s+is_current\\s*=\\s*true"
+    },
+    {
+      "id": "CHK-post-body-len",
+      "table": "posts",
+      "description": "D-087: body 1~5000",
+      "pattern": "char_length\\(body\\)\\s+between\\s+1\\s+and\\s+5000"
+    },
+    {
+      "id": "CHK-post-visibility",
+      "table": "posts",
+      "description": "D-007: private+published forbidden",
+      "pattern": "not\\s*\\(\\s*visibility\\s*=\\s*'private'\\s+and\\s+published_at\\s+is\\s+not\\s+null\\s*\\)"
+    },
+    {
+      "id": "CHK-post-log-date",
+      "table": "posts",
+      "description": "D-010: log_date <= current_date",
+      "pattern": "log_date\\s*<=\\s*current_date"
+    },
+    {
+      "id": "CHK-comment-body-len",
+      "table": "comments",
+      "description": "D-087: body 1~2000",
+      "pattern": "char_length\\(body\\)\\s+between\\s+1\\s+and\\s+2000"
+    },
+    {
+      "id": "CHK-thread-title-len",
+      "table": "threads",
+      "description": "D-087: title 1~120",
+      "pattern": "char_length\\(title\\)\\s+between\\s+1\\s+and\\s+120"
+    },
+    {
+      "id": "CHK-thread-body-len",
+      "table": "threads",
+      "description": "D-087: body 1~10000",
+      "pattern": "char_length\\(body\\)\\s+between\\s+1\\s+and\\s+10000"
+    },
+    {
+      "id": "CHK-reply-body-len",
+      "table": "replies",
+      "description": "D-087: body 1~5000",
+      "pattern": "char_length\\(body\\)\\s+between\\s+1\\s+and\\s+5000"
+    },
+    {
+      "id": "CHK-nickname-len",
+      "table": "profiles",
+      "description": "D-087: nickname 2~20",
+      "pattern": "char_length\\(nickname\\)\\s+between\\s+2\\s+and\\s+20"
+    },
+    {
+      "id": "CHK-bio-len",
+      "table": "profiles",
+      "description": "D-087: bio <= 200",
+      "pattern": "char_length\\(bio\\)\\s*<=\\s*200"
+    },
+    {
+      "id": "CHK-house-visibility",
+      "table": "house_profiles",
+      "description": "D-035: private+published forbidden",
+      "pattern": "not\\s*\\(\\s*visibility\\s*=\\s*'private'\\s+and\\s+published_at\\s+is\\s+not\\s+null\\s*\\)"
+    },
+    {
+      "id": "CHK-house-room-key",
+      "table": "house_slots",
+      "description": "D-006: v1 living_room only",
+      "pattern": "room_key\\s*=\\s*'living_room'"
+    },
+    {
+      "id": "CHK-house-slot-key",
+      "table": "house_slots",
+      "description": "D-006: v1 slot_01..slot_08",
+      "pattern": "slot_key\\s+in\\s*\\(\\s*'slot_01'"
+    },
+    {
+      "id": "CHK-obs-log-date",
+      "table": "observation_groups",
+      "description": "D-010: log_date <= current_date",
+      "pattern": "log_date\\s*<=\\s*current_date"
+    },
+    {
+      "id": "CHK-obs-version",
+      "table": "observation_groups",
+      "description": "version >= 1",
+      "pattern": "version\\s*>=\\s*1"
+    },
+    {
+      "id": "CHK-obs-status",
+      "table": "observations",
+      "description": "status enum",
+      "pattern": "status\\s+in\\s*\\(\\s*'active'\\s*,\\s*'excluded'\\s*\\)"
+    },
+    {
+      "id": "CHK-obs-inv-type",
+      "table": "observation_inventory_refs",
+      "description": "inv_type enum",
+      "pattern": "inv_type\\s+in\\s*\\(\\s*'food'\\s*,\\s*'litter'\\s*,\\s*'toy'\\s*,\\s*'furniture'\\s*\\)"
+    },
+    {
+      "id": "CHK-block-self",
+      "table": "blocks",
+      "description": "D-019: no self-block",
+      "pattern": "blocker_id\\s*<>\\s*blocked_id"
+    },
+    {
+      "id": "CHK-report-reason",
+      "table": "reports",
+      "description": "D-091: reason_code enum",
+      "pattern": "reason_code\\s+in\\s*\\(\\s*'spam'\\s*,\\s*'harassment'\\s*,\\s*'inappropriate'\\s*,\\s*'copyright'\\s*,\\s*'other'\\s*\\)"
+    },
+    {
+      "id": "CHK-notif-type",
+      "table": "notifications",
+      "description": "D-070: type enum",
+      "pattern": "type\\s+in\\s*\\(\\s*'comment'\\s*,\\s*'reply'\\s*,\\s*'like'\\s*\\)"
+    },
+    {
+      "id": "CHK-notif-target-type",
+      "table": "notifications",
+      "description": "D-070: target_type enum",
+      "pattern": "target_type\\s+in\\s*\\(\\s*'post'\\s*,\\s*'thread'\\s*\\)"
+    },
+    {
+      "id": "CHK-payload-state",
+      "table": "payload_versions",
+      "description": "D-028: state enum",
+      "pattern": "state\\s+in\\s*\\(\\s*'ACTIVE'\\s*,\\s*'DEPRECATED'\\s*,\\s*'REJECT'\\s*\\)"
+    },
+    {
+      "id": "CHK-payload-event-type",
+      "table": "payload_version_events",
+      "description": "D-089: event_type enum",
+      "pattern": "event_type\\s+in\\s*\\(\\s*'seen'\\s*,\\s*'reject'\\s*,\\s*'normalize_fail'\\s*,\\s*'unknown'\\s*\\)"
+    }
+  ],
+  "unique_constraints": [
+    {
+      "id": "UQ-inv-owner-type-current",
+      "table": "inventory_items",
+      "description": "D-040: one current per type",
+      "pattern": "inventory_items\\s*\\(owner_id\\s*,\\s*type\\).*where\\s+is_current\\s*=\\s*true"
+    },
+    {
+      "id": "UQ-obs-owner-log-date",
+      "table": "observation_groups",
+      "description": "D-060: one group per date",
+      "pattern": "observation_groups\\s*\\(owner_id\\s*,\\s*log_date\\).*where\\s+deleted_at\\s+is\\s+null"
+    },
+    {
+      "id": "UQ-obs-owner-idempotency",
+      "table": "observation_groups",
+      "description": "D-041: idempotency partial unique",
+      "pattern": "observation_groups\\s*\\(owner_id\\s*,\\s*idempotency_key\\).*where\\s+idempotency_key"
+    },
+    {
+      "id": "UQ-reports-reporter-target",
+      "table": "reports",
+      "description": "D-052: one report per target",
+      "pattern": "reports\\s*\\(reporter_id\\s*,\\s*target_type\\s*,\\s*target_id\\).*where\\s+deleted_at\\s+is\\s+null"
+    },
+    {
+      "id": "UQ-likes-user-target",
+      "table": "likes",
+      "description": "unique like per user+target",
+      "pattern": "unique\\s*\\(user_id\\s*,\\s*target_type\\s*,\\s*target_id\\)"
+    },
+    {
+      "id": "UQ-obs-group-cat",
+      "table": "observations",
+      "description": "unique observation per group+cat",
+      "pattern": "unique\\s*\\(group_id\\s*,\\s*cat_id\\)"
+    },
+    {
+      "id": "UQ-obs-inv-refs-group-type",
+      "table": "observation_inventory_refs",
+      "description": "unique ref per group+type",
+      "pattern": "unique\\s*\\(group_id\\s*,\\s*inv_type\\)"
+    },
+    {
+      "id": "UQ-obs-dedup-owner-group-key",
+      "table": "observation_patch_dedup",
+      "description": "D-061: dedup unique",
+      "pattern": "unique\\s*\\(owner_id\\s*,\\s*group_id\\s*,\\s*idempotency_key\\)"
+    },
+    {
+      "id": "UQ-catalog-type-name",
+      "table": "catalog_items",
+      "description": "unique catalog item per type+name",
+      "pattern": "unique\\s*\\(type\\s*,\\s*standard_name\\)"
+    },
+    {
+      "id": "UQ-catalog-alias-type",
+      "table": "catalog_aliases",
+      "description": "unique alias per type",
+      "pattern": "unique\\s*\\(type\\s*,\\s*alias\\)"
+    },
+    {
+      "id": "UQ-house-slots-owner-room-slot",
+      "table": "house_slots",
+      "description": "unique slot per owner+room+slot",
+      "pattern": "unique\\s*\\(owner_id\\s*,\\s*room_key\\s*,\\s*slot_key\\)"
+    }
+  ],
+  "indexes": [
+    {
+      "id": "IDX-cats-owner-deleted",
+      "pattern": "idx_cats_owner_deleted"
+    },
+    {
+      "id": "IDX-cats-owner-name",
+      "pattern": "idx_cats_owner_name"
+    },
+    {
+      "id": "IDX-inv-owner-type-current",
+      "pattern": "idx_inventory_items_owner_type_current"
+    },
+    {
+      "id": "IDX-inv-owner-deleted",
+      "pattern": "idx_inventory_items_owner_deleted"
+    },
+    {
+      "id": "IDX-obs-owner-log-date",
+      "pattern": "idx_observation_groups_owner_log_date"
+    },
+    {
+      "id": "IDX-obs-owner-payload-version",
+      "pattern": "idx_observation_groups_owner_payload_version"
+    },
+    {
+      "id": "IDX-obs-owner-idempotency",
+      "pattern": "idx_observation_groups_owner_idempotency"
+    },
+    {
+      "id": "IDX-posts-author-log-date",
+      "pattern": "idx_posts_author_log_date"
+    },
+    {
+      "id": "IDX-posts-visibility-published",
+      "pattern": "idx_posts_visibility_published"
+    },
+    {
+      "id": "IDX-posts-published-at",
+      "pattern": "idx_posts_published_at"
+    },
+    {
+      "id": "IDX-notif-user-created",
+      "pattern": "idx_notifications_user_created"
+    },
+    {
+      "id": "IDX-notif-user-read-at",
+      "pattern": "idx_notifications_user_read_at"
+    },
+    {
+      "id": "IDX-threads-fts",
+      "pattern": "idx_threads_fts_vector"
+    },
+    {
+      "id": "IDX-ops-metrics-key-ts",
+      "pattern": "idx_ops_metrics_metric_key_ts"
+    },
+    {
+      "id": "IDX-pv-events-version-ts",
+      "pattern": "idx_payload_version_events_version_ts"
+    },
+    {
+      "id": "IDX-pv-rollups-bucket-ts",
+      "pattern": "idx_payload_version_rollups_bucket_ts"
+    },
+    {
+      "id": "IDX-topic-follows-topic",
+      "pattern": "idx_topic_follows_topic_id"
+    },
+    {
+      "id": "IDX-catalog-suggestions-status",
+      "pattern": "idx_catalog_suggestions_status_created"
+    }
+  ]
+}

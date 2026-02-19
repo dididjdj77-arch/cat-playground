@@ -103,6 +103,27 @@ Phase 2(App) 시작 전, Auth Spike Gate는 플랫폼별(최소 iOS + Android) 1
 - 최소 포함: cats.avatar_key + cats.avatar_url + inventory IDs + raw_text/note/meta
 - (추가 후보) reason_*, ended_at 등 owner-only 원장 필드
 
+### DCI-5 스키마 드리프트 (DATA-MODEL ↔ migrations)
+- DATA-MODEL.md 기준 테이블 존재 확인
+- CHECK 제약조건(D-087 길이, D-075 reason_code, D-038 type enum 등) 존재 확인
+- UNIQUE 제약조건(partial unique 포함) 존재 확인
+- 인덱스(성능/정합 필수) 존재 확인
+- 매니페스트: `tests/drift/schema-manifest.json`
+
+### DCI-6 Write RPC 가드 완전성 (D-096)
+- 모든 write RPC에 guard_terms_agreed() 호출 존재 확인
+- pre-terms 예외(agree_terms, set_initial_nickname)에는 guard 미존재 확인
+- 대상: 32개 write RPC + 2개 예외
+
+### DCI-7 RLS 커버리지
+- 모든 도메인 테이블(31개)에 `enable row level security` 확인
+- 모든 도메인 테이블에 `revoke select from anon` 확인
+
+### DCI-8 GRANT/REVOKE 완전성
+- 공개 read RPC(7개): anon + authenticated GRANT 확인
+- auth-only RPC(39개): authenticated GRANT 확인
+- 존재 은닉 RPC(house): anon GRANT 금지 확인
+
 ---
 
 ## 4) 수동 QA 시나리오(핵심)
