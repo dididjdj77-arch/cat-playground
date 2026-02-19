@@ -4,10 +4,9 @@
 사용자가 "검증해줘" 요청 시 아래 순서로 실행:
 
 1. **CI 게이트**: `npm run ci:verify && npm run ci:drift`
-2. **DB 실제 검증**: `docker exec supabase_db_cat-playground psql -U postgres -d postgres -c "<query>"`
-   - 테이블 존재 확인
-   - 제약조건(PK/FK/CHECK/UNIQUE) 확인
-   - 인덱스 확인
+   - ci:verify에 ci:public-gate 포함
+   - ci:drift에 DCI-5(스키마) DCI-6(가드) DCI-7(RLS) DCI-8(GRANT) 포함
+2. **DB 기능 테스트**: `npm run db:sql-tests` (DB 실행 필요)
 3. **스펙 대조**: EP 문서 + `docs/DATA-MODEL.md` + `docs/DECISIONS.md` 대비 누락/불일치 확인
 4. **결과 리포트**: 테이블 형식으로 PASS/FAIL 정리
 
