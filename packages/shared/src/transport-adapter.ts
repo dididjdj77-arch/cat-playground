@@ -11,7 +11,8 @@ export const RPC_ERROR_CODE_TO_HTTP_STATUS = {
   duplicate_report: 409,
   invalid_target_type: 400,
   invalid_inventory_item: 400,
-} as const satisfies Record<ErrorCode, 400 | 403 | 404 | 409>;
+  rate_limited: 429,
+} as const satisfies Record<ErrorCode, 400 | 403 | 404 | 409 | 429>;
 
 export type RpcHttpStatus = (typeof RPC_ERROR_CODE_TO_HTTP_STATUS)[ErrorCode];
 
@@ -117,7 +118,14 @@ export class ForbiddenError extends RpcBusinessError {
   }
 }
 
-export type TypedRpcError = NotFoundError | ConflictError | ValidationError | TermsError | ForbiddenError;
+export class RateLimitError extends RpcBusinessError {
+  constructor(args: RpcTypedErrorArgs) {
+    super(args);
+    this.name = "RateLimitError";
+  }
+}
+
+export type TypedRpcError = NotFoundError | ConflictError | ValidationError | TermsError | ForbiddenError | RateLimitError;
 
 export function toTypedRpcError(args: RpcTypedErrorArgs): TypedRpcError {
   switch (args.body.error_code) {
@@ -136,6 +144,8 @@ export function toTypedRpcError(args: RpcTypedErrorArgs): TypedRpcError {
     case "invalid_target_type":
     case "invalid_inventory_item":
       return new ValidationError(args);
+    case "rate_limited":
+      return new RateLimitError(args);
     default:
       return assertNever(args.body.error_code);
   }

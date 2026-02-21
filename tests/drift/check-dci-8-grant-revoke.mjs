@@ -10,6 +10,7 @@ const ANON_AND_AUTH_RPCS = [
   { name: "rpc_get_public_thread_detail", sig: "uuid" },
   { name: "rpc_list_topics", sig: null },
   { name: "rpc_search_threads", sig: "text, text, int" },
+  { name: "rpc_get_public_thread_replies", sig: "uuid, text, int" },
 ];
 
 // RPCs that should be authenticated-only (anon must NOT have execute)
@@ -53,6 +54,8 @@ const AUTH_ONLY_RPCS = [
   { name: "rpc_publish_house", sig: null },
   { name: "rpc_unpublish_house", sig: null },
   { name: "rpc_get_app_config", sig: null },
+  { name: "rpc_hide_content", sig: "text, uuid" },
+  { name: "rpc_unhide_content", sig: "text, uuid" },
 ];
 
 function loadAllMigrationSql(rootDir) {

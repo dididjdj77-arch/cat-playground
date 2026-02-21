@@ -34,6 +34,8 @@ const WRITE_RPCS_REQUIRING_GUARD = [
   "rpc_update_profile",
   "rpc_mark_notification_read",
   "rpc_mark_all_notifications_read",
+  "rpc_hide_content",
+  "rpc_unhide_content",
 ];
 
 const PRE_TERMS_EXCEPTIONS = [

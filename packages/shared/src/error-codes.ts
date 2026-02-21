@@ -9,6 +9,7 @@ export const ERROR_CODES = [
   "invalid_request",
   "invalid_target_type",
   "invalid_inventory_item",
+  "rate_limited",
 ] as const;
 
 export type ErrorCode = (typeof ERROR_CODES)[number];
