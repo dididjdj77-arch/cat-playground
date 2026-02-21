@@ -1337,6 +1337,7 @@ export type Database = {
         Args: { p_target_user_id: string; p_viewer_id: string }
         Returns: boolean
       }
+      guard_rate_limit: { Args: { p_action_key: string }; Returns: Json }
       guard_soft_state: {
         Args: { p_deleted_at: string; p_hidden_at: string }
         Returns: boolean
@@ -1407,8 +1408,16 @@ export type Database = {
         Args: { p_thread_id: string }
         Returns: Json
       }
+      rpc_get_public_thread_replies: {
+        Args: { p_cursor?: string; p_limit?: number; p_thread_id: string }
+        Returns: Json
+      }
       rpc_get_public_threads_feed: {
         Args: { p_cursor?: string; p_limit?: number; p_sort?: string }
+        Returns: Json
+      }
+      rpc_hide_content: {
+        Args: { p_target_id: string; p_target_type: string }
         Returns: Json
       }
       rpc_inventory_correction: {

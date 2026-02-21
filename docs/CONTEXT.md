@@ -52,25 +52,62 @@
 ---
 
 ## Current Status (Session Restore)
-- Phase: Implementation — P0 스키마 마이그레이션 완료, P1 RPC 구현 준비 단계
-- Last merged PR: #100 (2026-02-18)
+- Phase: **P2 앱 플로우 구현** — P0~P1 전체 완료, P2-01C(온보딩)까지 완료
+- Latest commit: `1593fbb` (2026-02-21)
+- Last merged PR: #130 (2026-02-21)
 - Work starts: User-provided Execution Packet only (no task list doc)
 - Tracking key: EP-ID + PR (no T-XXX)
+- Audit: `docs/audits/2026-02-18-audit-up-to-p2-01c.md` (P2-01C 기준 감사 완료)
 
 ### Completed EPs
+
+#### Phase 0 — 인프라/스키마 (전체 완료)
 | EP | PR | 내용 |
 |----|-----|------|
 | P0-01 | — | CI 파이프라인 구축 |
 | P0-02 | #95 | CI verify green |
 | P0-03A | #96 | 코어 스키마 마이그레이션 (profiles, topics, auth) |
-| P0-03B | #100 | 커뮤니티/운영 스키마 (topic_follows, reply_revisions, comment_revisions, moderation_actions + FK/CHECK/인덱스 보강) |
-| P0-03C doc | #98 | EP 문서 결함 수정 (6항목) |
-| EP bulk fix | #99 | 전체 EP 문서 일괄 패치 — 스코프 충돌 제거, P1 타겟 RPC 보강, P1-07 신설 |
+| P0-03B | #100 | 커뮤니티/운영 스키마 |
+| P0-03C | — | Storage 버킷 + rpc_get_app_config |
+| P0-03D | — | RLS 정책 + Guard 함수 + GRANT/REVOKE |
+| P0-04 | #110 | 회귀 테스트 + Fixture seed + Public Surface Gate |
+| P0-05 | #111,#113 | DB 타입 코드젠 + 공용 경계 |
+| P0-06 | #114 | Environment Matrix 스켈레톤 |
+
+#### Phase 0.9 — Expo 최소 앱 (전체 완료)
+| EP | PR | 내용 |
+|----|-----|------|
+| P0.9-01 | #115 | Expo 최소 앱 auth spike |
+| P0.9-02 | #116 | 환경별 재현성 체크리스트 + Env Matrix 값 |
+
+#### Phase 1 — RPC 구현 (전체 완료)
+| EP | PR | 내용 |
+|----|-----|------|
+| P1-01 | #117 | 인벤토리 RPC: switch/discontinue |
+| P1-02 | #118 | 관찰 RPC: upsert/patch + idempotency + payload_version |
+| P1-03 | #122 | 하우스 RPC: 슬롯 bind/clear + publish/unpublish + 공개 요약 |
+| P1-04 | #119 | 냥스타 RPC: posts/comments/like + public surface gate |
+| P1-05 | #123 | 채널 RPC: 토픽/스레드/답글/검색/피드 + keyset pagination |
+| P1-06 | #120 | 운영 RPC: 신고/차단/자동숨김/감사로그 |
+| P1-07 | #121 | 프로필/알림 RPC: terms/nickname/profile-update + 알림 read/mark-read |
+
+#### Phase 2 — 앱 플로우 (진행 중)
+| EP | PR | 내용 | 상태 |
+|----|-----|------|------|
+| P2-00 | #124 | Transport Adapter (Supabase RPC adapter) | ✅ |
+| P2-01A | #125 | 로그인/로그아웃 + 세션 생성/저장/복구 | ✅ |
+| P2-01C | #129 | 온보딩: 약관 동의 → 닉네임 설정 → write unlock | ✅ |
+| 감사 수정 | #126~#128,#130 | SSOT drift 수정, owner-read RPC 보강, 검증 시스템 강화 | ✅ |
+| P2-01B | — | 세션 만료/갱신/오프라인/취소 UX | 미착수 |
+| P2-02 | — | 하우스 플로우 번들 | 미착수 |
+| P2-03 | — | 다이어리 플로우 번들 | 미착수 |
+| P2-04 | — | 냥스타 플로우 번들 | 미착수 |
+| P2-05 | — | 채널 플로우 번들 | 미착수 |
+| P2-06 | — | 설정 + 운영 UI 번들 | 미착수 |
 
 ### Next EPs (ready)
-- **P0-03C**: Storage 버킷 + rpc_get_app_config (선행: P0-03A)
-- **P0-03D**: RLS 정책 마이그레이션 (선행: P0-03C)
-- **P1-01 ~ P1-07**: RPC 구현 (선행: P0-03D)
+- **P2-01B**: 세션 만료/갱신/오프라인/취소 UX
+- **P2-02 ~ P2-06**: 앱 화면 플로우 구현 (프론트엔드 중심)
 
 ---
 

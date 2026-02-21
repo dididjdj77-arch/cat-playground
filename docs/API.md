@@ -30,6 +30,7 @@ DB RPC는 항상 JSON return(D-065). 외부 표면(웹 SSR/SDK wrapper)이 `body
 | duplicate_report | 409 | ConflictError throw |
 | invalid_target_type | 400 | ValidationError throw |
 | invalid_inventory_item | 400 | ValidationError throw |
+| rate_limited | 429 | RateLimitError throw |
 
 메모:
 - D-050: guard 불만족은 모두 `not_found`로 귀결(존재 은닉).
